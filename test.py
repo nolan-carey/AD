@@ -103,7 +103,7 @@ SFX_QUEUE = [
     # ── P1: Bespoke UI moments (5) ──
     {"id": "iphone_morph_whirr", "prompt": "Soft mechanical whirr followed by a subtle thunk, like the home button mechanism of an iPhone or a precision camera shutter closing. Premium, brief, organic-mechanical, no music.", "duration": 0.6, "priority": "P1"},
     {"id": "scan_sweep", "prompt": "Smooth electronic scan sweep, low to high frequency over 0.8 seconds, like a receipt being scanned by a modern AI app. Subtle reverb tail, no harsh frequencies, no clicks.", "duration": 1.0, "priority": "P1"},
-    {"id": "sparkle_match", "prompt": "Quick bright sparkle chime, two cascading notes, like a magical UI element snapping into the correct slot. Light, satisfying, AI-coded, glassy texture, no reverb tail.", "duration": 0.4, "priority": "P1"},
+    {"id": "sparkle_match", "prompt": "Quick bright sparkle chime, two cascading notes, like a magical UI element snapping into the correct slot. Light, satisfying, AI-coded, glassy texture, no reverb tail.", "duration": 0.5, "priority": "P1"},
     {"id": "map_zoom_whoosh", "prompt": "Cinematic camera zoom whoosh from wide to close, low filtered noise sweep with a subtle Doppler shift. Used in modern map applications. No music, no clicks, smooth tail.", "duration": 0.8, "priority": "P1"},
     {"id": "route_line_flow", "prompt": "Subtle flowing electronic energy travelling along a path, like data moving through a network line. Soft synthetic stream, faint UI texture, no harsh elements, no melody.", "duration": 1.0, "priority": "P1"},
 
@@ -120,8 +120,8 @@ SFX_QUEUE = [
     # WILL FAIL with HTTP 400 the same way `sparkle_match` does. They are kept
     # verbatim from §4.5.3 as the locked source of truth — Steve revises if needed.
     {"id": "transition_warm_whoosh", "prompt": "Warm filtered whoosh with subtle low-end thump, transitioning from intimate close-up to precise focus. No high frequencies, no harsh elements. Half a second total.", "duration": 0.5, "priority": "P3"},
-    {"id": "transition_sharp_impact", "prompt": "Sharp clean impact with brief reverb tail, used as a scene transition between a precise quote moment and a tactile receipt-scanning scene. Premium, deliberate.", "duration": 0.4, "priority": "P3"},
-    {"id": "transition_glitch_cut", "prompt": "Brief electronic glitch-cut transition with subtle digital texture, suggesting a switch in modality from list to map view. Modern, restrained, not chaotic. Under half a second.", "duration": 0.3, "priority": "P3"},
+    {"id": "transition_sharp_impact", "prompt": "Sharp clean impact with brief reverb tail, used as a scene transition between a precise quote moment and a tactile receipt-scanning scene. Premium, deliberate.", "duration": 0.5, "priority": "P3"},
+    {"id": "transition_glitch_cut", "prompt": "Brief electronic glitch-cut transition with subtle digital texture, suggesting a switch in modality from list to map view. Modern, restrained, not chaotic. About half a second.", "duration": 0.5, "priority": "P3"},
     {"id": "transition_soft_fade", "prompt": "Soft warm fade transition with gentle high-frequency shimmer, suggesting connection and conversation, used between a map scene and a follow-up message scene. Warm.", "duration": 0.6, "priority": "P3"},
 ]
 

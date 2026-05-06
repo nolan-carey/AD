@@ -101,16 +101,16 @@ export const Scene4Expense: React.FC = () => {
           playbackRate={1.2 + i * 0.05}
         />
       ))}
-      {/* sparkle_match FALLBACK (locked-prompt 0.4s blocked at API min 0.5s) —
-          per §4.5.5, use notification1 pitched +5 semitones at the category lock. */}
+      {/* sparkle_match (v1.15 — re-generated after duration bump) on category lock */}
       <SfxAt
-        src={SFX.notification1}
+        src={GEN.sparkleMatch}
         from={CATEGORY_LOCK + 4}
         volume={0.32}
-        playbackRate={Math.pow(2, 5 / 12)}
       />
       <SfxAt src={SFX.click} from={SAVE_TAP + 4} volume={0.85} />
       <SfxAt src={SFX.swoosh} from={SAVE_TAP + 8} volume={0.55} />
+      {/* transition_glitch_cut (v1.15) — Scene 4→5 boundary, abs F804 = local F144 */}
+      <SfxAt src={GEN.transGlitch} from={144} volume={0.32} />
     </AbsoluteFill>
   );
 };

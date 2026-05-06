@@ -166,6 +166,8 @@ export const Scene3VoiceQuote: React.FC = () => {
       <SfxAt src={SFX.swoosh} from={SEND_TAP + 12} volume={0.7} />
       {/* Achievement chime on send confirmation toast (frame 444 = TOAST_IN + ~12) */}
       <SfxAt src={GEN.achievement} from={TOAST_IN} volume={0.32} />
+      {/* transition_sharp_impact (v1.15) — Scene 3→4 boundary, abs F655 = local F235 */}
+      <SfxAt src={GEN.transSharp} from={235} volume={0.4} />
     </AbsoluteFill>
   );
 };

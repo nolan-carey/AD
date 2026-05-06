@@ -34,12 +34,13 @@ export const GEN = {
   bedTactile: staticFile("sound/generated/bed_tactile_clinical.mp3"),
   bedSpatial: staticFile("sound/generated/bed_spatial_cinematic.mp3"),
   bedConversational: staticFile("sound/generated/bed_conversational_warm.mp3"),
-  // P3 (v1.11) — transition stings (only 2 of 4 generated; 2 failed at 0.5s API floor)
+  // P1 (v1.15 retry) — sparkle_match generated after duration bump 0.4 → 0.5
+  sparkleMatch: staticFile("sound/generated/sparkle_match.mp3"),
+  // P3 (v1.11) — transition stings — all 4 generated after v1.15 duration bumps
   transWhoosh: staticFile("sound/generated/transition_warm_whoosh.mp3"), // 2→3
+  transSharp: staticFile("sound/generated/transition_sharp_impact.mp3"), // 3→4 (v1.15)
+  transGlitch: staticFile("sound/generated/transition_glitch_cut.mp3"), // 4→5 (v1.15)
   transSoftFade: staticFile("sound/generated/transition_soft_fade.mp3"), // 5→6
-  // ⏸ MISSING (Steve to revise durations, locked at 0.4s and 0.3s respectively):
-  //  transition_sharp_impact (3→4)  — falls back to existing swoosh
-  //  transition_glitch_cut (4→5)    — falls back to existing swoosh
 } as const;
 
 // Per ad_plan.md §3.5, reference PNGs from /ReferenceImages/ MUST NOT be placed
