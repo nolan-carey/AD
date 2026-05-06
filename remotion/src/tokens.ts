@@ -98,20 +98,22 @@ export const TYPE = {
   ctaLabel: { size: 22, weight: 600 },
 } as const;
 
-// Master timeline anchor (ad_plan.md §5 v1.21 — 32s/960 frames, 10 scenes,
-// transformation chain). Each scene is a verbatim beat from the user storyboard.
+// Master timeline anchor (ad_plan.md §5 v1.22 — 33s/990 frames, 10 scenes).
+// v1.22: Scene 2 extended 60→90f for iPhone + Kiva app opening reveal;
+// Scenes 3-10 shifted +30 frames as a temporary placement until the user
+// picks a/b/c on the runtime ripple decision (PENDING APPROVALS).
 export const FPS = 30;
-export const TOTAL_FRAMES = 960; // 32s @ 30fps
+export const TOTAL_FRAMES = 990; // 33s @ 30fps
 
 export const SCENES = {
   scene1: { from: 0, duration: 180 }, //    0:00.0 – 0:06.0  (6.0s · Overwhelm)
-  scene2: { from: 180, duration: 60 }, //   0:06.0 – 0:08.0  (2.0s · Reset + Logo→iPhone reveal)
-  scene3: { from: 240, duration: 105 }, //  0:08.0 – 0:11.5  (3.5s · Dashboard reveal + mic zoom)
-  scene4: { from: 345, duration: 105 }, //  0:11.5 – 0:15.0  (3.5s · Voice→Quote)
-  scene5: { from: 450, duration: 60 }, //   0:15.0 – 0:17.0  (2.0s · Quote→Customer profile)
-  scene6: { from: 510, duration: 90 }, //   0:17.0 – 0:20.0  (3.0s · Receipt→Expense)
-  scene7: { from: 600, duration: 90 }, //   0:20.0 – 0:23.0  (3.0s · Map→Route)
-  scene8: { from: 690, duration: 90 }, //   0:23.0 – 0:26.0  (3.0s · Pin→Follow-up)
-  scene9: { from: 780, duration: 120 }, //  0:26.0 – 0:30.0  (4.0s · AI Business Assistant)
-  scene10: { from: 900, duration: 60 }, //  0:30.0 – 0:32.0  (2.0s · Final hero shot)
+  scene2: { from: 180, duration: 90 }, //   0:06.0 – 0:09.0  (3.0s · iPhone + Kiva app opening — v1.22)
+  scene3: { from: 270, duration: 105 }, //  0:09.0 – 0:12.5  (3.5s · Dashboard reveal + mic zoom · +30 v1.22)
+  scene4: { from: 375, duration: 105 }, //  0:12.5 – 0:16.0  (3.5s · Voice→Quote · +30 v1.22)
+  scene5: { from: 480, duration: 60 }, //   0:16.0 – 0:18.0  (2.0s · Quote→Customer profile · +30 v1.22)
+  scene6: { from: 540, duration: 90 }, //   0:18.0 – 0:21.0  (3.0s · Receipt→Expense · +30 v1.22)
+  scene7: { from: 630, duration: 90 }, //   0:21.0 – 0:24.0  (3.0s · Map→Route · +30 v1.22)
+  scene8: { from: 720, duration: 90 }, //   0:24.0 – 0:27.0  (3.0s · Pin→Follow-up · +30 v1.22)
+  scene9: { from: 810, duration: 120 }, //  0:27.0 – 0:31.0  (4.0s · AI Business Assistant · +30 v1.22)
+  scene10: { from: 930, duration: 60 }, //  0:31.0 – 0:33.0  (2.0s · Final hero shot · +30 v1.22)
 } as const;

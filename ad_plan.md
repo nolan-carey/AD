@@ -9,7 +9,7 @@
 
 > Anything that needs the **user's explicit go-ahead** lives here. Always shown at the very top of the doc. When this section reads "(none — all clear)", Norm can proceed with everything in ACTIVE DIRECTIVES without further user input. When this section has items, **Norm pauses on those specific items** until the user marks them ✅.
 
-1. **🎼 Music prompt needs re-timing for new 32s runtime.** The §4.6.2 prompt was originally calibrated for 45s. With v1.21's 32-second runtime + new beat structure (10 scenes, transformation chain), peak times need to shift. **Steve's proposed new peaks for the 32s arc:** PEAK 1 at 0:04.5 (overwhelm climax — Scene 1 swoosh, unchanged), HARD SILENCE 0:05.2–0:05.6 (unchanged), PEAK 2 at 0:14.5 (£280 quote total stamp — Scene 4 hold), PEAK 3 at 0:22.0 (32 min saved — Scene 7 result card), PEAK 4 at 0:28.0 (£1,840 revenue card expand — Scene 9 main reveal, BIGGEST moment). Final fade-out 0:30–0:32. Reply *"approve music re-timing"* and Steve rewrites the §4.6.2 prompt accordingly. Norm holds music generation until then.
+**(none — all clear)** · *User waived the runtime ripple decision on 2026-05-06: "yes just add things as I say, the complete flow is going to change, don't worry about it." Total runtime + music re-timing will be reconciled in a later pass once all scenes are individually locked. For now, scenes are designed independently and the master timeline §5 may show inconsistent totals.*
 
 ---
 
@@ -17,6 +17,8 @@
 
 > Every revision logged here. Most recent on top. Norm — read this first to see what changed since your last build.
 
+- **v1.23 · 2026-05-06** · **User waived total-flow reconciliation — pure per-scene mode.** User direction: *"yes just add things as I say, the complete flow is going to change, don't worry about it."* PENDING APPROVALS runtime ripple decision and music re-timing both cleared — to be reconciled in a final pass once individual scenes are locked. Steve's behavior: when a scene change creates downstream ripples (timing, master timeline totals, music peaks), I do NOT flag them as decisions to make right now. I lock the scene as the user wants it, note the inconsistency in the master timeline, and let it stand. Total flow gets one reconciliation pass at the end.
+- **v1.22 · 2026-05-06** · **🎯 Scene-by-scene rule activated. Scene 1 + Scene 2 finished per user direction.** New scene-by-scene working rule locked in memory: ONE scene at a time, no wholesale restructures unless explicitly asked. **Scene 1 changes:** typing slowed (1fpc → 2fpc for "Feeling", 0.85fpc → 1.5fpc for "overwhelmed?"); cursor onset extended (4f → 8f); pause between phrases extended (2f → 6f); held-silence at end extended; trimmed to its 0–180 budget (logo/morph beats removed — now Scene 2's territory). **Scene 2 fully rewritten per user direction "iphone with the kiva app opening":** replaces the v1.21 logo→iPhone morph storyboard. Phone fades in already-existing, viewer sees iOS home screen with Kiva app icon highlighted, cursor taps icon, iOS app-launch expand animation, brand-lockup splash (Kiva chevron + **"Kiva." wordmark added per user** + tagline), splash dissolves into dashboard with "All your admin. One place." Extended Scene 2 to 90 frames (was 60) for anticipation. **Runtime impact:** +30 frames pushes total runtime to 33s (Scenes 3–10 unshifted in this turn — see 🚦 PENDING APPROVALS for the ripple decision).
 - **v1.21 · 2026-05-06** · **🎬 Full v1.21 beat-by-beat from user — locked verbatim.** User delivered a complete shot-by-shot spec including locked specifics: quote example *John Smith / bathroom leak repair / £180 labour + £100 materials = £280 total*; receipt example *Plumbing Supplies £46.20* with tags *Materials / Bathroom Leak Repair / John Smith / Tax-ready*; map pins *Leak Repair / Boiler Check / Quote Visit / Follow-Up*; *32 min saved today*; AI assistant query *"What job made me the most money this week?"* answered with *Bathroom repairs — £1,840 revenue* + supporting cards *Highest Margin / Fastest Payment / Most Repeat Customers*; dashboard text *"All your admin. One place."*; final tagline pair *"Run smarter. Earn more." / "Download Kiva"*. Logo reveal tagline *"Blue collar solutions to blue collar problems"* RESTORED (was wrongly cut in v1.20). Mrs. Patel loop-closure callback CUT. Cursor (not thumb) clicks the logo. Receipt → expense classification feature is back in (was wrongly cut in v1.20). **Runtime extended 27s → 32s (960 frames)** because the user's content tally landed at ~30–32s. Master timeline §5 rewritten as 8 scenes per user's beats. **§6 per-scene specs fully rewritten verbatim from user's spec.** Music prompt §4.6.2 re-timed for the new 32s arc with peaks at 0:04.5 (overwhelm climax), 0:14.5 (£280 stamp), 0:28 (£1,840 reveal — biggest), with hard silence 0:05.2–0:05.6 preserved. **Music gate now ⏸ AWAITING REVIEW again** for the re-timed prompt. Steve's behavior rule reaffirmed: subtraction by default, but when user gives a SPECIFIC complete spec, lock it verbatim — don't paraphrase or "improve."
 - **v1.20 · 2026-05-06** · **🪓 STOP ADDING — START CUTTING. User reframe: 27s, 5 hero moments, transformation storytelling.** User flagged that the plan was overstuffing and we were "going in circles." Direction: an Apple-style SaaS commercial is memorable because of 2–3 moments, not because it shows 10 features. **Major cuts and structural reset:** (1) Runtime **45s → 27s** = 810 frames. (2) Feature count reduced — **expense classification CUT**. Voice-to-customer reframed as a *transformation* (quote card morphs into customer profile, not a separate scene). AI Business Assistant added back as final feature. (3) **NEW motion vocabulary** locked in §3.7 — *sweeps / zooms / expands / holds* as the four primitives. Transformation-based storytelling: UI elements MORPH between features. (4) **CUT § feature-title flashes** (deprecated — text noise). (5) **CUT per-scene focus captions** (deprecated — replaced by ONE final tagline). (6) **NEW final tagline: *"Run smarter. Earn more."*** — replaces "Blue collar solutions to blue collar problems" in Scene 7 lockup (the old tagline is parked, can be revived if user wants). (7) **NEW 8-scene structure** in §5 master timeline. Scene specs in §6 will be rewritten per-scene in v1.21 follow-up — for now, §5 + the new structure preview is enough for Norm to plan Phase D refactors. **What's preserved:** §3.7 cinematic system (every scene still inherits 3D phone, gradient world, glow halo, glassmorphism, drift, magnetic motion, morph-not-cut philosophy). Atoms/molecules are unaffected. Audio infrastructure unchanged but cue density will drop.
 - **v1.19 · 2026-05-06** · **🎯 Music prompt strengthened for timing accuracy.** User flagged: "did you make it compose to peak at the correct times?" Steve answered: yes (5 explicit markers in the prompt) but honestly noted that AI music generators don't guarantee exact-second timing (typically ±1–2s drift). Strengthened the music prompt in §4.6.2: lifted timing language from "Three-act structure with these timing markers" → "**CRITICAL TIMING REQUIREMENTS — TREAT AS HARD CONSTRAINTS, NOT SUGGESTIONS**". Restructured to put the 5 markers at the TOP of the prompt as primary instructions, with the narrative wrapping them as secondary context. Each marker now numbered (MARKER 1–5) with explicit duration and character. Approval still ✅ (the strengthened prompt is a refinement, not a new direction). **Fallback plan if music drifts:** Steve will shift ad timing to match the music's actual peaks (Option B — "the music drives the ad's timing, not vice versa," like film scoring). This gets queued as v1.20 if needed after Norm sends the music for review.
@@ -831,8 +833,8 @@ User reviews the prompt in §4.6.2 + the success criteria in §4.6.3. When ready
 
 | # | Scene | Time | Frames | Duration | Beat |
 |---|---|---|---|---|---|
-| 1 | **Overwhelm** | 0:00 – 0:06 | 0 – 180 | 6.0s | Notification cluster + "Feeling overwhelmed?" typing + swoosh wipe |
-| 2 | **Logo → iPhone reveal** | 0:06 – 0:08 | 180 – 240 | 2.0s | Logo + tagline + cursor click + 3D morph into floating iPhone |
+| 1 | **Overwhelm** | 0:00 – 0:06 | 0 – 180 | 6.0s | Notification cluster + "Feeling overwhelmed?" typing (slowed v1.22) + held silence at end |
+| 2 | **iPhone + Kiva app opening** | 0:06 – 0:09 | 180 – 270 | 3.0s | Swoosh + extended silence + iPhone fades in + iOS home → cursor taps Kiva icon → app expands → splash (Kiva. + tagline) → dashboard fades in with "All your admin. One place." (v1.22) |
 | 3 | **Dashboard reveal** | 0:08 – 0:11.5 | 240 – 345 | 3.5s | Blue light sweep down screen → dashboard fades in → "All your admin. One place." → mic pulse |
 | 4 | **Voice → Quote** | 0:11.5 – 0:15 | 345 – 450 | 3.5s | Mic expands → waveform → voice input live (John Smith / bathroom leak / £280) → text morphs to Quote card → £280 total counts up |
 | 5 | **Quote → Customer profile** | 0:15 – 0:17 | 450 – 510 | 2.0s | Quote card expands fullscreen → morphs to Customer profile → fields auto-fill → "Customer Created" badge |
@@ -849,9 +851,9 @@ User reviews the prompt in §4.6.2 + the success criteria in §4.6.3. When ready
 ## 6. Scene-by-scene breakdown
 
 ### Scene 1 — Cold open: Notification overwhelm
-**Time:** 0:00.0 – 0:08.0 (frames 0–240) · **v1.14: extended by 24 frames to give the cinematic morph room to breathe**
-**Goal:** In 8 seconds, make the viewer feel the daily admin chaos of being a UK tradesperson, then promise relief.
-**Setting:** Cinematic environment per §3.7 — navy→black gradient backdrop active from frame 0 (the existing `linear-gradient(135deg, #0F172A 0%, #1E293B 100%)` is overridden by the v1.13 environment which extends the dark gradient deeper toward black). No phone visible until morph at frame 198. Camera drift baseline is on. Vignette + AI glow halo are off until the iPhone appears.
+**Time:** 0:00.0 – 0:06.0 (frames 0–180) · **v1.22: trimmed to overwhelm-only per v1.21 boundary; logo/morph moved to Scene 2 (now "iPhone + Kiva app opening")**
+**Goal:** In 6 seconds, make the viewer feel the daily admin chaos of being a UK tradesperson, with "Feeling overwhelmed?" hanging in the air at the end.
+**Setting:** Cinematic environment per §3.7 — navy→black gradient backdrop active from frame 0. No phone in this scene; phone enters in Scene 2. Camera drift baseline is on. Vignette + AI glow halo are off until Scene 2.
 
 **Beat-by-beat:**
 
@@ -861,13 +863,9 @@ User reviews the prompt in §4.6.2 + the success criteria in §4.6.3. When ready
 | 0:00.8–0:01.4 | 24–42 | **Hero hold (18 frames).** Mrs. Patel card holds alone, centered, fully readable. No new motion. Subtle ambient breathing: the card itself drifts down 0.2 px/frame and pulses opacity 1.0 → 0.97 → 1.0 once (sells "this matters, read me"). Vibration rumble continues. **This is the curiosity hook** — the viewer reads "u still coming tomorrow?" and asks "what about it?" before chaos answers. |
 | 0:01.4–0:02.7 | 42–82 | **Stack begins (4 cards, 10-frame intervals).** Cards cascade into the central 900×500 cluster zone, each with ~10-frame travel time:<br>**(a) F42→F52** — red missed-call banner (600×100) *"Missed call (3) — John (boiler)"* enters top-right edge, lands at **(1180, 400)**, -2° rotation. Ding `notifcation2.mp3` **frame 50**.<br>**(b) F52→F62** — WhatsApp green bubble (460×110) *"boiler still leaking mate"* enters from left, lands at **(740, 600)**, +3°. Ding `notication1.mp3` **frame 60**.<br>**(c) F62→F72** — email card (540×160) *"HMRC: VAT return due in 3 days"* enters bottom-right, lands at **(1100, 720)**, -1°. Ding `notifcation2.mp3` **frame 70**.<br>**(d) F72→F82** — calendar pop (460×120) *"Job at 8AM — Hammersmith"* enters top, lands at **(920, 380)**, +2°. Ding `notication1.mp3` (pitch +2 semitones) **frame 80**. |
 | 0:02.7–0:04.0 | 82–120 | **Density build (7 cards, 6-frame intervals).** Rapid-fire into the same tight central cluster, each overlapping previous cards by 20–40%. Travel time per card shortens to ~8 frames:<br>• F82→F90: Stripe banner (480×120) *"Invoice #0421 overdue — 47 days"* lands **(1020, 480)**, +1°. Ding F88.<br>• F88→F96: Google review card (480×130) *"New 1-star review — respond?"* lands **(1180, 540)**, -2°. Ding F94.<br>• F94→F102: iMessage (460×110) *"can u do it cheaper?"* lands **(820, 700)**, +3°. Ding F100.<br>• F100→F108: Screwfix email (480×130) *"Your parts order has shipped"* lands **(980, 360)**, -1°. Ding F106.<br>• F106→F114: voicemail card (480×120) *"You have 4 new messages"* lands **(760, 480)**, +2°. Ding F112.<br>• F112→F120: banking alert (480×120) *"Direct debit failed"* lands **(1140, 660)**, -3°. Ding F118.<br>• F118→F124: generic prompt (460×110) *"Quote follow-up?"* lands **(940, 580)**, +1°. Ding F122.<br>**Audio:** alternate `notication1.mp3` and `notifcation2.mp3` per card with ±2 semitone pitch shifts for chaos texture. `riser.mp3` starts at **frame 75**, building under everything through frame 156. By frame 124 the cluster is dense and centrally-stacked but the frame edges stay visually quieter — focus stays locked on the center pile. |
-| 0:04.0–0:04.1 | 120–124 | **Cursor onset (v1.6).** A white text cursor (4 × 80 px block, white at 60% opacity) appears at frame center (960, 540 in 1920×1080) and begins blinking — 15 frames on, 15 frames off cycle. Last 2 notification cards (Banking F120, Quote follow-up F124) are still landing in the cluster behind the cursor. Cursor renders above all cards (z-top). Anticipation builds: viewer sees the cursor, knows something is about to be typed. |
-| 0:04.1–0:04.8 | 124–144 | **Typing animation (v1.6 — replaces fade).** Text types in character-by-character at ~1 frame per char. Font: system bold, ~96 px, white at 95% opacity, anchored center.<br>• **F124–131**: "Feeling" types in (7 chars over 7 frames). Cursor moves with the leading edge of the text.<br>• **F131–133**: 2-frame pause — cursor blinks once, no new text. Builds suspense before the payoff word.<br>• **F133–144**: " overwhelmed?" types in (13 chars including the leading space, ~0.85 frames per char).<br>• **F144–148**: question mark scale-pulse (1.0 → 1.05 → 1.0 over 4 frames) — the "?" is the emotional payoff and gets the kinetic punch.<br>• Behind the text, all notification cards continue their slow "sediment drift" downward (1.5 px/frame, 8% opacity loss/frame). Cluster sinks; text rises through it. <br>• Camera begins a slow 1.0 → 1.04× scale push-in over the full 124–156 range.<br><br>**Typing audio (sparse, every-other character):** soft `click.mp3` at **25% volume** at frames **F125, F127, F129, F131** (during "Feeling") and **F134, F136, F138, F140, F142** (during "overwhelmed"). Final question-mark click at **F143** at **40% volume, +1 semitone pitch shift** for emphasis. Rhythm reads as typing, not buzzing. Cursor blink is silent. All typing audio sits *under* the existing `riser.mp3` build — riser is the dominant layer; typing is texture. |
-| 0:04.8–0:05.2 | 148–156 | **Freeze with cursor blink.** Full text "Feeling overwhelmed?" sits center, fully visible. Cursor continues blinking after the "?" — the tail. All notification motion freezes mid-drift. Audio: dings audibly compress and lowpass (muffled, underwater); `riser.mp3` peaks; vibration deepens. The cursor blink is the only living motion in this beat. |
-| 0:05.2–0:05.6 | 156–168 | **Swoosh wipe.** Hard horizontal swipe from left to right (1500 px/s) drags every element off-screen with a 4 px motion-blur trail. Background returns to clean navy gradient. Audio: `swoosh.mp3` at frame 156 then **CUT TO SILENCE** at frame 162. |
-| 0:05.6–0:06.2 | 168–186 | **Logo reveal.** Kiva logo (from `/ReferenceImages/logo.svg`) appears center, scale 0.8 → 1.1 → 1.0 (spring damping 14). Subtle radial glow `rgba(59,130,246,0.45)` pulse 0.6→0.9→0.6 opacity over the duration. Audio: soft `impact2.mp3` at frame 168. |
-| 0:06.2–0:06.6 | 186–198 | **Tagline pops in.** Below the logo (gap 28 px): *"Blue collar solutions to blue collar problems"* — system semibold, ~28 px, white at 80% opacity. Fade up + 4 px rise. |
-| 0:06.6–0:08.0 | 198–240 | **Thumb tap → 3D iPhone morph (v1.14 extended).** A stylised thumb presses the logo at frame 198. Click ripple expands (`click.mp3` at F198). Logo Y-axis rotates 180° over frames 200–214 while morphing into a 3D iPhone — but now with **proper cinematic breathing room**:<br>• **F200–214 (14f):** Logo flips, screen revealing the iPhone 15 chrome materializing<br>• **F214–224 (10f):** iPhone settles into 3D perspective context — `rotateY` from 90° (edge-on from morph) eases to resting `-6°`, `rotateX` from 0° to `+3°`<br>• **F224–234 (10f):** AI glow halo (per §3.7.2) fades in around the phone — blue at 35% opacity, blur 80px<br>• **F234–240 (6f):** camera drift baseline fully establishes; constant motion now running. Phone screen content visible — **already showing the New Customer screen pre-loaded** (sets up Scene 2 simplification). Glassmorphism overlays will appear in subsequent scenes.<br>**Audio:** `click.mp3` at F198. `iphone_morph_whirr.mp3` (P1, generates after approval) at F200–212 — replaces the placeholder whirr. Soft AI hum begins ramping in at F224 as the glow appears.<br>**This is the morph from "headspace" to "product world."** From here onward, the cinematic environment is established and persists through Scene 7. |
+| 0:04.0–0:04.3 | 120–128 | **Cursor onset (v1.22 — extended for anticipation).** A white text cursor (4 × 80 px block, white at 60% opacity) appears at frame center (960, 540 in 1920×1080) and begins blinking — 15 frames on, 15 frames off cycle. Cursor renders above all cards (z-top). 8 frames of cursor pulsing alone before any text — the viewer's eye locks on, anticipation builds. |
+| 0:04.3–0:05.7 | 128–172 | **Typing animation (v1.22 — slowed for deliberate pacing).** Text types in character-by-character. Font: system bold, ~96 px, white at 95% opacity, anchored center. Significantly slower than v1.6 — the deliberate pacing is the whole point.<br>• **F128–142 (14f):** "Feeling" types in (7 chars at ~2 frames per char). Cursor moves with the leading edge.<br>• **F142–148 (6f):** suspended pause — cursor blinks twice, no new text. The space between "Feeling" and "overwhelmed?" is where the question hangs.<br>• **F148–168 (20f):** " overwhelmed?" types in (13 chars at ~1.5 frames per char).<br>• **F168–172 (4f):** question mark scale-pulse (1.0 → 1.05 → 1.0) — the "?" is the emotional payoff and gets the kinetic punch.<br>• Behind the text, all notification cards continue their slow "sediment drift" downward (1.5 px/frame, 8% opacity loss/frame).<br>• Camera does a slow 1.0 → 1.04× scale push-in over the full F128–F180 range.<br><br>**Typing audio (sparse, every-other character):** soft `click.mp3` at **25% volume** every other char during typing — roughly F130, F134, F138, F142 ("Feeling"), then F150, F154, F158, F162, F166 ("overwhelmed"). Final question-mark click at **F170** at **40% volume, +1 semitone pitch shift** for emphasis. Cursor blink is silent. Typing audio sits *under* the `riser.mp3` build — riser is dominant. |
+| 0:05.7–0:06.0 | 172–180 | **Held silence — the question hangs (v1.22 — extended).** Full text "Feeling overwhelmed?" sits center, fully visible. Cursor continues blinking after the "?" — the tail. All notification motion freezes mid-drift. **Audio: dings audibly compress and lowpass (muffled, underwater); `riser.mp3` peaks at F172 and sustains at peak; vibration deepens.** The cursor blink is the only living motion in this beat. The viewer is suspended in the question for ~0.27s before Scene 2 takes over. **Scene 1 ends here at F180** — Scene 2 picks up the swoosh and brand reveal. |
 
 **Scene 1 cluster geometry (v1.2):**
 
@@ -914,48 +912,32 @@ The pitch shifts give the rapid-fire density a chaotic, varied texture instead o
 
 ---
 
-### Scene 2 — Reset transition + Logo → iPhone reveal
-**Time:** 0:06.0 – 0:08.0 (frames 180–240 · 2.0s · 60 frames)
+### Scene 2 — iPhone + Kiva app opening
+**Time:** 0:06.0 – 0:09.0 (frames 180–270 · 3.0s · 90 frames) · **v1.22: rewritten per user direction "iphone with the kiva app opening"; extended +30 frames for anticipation.**
 
-> 📌 **Verbatim from user's storyboard. Preserve language, do not paraphrase.**
+> 📌 **v1.22 user direction:** "iPhone with the Kiva app opening." Replaces the v1.21 logo→iPhone morph storyboard. The phone exists already; the viewer watches the Kiva app launch like a real iOS app open. Preserves the Kiva. wordmark + tagline (now on the app launch splash) and "All your admin. One place." (when dashboard appears).
 
-Everything freezes briefly.
+**Beat-by-beat (v1.22):**
 
-A strong cinematic horizontal swipe clears:
-- messages
-- text
-- clutter
+| Range (s) | Frames | Action |
+|---|---|---|
+| 0:06.0–0:06.4 | 180–192 | **SWOOSH WIPE + extended silence.** Hard horizontal swipe (left → right, 1500 px/s) drags every notification card off-screen with motion-blur trails. Background returns to clean navy → black gradient. **Audio: `swoosh.mp3` at F180 (full volume) → CUT TO COMPLETE SILENCE at F186 → silence sustains through F192.** The 6-frame post-swoosh silence is the user-requested "longer silence" — the chaos is gone, the breath before the brand. |
+| 0:06.4–0:07.0 | 192–210 | **iPhone fades in.** Floating 3D iPhone materializes center-frame from total opacity 0 → 1 over 18 frames. Resting tilt: rotateY -6°, rotateX +3° (per §3.7.2 cinematic system). Soft blue rim lighting establishes (key upper-left, rim lower-right). Realistic glass reflections fade in on the device chrome. AI glow halo at idle (blue, 35% opacity, 80px blur) emerges around the phone. **Audio:** `iphone_morph_whirr.mp3` (P1 — soft mechanical materialize) at F192–F202; soft AI hum begins underbed. Background: dark navy cinematic gradient. |
+| 0:07.0–0:07.5 | 210–225 | **iOS home screen reveals.** Phone display fades from black to the iOS home screen — generic dark wallpaper, app grid visible. The **Kiva app icon** is prominent (chevron mark on navy `#0F172A` rounded square per §7 logo spec). Other app icons subtly dim to 50% brightness. Kiva icon stays full bright with a soft pulse (scale 1.0 → 1.04 → 1.0 every 30 frames). Camera does a slow cinematic push-in 1.0× → 1.08× toward the Kiva icon. |
+| 0:07.5–0:07.8 | 225–234 | **Cursor enters + clicks Kiva icon.** A large cursor enters from the right side of the frame and travels to the Kiva app icon. Cursor clicks at **F230** — Kiva icon compresses slightly (scale 1.0 → 0.92 → 1.0 over 4 frames), blue ripple pulse expands from the icon center. **Audio:** `click.mp3` at F230. AI glow halo crossfades from idle blue to active purple. |
+| 0:07.8–0:08.4 | 234–252 | **iOS app launch animation.** Standard iOS expand-from-icon: the Kiva app icon rapidly expands from its grid position to fill the entire phone display. Surrounding home-screen icons fade out. The expansion uses an `easeOutCubic` curve over 18 frames. By F252 the app has filled the screen with a navy splash. |
+| 0:08.4–0:08.8 | 252–264 | **Splash screen — brand lockup.** Navy `#0F172A` background. Centered:<br>• **Kiva chevron logo** (the SVG mark, ~80×80 px on phone canvas, centered)<br>• **"Kiva." wordmark** below the logo (Inter_600SemiBold, ~22 px, white, trailing period in `#3B82F6` per §7 logo spec) — **per user request 2026-05-06**<br>• **Tagline** below the wordmark (gap 18 px): *"Blue collar solutions to blue collar problems"* — Inter_400Regular ~12 px, white at 80% opacity<br>Subtle radial blue glow `rgba(59,130,246,0.3)` behind the lockup. Hold briefly. |
+| 0:08.8–0:09.0 | 264–270 | **Splash dissolves to dashboard.** Splash screen fades opacity 1 → 0 over 6 frames; underneath, the Kiva dashboard fades in (Inter_600SemiBold "Kiva." top-left, navy header with stat cards, recent activity below, blue mic FAB bottom-right, bottom nav). At F268 small bottom-center text fades in: *"All your admin. One place."* (Inter_400Regular ~10 px, white at 70% opacity). **Audio:** soft `notication1.mp3` pitched +5st at 30% vol (the "app loaded" chime). Camera holds steady; phone drift baseline continues. **Hands off to Scene 3** which picks up with the dashboard view + mic zoom. |
 
-All removed instantly.
-
-**AUDIO:** Large cinematic whoosh. Silence afterward.
-
-The Kiva logo appears centered.
-
-**TEXT BELOW:** *"Blue collar solutions to blue collar problems"*
-
-Large cursor enters from right side. Cursor clicks logo.
-
-Logo compresses slightly. Blue ripple pulse. Logo rotates in 3D space and begins morphing into an iPhone silhouette.
-
-**PHONE:** Floating 3D iPhone appears from logo transformation.
-
-**CAMERA:** Slow push toward device.
-
-**LIGHTING:** Soft blue rim lighting. Realistic glass reflections.
-
-**PHONE MOTION:** Rotates slowly from slight side angle into front-facing hero angle.
-
-A vertical blue light sweep travels down the screen.
-
-As the sweep passes: The Kiva dashboard fades into view.
-
-**BACKGROUND:** Still dark navy cinematic space.
-
-**ON-SCREEN TEXT:** *"All your admin. One place."*
-**TEXT POSITION:** Bottom center. Small and minimal.
-
-**HOLD briefly.**
+**Scene 2 sound timeline:**
+- F180: `swoosh.mp3` at 100% (clears the chaos)
+- F186–F192: HARD SILENCE (extended per user — the breath)
+- F192–F202: `iphone_morph_whirr.mp3` (P1, soft materialize)
+- F210 onward: soft AI ambient hum begins underbed
+- F230: `click.mp3` (cursor taps Kiva icon)
+- F234–F252: subtle "app expanding" whoosh layer (filtered noise, low-pitch rising)
+- F252–F264: splash hold — only ambient hum
+- F268: soft "app loaded" chime (`notication1.mp3` pitched +5st, 30% vol)
 
 ---
 

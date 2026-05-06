@@ -280,56 +280,46 @@ const DINGS: DingSpec[] = [
   { cardIdx: 12, file: SFX.notification2, pitch: 2 },
 ];
 
-// === scene phase frames (v1.3 + v1.6 typing) ===
-const HERO_HOLD_START = 24; // Mrs. Patel settles — hold begins
-const HERO_HOLD_END = 42; // stack begins
-const CURSOR_APPEAR = 120; // v1.6: white text-cursor blinks at center
-const TYPE_START = 124; // v1.6: typing begins (last density card lands)
-const HOOK_START = 124; // (legacy alias — same frame as TYPE_START)
-const HOOK_END = 138;
-// v1.6 typing schedule: 1 frame per char, 2-frame pause after "Feeling"
+// === scene phase frames (v1.22) ===
+// Typing slowed for deliberate pacing per user request:
+//   • Cursor onset extended: 4f → 8f (CURSOR_APPEAR=120, TYPE_START=128)
+//   • "Feeling" — 7 chars at 2 fpc: F128–F140
+//   • Pause: 6 frames F142–F148 (was 2f)
+//   • " overwhelmed?" — 13 chars at ~1.67 fpc: F148–F168
+//   • "?" scale-pulse: F168–F172
+//   • Held silence: F172–F180 (cursor blinking; cards frozen mid-drift)
+//   • Swoosh REMOVED from Scene 1 — it's now Scene 2's frame F0 territory
+const HERO_HOLD_START = 24;
+const HERO_HOLD_END = 42;
+const CURSOR_APPEAR = 120;
+const TYPE_START = 128;
+const HOOK_START = 124; // last density card lands (cluster freeze-in begins)
+const HOOK_END = 168; // typing complete (full text visible)
+const FREEZE_START = 168; // sediment freeze + held-silence begins
+const QUESTION_MARK_FRAME = 168; // "?" lands; pulse F168–F172
 const TYPING_TEXT = "Feeling overwhelmed?";
-const PAUSE_AFTER_CHAR_INDEX = 7; // after "Feeling" (chars 0..6)
-const PAUSE_FRAMES = 2;
-const QUESTION_MARK_FRAME =
-  TYPE_START + (TYPING_TEXT.length - 1) + PAUSE_FRAMES; // last char lands
-const FREEZE_START = 138;
-const SWOOSH_START = 156;
-const SWOOSH_END = 168;
-// v1.20: logo / tagline / thumb-morph moved to Scene 2 (Logo→iPhone reveal).
-// Kept here as constants only because the audio code still references them; nothing past
-// frame 180 is rendered now (Scene 1 ends at SCENE_END=180).
-const LOGO_START = 168;
-const TAGLINE_START = 186;
-const THUMB_START = 198;
-const SCENE_END = 180; // v1.20: scene contracted from 240→180
+const SCENE_END = 180;
+
+// Per-character land frame for the v1.22 schedule.
+// chars 0–6  ("Feeling")     → F128 + i*2  →  F128, 130, 132, 134, 136, 138, 140
+// pause F140–F148 (6f hold)
+// chars 7–19 (" overwhelmed?") → F148 + (i-7)*(20/12) rounded
+function charLandFrame(i: number): number {
+  if (i < 0) return -1;
+  if (i <= 6) return TYPE_START + i * 2;
+  if (i >= TYPING_TEXT.length) return -1;
+  return Math.round(148 + (i - 7) * (20 / 12));
+}
 
 export const Scene1Overwhelm: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
 
-  const bgVignette = interpolate(
-    frame,
-    [LOGO_START - 6, LOGO_START + 12],
-    [0, 1],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-
+  // Slow 1.0 → 1.04 push-in across F128–F180 (typing → held silence).
   const camScale = interpolate(
     frame,
-    [FREEZE_START, SWOOSH_START],
+    [TYPE_START, SCENE_END],
     [1, 1.04],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: EASE.inOutQuad,
-    }
-  );
-
-  const swooshProgress = interpolate(
-    frame,
-    [SWOOSH_START, SWOOSH_END],
-    [0, 1],
     {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
@@ -343,14 +333,6 @@ export const Scene1Overwhelm: React.FC = () => {
         background: `linear-gradient(135deg, ${COLOR.navy} 0%, ${COLOR.surfaceDark} 100%)`,
       }}
     >
-      <AbsoluteFill
-        style={{
-          background:
-            "radial-gradient(circle at center, rgba(59,130,246,0.18) 0%, rgba(15,23,42,0) 60%)",
-          opacity: bgVignette,
-        }}
-      />
-
       {/* CARD CLUSTER */}
       <AbsoluteFill
         style={{
@@ -366,30 +348,29 @@ export const Scene1Overwhelm: React.FC = () => {
             frame={frame}
             fps={fps}
             canvasWidth={width}
-            swooshProgress={swooshProgress}
           />
         ))}
       </AbsoluteFill>
 
-      <HookText frame={frame} swooshProgress={swooshProgress} />
-
-      {/* v1.20: Logo/tagline/thumb-morph moved to Scene 2 (Logo→iPhone reveal). */}
+      <HookText frame={frame} />
 
       {/* === AUDIO === */}
-      {/* Phone vibration loop (generated SFX) frames 0–156 — -18 dBFS, deepens, cuts at swoosh */}
+      {/* Phone vibration loop frames 0–180 — sustains through held-silence
+          (was cut at swoosh F156 in v1.21; v1.22 keeps it alive until end of
+          Scene 1 since the swoosh has moved to Scene 2 frame 0). */}
       <SfxAt
         src={GEN.phoneVibration}
         from={0}
         volume={(f) =>
           interpolate(
             f,
-            [0, 30, 100, 138, 156],
-            [0.08, 0.13, 0.18, 0.22, 0.0],
+            [0, 30, 100, FREEZE_START, SCENE_END],
+            [0.08, 0.13, 0.18, 0.22, 0.22],
             { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
           )
         }
         loop
-        durationInFrames={156}
+        durationInFrames={SCENE_END}
       />
 
       {/* Per-card dings — all fire at landFrame - 2 */}
@@ -414,21 +395,24 @@ export const Scene1Overwhelm: React.FC = () => {
         );
       })}
 
-      {/* Riser tension build frames 75 → 156 */}
+      {/* Riser tension build — peaks at FREEZE_START (F168) and sustains through
+          held-silence per v1.22 spec ("riser.mp3 peaks at F172 and sustains at peak"). */}
       <SfxAt
         src={SFX.riser}
         from={75}
         volume={(f) =>
-          interpolate(f, [0, 30, 75, 81], [0, 0.55, 0.85, 0.0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
+          interpolate(
+            f,
+            [0, 30, 90, 100, SCENE_END - 75],
+            [0, 0.55, 0.85, 0.95, 0.95],
+            { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+          )
         }
-        durationInFrames={SWOOSH_START + 6 - 75}
+        durationInFrames={SCENE_END - 75}
       />
 
-      {/* v1.6 typing clicks — every-other character at 25% vol */}
-      {[1, 3, 5, 7, 9, 11, 13, 15, 17].map((i) => (
+      {/* v1.22 typing clicks — every-other char at 25% (sparse, reads as typing) */}
+      {[1, 3, 5].map((i) => (
         <SfxAt
           key={`type-${i}`}
           src={SFX.click}
@@ -437,23 +421,24 @@ export const Scene1Overwhelm: React.FC = () => {
           playbackRate={1.05}
         />
       ))}
-      {/* v1.6 final "?" click pitched +1 semitone at 40% vol */}
+      {/* "overwhelmed" period clicks at chars 9, 11, 13, 15, 17 */}
+      {[9, 11, 13, 15, 17].map((i) => (
+        <SfxAt
+          key={`type-${i}`}
+          src={SFX.click}
+          from={charLandFrame(i)}
+          volume={0.25}
+          playbackRate={1.05}
+        />
+      ))}
+      {/* Final "?" click — pitched +1 semitone at 40% vol on landing F168 */}
       <SfxAt
         src={SFX.click}
         from={QUESTION_MARK_FRAME}
         volume={0.4}
         playbackRate={Math.pow(2, 1 / 12)}
       />
-
-      {/* Swoosh wipe at 156 */}
-      <SfxAt src={SFX.swoosh} from={SWOOSH_START} volume={0.95} />
-
-      {/* (impact2 logo-land cue removed at user request) */}
-
-      {/* Thumb tap click at 198 */}
-      <SfxAt src={SFX.click} from={THUMB_START} volume={0.85} />
-      {/* iPhone morph whirr (generated SFX) frames 200–212 — -14 dBFS */}
-      <SfxAt src={GEN.morphWhirr} from={THUMB_START + 2} volume={0.2} />
+      {/* (Swoosh + thumb-tap + morph-whirr moved to Scene 2 in v1.22) */}
     </AbsoluteFill>
   );
 };
@@ -467,8 +452,7 @@ const Card: React.FC<{
   frame: number;
   fps: number;
   canvasWidth: number;
-  swooshProgress: number;
-}> = ({ spec, zIndex, frame, swooshProgress, fps, canvasWidth }) => {
+}> = ({ spec, zIndex, frame, fps }) => {
   const t = frame - spec.start;
   if (t < -2) return null;
 
@@ -533,17 +517,11 @@ const Card: React.FC<{
     }
   }
 
-  // Swoosh wipe — drag everything off-screen left→right with motion blur
-  const wipeOffset = swooshProgress * (canvasWidth + 600);
-  const wipeBlur = swooshProgress * 6;
-  const wipeOpacity = interpolate(swooshProgress, [0, 0.6, 1], [1, 0.9, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  const finalX = px + wipeOffset;
+  // v1.22: Swoosh wipe moved to Scene 2. Cards stay in their drift-frozen state
+  // through end of Scene 1 (F180); the held silence is the breath before Scene 2.
+  const finalX = px;
   const finalY = py + drift + heroHoldY;
-  const finalOpacity = driftOpacity * wipeOpacity * heroHoldOpacity;
+  const finalOpacity = driftOpacity * heroHoldOpacity;
 
   return (
     <div
@@ -560,7 +538,6 @@ const Card: React.FC<{
         transformOrigin: "center center",
         opacity: finalOpacity,
         zIndex,
-        filter: wipeBlur > 0.1 ? `blur(${wipeBlur}px)` : undefined,
         willChange: "transform",
       }}
     >
@@ -575,52 +552,32 @@ const Card: React.FC<{
 };
 
 // =====================================================================
-// HOOK TEXT — v1.6 typed reveal (Linear/Notion style)
-// Cursor appears at frame 120, typing starts at 124, 2-frame pause after
-// "Feeling", scale-pulse on the "?" landing. Cursor blinks through freeze.
+// HOOK TEXT — v1.22 slowed typed reveal
+// Cursor appears at F120 (8f onset), typing starts F128, 6-frame pause after
+// "Feeling" at F142–F148, "?" lands F168, scale-pulse F168–F172, cursor blinks
+// through held silence F172–F180.
 // =====================================================================
 
-// Frame at which character index `i` (0..TYPING_TEXT.length-1) becomes visible.
-function charLandFrame(i: number): number {
-  if (i <= PAUSE_AFTER_CHAR_INDEX - 1) return TYPE_START + i;
-  return TYPE_START + i + PAUSE_FRAMES;
-}
-
-// Number of visible characters at a given absolute frame.
+// Visible char count at a given absolute frame (uses charLandFrame defined at top).
 function visibleCharCount(frame: number): number {
-  if (frame < TYPE_START) return 0;
-  let f = frame - TYPE_START; // 0-based local typing frame
-  // Phase 1: linear typing of "Feeling" (chars 0..6) — char i visible at f >= i
-  const linear1End = PAUSE_AFTER_CHAR_INDEX; // = 7 chars
-  if (f < linear1End) return f + 1;
-  // Phase 2: 2-frame pause holds "Feeling" (7 chars) visible
-  f -= linear1End;
-  if (f < PAUSE_FRAMES) return linear1End;
-  // Phase 3: linear typing of " overwhelmed?"
-  f -= PAUSE_FRAMES;
-  return Math.min(linear1End + 1 + f, TYPING_TEXT.length);
+  // Walk backwards from the highest char index until we find one whose land
+  // frame is <= the current frame. Could binary-search but length is 20.
+  for (let i = TYPING_TEXT.length - 1; i >= 0; i--) {
+    if (frame >= charLandFrame(i)) return i + 1;
+  }
+  return 0;
 }
 
-const HookText: React.FC<{ frame: number; swooshProgress: number }> = ({
-  frame,
-  swooshProgress,
-}) => {
-  if (frame < CURSOR_APPEAR - 2 || frame > SWOOSH_END) return null;
-
-  const wipeOpacity = interpolate(swooshProgress, [0, 0.4], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const wipeX = swooshProgress * 1900;
+const HookText: React.FC<{ frame: number }> = ({ frame }) => {
+  if (frame < CURSOR_APPEAR - 2 || frame > SCENE_END + 6) return null;
 
   const charCount = visibleCharCount(frame);
   const visibleText = TYPING_TEXT.slice(0, charCount);
 
-  // Cursor blink: ~30% duty visible, 12-frame period
-  const blinkPhase = (frame - CURSOR_APPEAR) % 16;
-  const cursorVisible = blinkPhase < 10;
-  // Hide cursor during the swoosh wipe
-  const showCursor = cursorVisible && frame <= SWOOSH_START + 2;
+  // Cursor blink: 15f on, 15f off (per v1.22 spec)
+  const blinkPhase = (frame - CURSOR_APPEAR) % 30;
+  const cursorVisible = blinkPhase < 15;
+  const showCursor = cursorVisible;
 
   // Question-mark scale-pulse — fires when last char lands
   const qMarkLanded = frame >= QUESTION_MARK_FRAME && charCount === TYPING_TEXT.length;
@@ -649,8 +606,6 @@ const HookText: React.FC<{ frame: number; swooshProgress: number }> = ({
           fontWeight: 800,
           color: "#fff",
           letterSpacing: -2,
-          opacity: wipeOpacity,
-          transform: `translate(${wipeX}px, 0)`,
           textShadow:
             "0 0 60px rgba(15,23,42,0.95), 0 0 120px rgba(15,23,42,0.85)",
           display: "flex",
@@ -691,177 +646,5 @@ const HookText: React.FC<{ frame: number; swooshProgress: number }> = ({
   );
 };
 
-// =====================================================================
-// LOGO REVEAL
-// =====================================================================
-const LogoReveal: React.FC<{ frame: number; fps: number }> = ({
-  frame,
-  fps,
-}) => {
-  const t = frame - LOGO_START;
-  const sp = spring({ frame: t, fps, config: SPRING.soft });
-  const scale = 0.8 + 0.3 * sp;
-  const pulsePhase = ((frame - LOGO_START) / 30) * Math.PI * 2;
-  const glow = 0.75 + 0.15 * Math.sin(pulsePhase);
-  const fadeOut = interpolate(frame, [THUMB_START, THUMB_START + 8], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  return (
-    <AbsoluteFill
-      style={{
-        justifyContent: "center",
-        alignItems: "center",
-        pointerEvents: "none",
-      }}
-    >
-      <div
-        style={{
-          transform: `scale(${scale})`,
-          opacity: fadeOut,
-        }}
-      >
-        <KivaLogo size={260} glow={glow} />
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-// =====================================================================
-// TAGLINE
-// Logo center sits at y=540, peak scale ≈1.16 → bottom edge ~691, with a
-// soft glow halo extending another ~80 px. Anchor the tagline at y=740
-// (top edge) for a clean gap that survives the logo's spring overshoot.
-// =====================================================================
-const Tagline: React.FC<{ frame: number }> = ({ frame }) => {
-  const t = frame - TAGLINE_START;
-  const opacity = interpolate(t, [0, 10], [0, 0.85], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outExpo,
-  });
-  const fadeOut = interpolate(frame, [THUMB_START, THUMB_START + 8], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const rise = interpolate(t, [0, 10], [4, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outExpo,
-  });
-  return (
-    <AbsoluteFill style={{ pointerEvents: "none" }}>
-      <div
-        style={{
-          position: "absolute",
-          top: 740,
-          left: "50%",
-          transform: `translate(-50%, ${rise}px)`,
-          fontFamily: "Inter, system-ui",
-          fontSize: 32,
-          fontWeight: 600,
-          color: "#fff",
-          opacity: opacity * fadeOut,
-          letterSpacing: -0.3,
-          whiteSpace: "nowrap",
-          textShadow: "0 2px 24px rgba(15,23,42,0.6)",
-        }}
-      >
-        Blue collar solutions to blue collar problems
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-// =====================================================================
-// THUMB TAP + iPhone MORPH
-// =====================================================================
-const ThumbAndMorph: React.FC<{ frame: number; fps: number }> = ({
-  frame,
-  fps,
-}) => {
-  const t = frame - THUMB_START;
-  const ripple = interpolate(t, [0, 9], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outExpo,
-  });
-  const rippleOpacity = interpolate(t, [0, 9], [0.7, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  // v1.14: extended morph beat F198–F240
-  // F2..16 (t=2..16): logo Y-flip 0→180° as it morphs into a phone
-  // F16..26 (t=16..26): iPhone settles into 3D resting tilt (rotateY 90→-6, rotateX 0→3)
-  // F26..36 (t=26..36): phone scales up to full size; AI glow halo onset (handled by global AIGlow)
-  // F36..42 (t=36..42): hold final pose; drift baseline established
-  const morphProgress = interpolate(t, [2, 16], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
-  const yRot = morphProgress * 180;
-  // After flip lands, settle to resting tilt over t=16..26
-  const settleP = interpolate(t, [16, 26], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
-  // Final phone tilt eases from "post-flip" 8° rotateZ → resting 0
-  const finalTilt = interpolate(settleP, [0, 1], [8, 0]);
-  // Phone grows from morph to full size over t=2..36 (slow grow continues past flip)
-  const phoneScale = interpolate(t, [2, 36], [0.5, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
-
-  return (
-    <AbsoluteFill
-      style={{
-        justifyContent: "center",
-        alignItems: "center",
-        pointerEvents: "none",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          width: 260,
-          height: 260,
-          borderRadius: "50%",
-          border: `4px solid rgba(59,130,246,0.9)`,
-          transform: `scale(${1 + ripple * 1.6})`,
-          opacity: rippleOpacity,
-        }}
-      />
-      <div
-        style={{
-          transformStyle: "preserve-3d",
-          transform: `perspective(1500px) rotateY(${yRot}deg) rotateZ(${finalTilt}deg) scale(${phoneScale})`,
-          opacity: morphProgress > 0.05 ? 1 : 0,
-        }}
-      >
-        {morphProgress > 0.4 ? (
-          <PhoneFrame scale={0.55}>
-            <DashboardStill />
-          </PhoneFrame>
-        ) : (
-          <KivaLogo size={260} glow={0.6} />
-        )}
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-const DashboardStill: React.FC = () => (
-  <div
-    style={{
-      width: "100%",
-      height: "100%",
-      background: COLOR.navy,
-      paddingTop: 56,
-    }}
-  />
-);
+// v1.22: LogoReveal / Tagline / ThumbAndMorph / DashboardStill removed.
+// All of those moved to Scene 2 (iPhone + Kiva app opening).
