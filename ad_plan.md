@@ -17,6 +17,7 @@
 
 > Every revision logged here. Most recent on top. Norm — read this first to see what changed since your last build.
 
+- **v1.14 · 2026-05-06** · **🎬 45s runtime + simplification rule + Scene 2 rewrite.** User decision: extend ad to 45s (1350 frames @ 30fps) and apply the **scene simplification rule** — open every scene already at the feature moment, skip the navigation. New master timeline (§5) reflects 45s with rebalanced per-scene durations. Scene 1 extended by 24 frames (8s total) for cinematic breathing room around morph. Scene 2 fully rewritten — opens on New Customer screen pre-opened, thumb taps record, words type beside mic in a `<GlassPlate>` ("Annie Yang" → "07700 900123" → "Notting Hill"), brief loading, form auto-fills. No FAB tap, no AI Assistant sheet, no nav. **Scenes 3–7 surgically rewritten** with the same rule: every scene opens at the feature moment, no app navigation. Audio reference tables retimed for new frame ranges. v1.11 visual identity + focus captions preserved with updated frame anchors. v1.13 cinematic system inheritance applies throughout.
 - **v1.13 · 2026-05-06** · **🎥 CINEMATIC SYSTEM — major addition.** User flagged that the plan captured mechanics but missed the soul: **emotional arc, premium visual style, cinematic camera, motion philosophy.** New mega-section **§3.7 Cinematic system** locks four interlocking systems: (a) **3-act emotional arc** (Suffering → Resolution → Triumph) explicitly named, (b) **Visual style** — dark navy-to-black cinematic gradient backdrop, 3D floating iPhone (not flat), high-contrast lighting, soft AI blue/purple glow halo, glassmorphism on overlays, layered Z-depth, premium startup launch aesthetic, (c) **Camera language** — constant subtle drift, slow cinematic push-ins, perspective shifts, occasional orbit around device, shallow DoF, macro lens feel with subtle chromatic aberration, vignette/soft focus falloff at frame edges, (d) **Motion philosophy** — magnetic motion via custom cubic-bezier, **morph transitions instead of hard cuts** between scenes, liquid UI transformations, continuity-driven animation, breathing room rule (≤3 simultaneous moving things). Each scene now inherits this system. **Significant Norm impact:** existing `<Series>` scene structure shifts to overlapping `<Sequence>` so the iPhone stays continuous across scene boundaries; new `<GlassPlate>` and `<AIGlow>` components needed; KivaAd.tsx top-level wrapper now hosts the gradient, drift, and lighting. Existing atoms/molecules are unaffected — this layer wraps them.
 - **v1.12 · 2026-05-06** · **✅ All v1.11 approvals flipped.** User confirmed "approve everything." (1) §4.5 P2 (5 per-scene atmospheric beds) — ✅ APPROVED. (2) §4.5 P3 (4 transition stings) — ✅ APPROVED. (3) Music bed creative direction — ✅ APPROVED; Steve recommends Uppbeat free tier with attribution OR Epidemic Sound ($15/mo) — user picks and drops file at `Sound/music/bed.mp3`. New Phase C directives C4 and C5 unblocked. Norm can now run `generate_all(priority_filter="P2")` and `generate_all(priority_filter="P3")` after completing P0+P1 batch. Each batch still requires sending mp3s to user for listen before moving on.
 - **v1.11 · 2026-05-06** · **🎬 Three-pronged creative depth pass.** User flagged that visuals were repetitive, focus moments needed reinforcing words, and sound design needed more depth. (1) **NEW §3.6** — *Per-scene visual identity & focus captions*. Each scene gets a unique character (INTIMATE / PRECISE / TACTILE / SPATIAL / CONVERSATIONAL / TRIUMPHANT) so the ad doesn't feel like the same beat repeating. Plus a typed Focus Caption per scene reinforces what just happened (e.g. *"Voice → quote. 12 seconds."* under the £2,454.60 stamp). (2) **§4.5 expanded** with 9 new SFX prompts: 5 per-scene atmospheric beds (P2) replacing the shared `ai_hum_ambient` underbed for Scenes 2–6, and 4 transition stings (P3) for variety at scene boundaries. **Approval gate split** — original 10 prompts remain ✅ APPROVED; new 9 are ⏸ AWAITING REVIEW. (3) **Per-scene specs updated** — each Scene 2–7 now opens with a v1.11 identity/bed/caption header. (4) **Music bed decision parked** in 🚦 PENDING APPROVALS for user license choice.
@@ -93,15 +94,15 @@
 >
 > **v1.11 layer applies to every scene:** each scene's spec in §6 now opens with a `🎬 v1.11 layer` block defining (a) **Visual identity** (one of: INTIMATE / PRECISE / TACTILE / SPATIAL / CONVERSATIONAL / TRIUMPHANT — see §3.6), (b) **Audio bed** to underlay, (c) **Focus caption** that types in at the scene's anchor moment. **Do not skip these — they're what kills the visual repetitiveness across scenes.** If a per-scene bed (P2) hasn't been generated yet, fall back to `ai_hum_ambient.mp3` until P2 batch lands.
 
-| Scene | Status | Special locked rules |
-|---|---|---|
-| 1 — Notification overwhelm | WIP-acceptable | Locked at v1.6 (typing animation for "Feeling overwhelmed?"). Continue iterating. |
-| 2 — Voice-to-Customer | Ready to build | Spec sufficient as-is. No further deepening needed. |
-| 3 — Voice-to-Quote (HERO) | Ready to build | **MUST include v1.3 white-flash pattern interrupt at frames 422–426 with mandatory audio cut.** This is locked. |
-| 4 — Expense Classification | Ready to build | Spec sufficient as-is. |
-| 5 — Route Optimization | Ready to build | **TWO locked rules:** (a) v1.3 camera direction inverted — open WIDE on London with pins placed, then punch-zoom in. (b) v1.7 PNG fix — use a CROPPED `IMG_2417` slice (map tiles only, no chrome) as a static background plate; render everything else (status bar, chips, search, toggle, pins, nav) as components. |
-| 6 — Follow-up + AI Assistant | Ready to build | Spec sufficient as-is. |
-| 7 — Logo + CTA | Ready to build | **MUST include Mrs. Patel callback at frame 870** ("Quote accepted ✓ • see you Saturday") AND social proof line under URL ("Used by 1,247+ UK tradespeople"). |
+| Scene | Frames | Status | v1.14 special rules |
+|---|---|---|---|
+| 1 — Notification overwhelm | 0–240 (8s) | WIP-acceptable | Extended by 24f for cinematic morph. Existing typing + cluster timing UNCHANGED. New: morph beat F198–F240 has cinematic 3D iPhone settle into resting tilt with AI glow halo onset. |
+| 2 — Voice-to-Customer | 240–420 (6s) | **REWRITTEN v1.14** | **Open ON the New Customer screen** — no FAB tap, no AI Assistant sheet. Words type beside mic in `<GlassPlate>`: Annie Yang → 07700 900123 → Notting Hill. Brief loading. Form auto-fills. |
+| 3 — Voice-to-Quote (HERO) | 420–660 (8s) | **REWRITTEN v1.14** | Open at active mic (no Quick Start chips, no customer picker). Voice text → transcribe → generate → quote. **MUST include v1.3 white-flash at F582–F588 with mandatory audio cut.** £2,454.60 stamp at F588 = `impact2.mp3` 100% — money shot. |
+| 4 — Expense Classification | 660–810 (5s) | **REWRITTEN v1.14** | Open mid-scan (no FAB, no photo capture). Scan sweep, fields fill, category locks bouncily. |
+| 5 — Route Optimization | 810–975 (5.5s) | **REWRITTEN v1.14** | v1.3 inverted camera (wide → punch-zoom). v1.7 PNG fix: cropped map plate only, all chrome as components. |
+| 6 — Follow-up | 975–1170 (6.5s) | **REWRITTEN v1.14** | **DROPPED the AI Assistant sheet half** — Scene 6 is now 100% the follow-up flow. Three-beat focus caption: *"Wrote it. Sent it. Won the job."* — emotional climax. |
+| 7 — Logo + CTA | 1170–1350 (6s) | **REWRITTEN v1.14** | Mrs. Patel callback at F1290 in a `<GlassPlate>` ("Quote accepted ✓ • see you Saturday"). Social proof under URL. Tagline now types in (consistent with typing language). |
 
 ---
 
@@ -117,7 +118,7 @@
 |---|---|
 | Render target | 1920 × 1080 (16:9) |
 | Frame rate | 30 fps |
-| Total duration | 30.0 s = **900 frames** |
+| Total duration | **45.0 s = 1350 frames** (locked v1.14) |
 | Stack | Remotion 4 · React 19 · TypeScript |
 | Project root | `/Users/nolancarey/Desktop/KivaADS/remotion/` |
 | Studio command | `npm start` (from `/remotion`) |
@@ -127,7 +128,7 @@
 
 ```
 remotion/src/
-  Root.tsx                 ← register one composition: KivaAd, 900 frames
+  Root.tsx                 ← register one composition: KivaAd, 1350 frames
   KivaAd.tsx               ← top-level <Series> sequencing all 7 scenes
   scenes/
     Scene1_Overwhelm.tsx
@@ -633,29 +634,34 @@ To keep the SFX count tight, the following originally-considered atmospheric lay
 
 ---
 
-## 5. Master timeline
+## 5. Master timeline (v1.14 — 45s)
 
 | # | Scene | Time | Frames | Duration | Hero feature |
 |---|---|---|---|---|---|
-| 1 | Cold open — Notification overwhelm | 0:00.0 – 0:07.2 | 0 – 216 | 7.2s | (hook) |
-| 2 | AI Voice-to-Customer | 0:07.2 – 0:10.4 | 216 – 312 | 3.2s | Feature 1 |
-| 3 | **AI Voice-to-Quote** ★ HERO | 0:10.4 – 0:15.4 | 312 – 462 | 5.0s | Feature 2 |
-| 4 | AI Expense Classification | 0:15.4 – 0:18.6 | 462 – 558 | 3.2s | Feature 3 |
-| 5 | AI Customer Route Optimization | 0:18.6 – 0:21.8 | 558 – 654 | 3.2s | Feature 4 |
-| 6 | AI Follow-up + AI Assistant brain | 0:21.8 – 0:26.8 | 654 – 804 | 5.0s | Features 5 + 6 |
-| 7 | Logo lockup + CTA | 0:26.8 – 0:30.0 | 804 – 900 | 3.2s | (close) |
+| 1 | Cold open — Notification overwhelm | 0:00.0 – 0:08.0 | 0 – 240 | 8.0s | (hook) |
+| 2 | AI Voice-to-Customer | 0:08.0 – 0:14.0 | 240 – 420 | 6.0s | Feature 1 |
+| 3 | **AI Voice-to-Quote** ★ HERO | 0:14.0 – 0:22.0 | 420 – 660 | 8.0s | Feature 2 |
+| 4 | AI Expense Classification | 0:22.0 – 0:27.0 | 660 – 810 | 5.0s | Feature 3 |
+| 5 | AI Customer Route Optimization | 0:27.0 – 0:32.5 | 810 – 975 | 5.5s | Feature 4 |
+| 6 | AI Follow-up | 0:32.5 – 0:39.0 | 975 – 1170 | 6.5s | Feature 5 |
+| 7 | Logo lockup + CTA | 0:39.0 – 0:45.0 | 1170 – 1350 | 6.0s | (close) |
 
-**Why Scene 3 gets the most time:** voice-to-quote is the killer feature — it's the entire user flow in 5 seconds and proves the magic. Everything else is supporting.
-**Why scenes 5+6 are paired:** the AI Assistant sheet (IMG_2410) literally lists "Follow up on a quote" as one of its options. They share the same diegetic UI surface, so they share a scene.
+**Total:** 45.0 s = 1350 frames @ 30 fps.
+
+**Scene 6 simplified (v1.14):** dropped the dual-feature "AI Assistant brain" half. The AI Assistant sheet cycle was redundant with the chatbot moment elsewhere and added navigation. Scene 6 now focuses 100% on the **AI follow-up** action — the AI bot writing/sending a follow-up message that converts a stale quote to Accepted. Feature 6 (AI chatbot for admin decisions) was always thin as a standalone moment; we now show it implicitly through the entire ad — every AI action IS the chatbot acting.
+
+**Scene 3 still hero:** 8s for the voice-to-quote flow. Big enough to make the £2,454.60 reveal land properly with a slow cinematic push-in.
+
+**Cinematic transitions absorbed in scene durations:** every scene boundary uses overlapping `<Sequence>` (12-frame morph crossfade) per `kiva_components_for_norm.md` §5.0. The phone is continuous; only the screen content morphs. **No hard cuts.**
 
 ---
 
 ## 6. Scene-by-scene breakdown
 
 ### Scene 1 — Cold open: Notification overwhelm
-**Time:** 0:00.0 – 0:07.2 (frames 0–216)
-**Goal:** In 7 seconds, make the viewer feel the daily admin chaos of being a UK tradesperson, then promise relief.
-**Setting:** Dark navy gradient background `linear-gradient(135deg, #0F172A 0%, #1E293B 100%)`. No phone visible yet — we're inside the protagonist's head.
+**Time:** 0:00.0 – 0:08.0 (frames 0–240) · **v1.14: extended by 24 frames to give the cinematic morph room to breathe**
+**Goal:** In 8 seconds, make the viewer feel the daily admin chaos of being a UK tradesperson, then promise relief.
+**Setting:** Cinematic environment per §3.7 — navy→black gradient backdrop active from frame 0 (the existing `linear-gradient(135deg, #0F172A 0%, #1E293B 100%)` is overridden by the v1.13 environment which extends the dark gradient deeper toward black). No phone visible until morph at frame 198. Camera drift baseline is on. Vignette + AI glow halo are off until the iPhone appears.
 
 **Beat-by-beat:**
 
@@ -671,7 +677,7 @@ To keep the SFX count tight, the following originally-considered atmospheric lay
 | 0:05.2–0:05.6 | 156–168 | **Swoosh wipe.** Hard horizontal swipe from left to right (1500 px/s) drags every element off-screen with a 4 px motion-blur trail. Background returns to clean navy gradient. Audio: `swoosh.mp3` at frame 156 then **CUT TO SILENCE** at frame 162. |
 | 0:05.6–0:06.2 | 168–186 | **Logo reveal.** Kiva logo (from `/ReferenceImages/logo.svg`) appears center, scale 0.8 → 1.1 → 1.0 (spring damping 14). Subtle radial glow `rgba(59,130,246,0.45)` pulse 0.6→0.9→0.6 opacity over the duration. Audio: soft `impact2.mp3` at frame 168. |
 | 0:06.2–0:06.6 | 186–198 | **Tagline pops in.** Below the logo (gap 28 px): *"Blue collar solutions to blue collar problems"* — system semibold, ~28 px, white at 80% opacity. Fade up + 4 px rise. |
-| 0:06.6–0:07.2 | 198–216 | **Thumb tap → iPhone morph.** A stylised thumb (or iOS tap-ripple if simpler) presses the logo at frame 198. Click ripple expands. Logo Y-axis rotates 180° while morphing into a 3D iPhone (logical 393×852, scaled to ~38% of frame height) angled 8° to the right. By frame 216, iPhone is fully formed and centered. Camera begins a slow push-in that continues into Scene 2. Audio: `click.mp3` at frame 198, soft mechanical whirr (looped low-pitched motor at -20 dBFS) frame 200–216. |
+| 0:06.6–0:08.0 | 198–240 | **Thumb tap → 3D iPhone morph (v1.14 extended).** A stylised thumb presses the logo at frame 198. Click ripple expands (`click.mp3` at F198). Logo Y-axis rotates 180° over frames 200–214 while morphing into a 3D iPhone — but now with **proper cinematic breathing room**:<br>• **F200–214 (14f):** Logo flips, screen revealing the iPhone 15 chrome materializing<br>• **F214–224 (10f):** iPhone settles into 3D perspective context — `rotateY` from 90° (edge-on from morph) eases to resting `-6°`, `rotateX` from 0° to `+3°`<br>• **F224–234 (10f):** AI glow halo (per §3.7.2) fades in around the phone — blue at 35% opacity, blur 80px<br>• **F234–240 (6f):** camera drift baseline fully establishes; constant motion now running. Phone screen content visible — **already showing the New Customer screen pre-loaded** (sets up Scene 2 simplification). Glassmorphism overlays will appear in subsequent scenes.<br>**Audio:** `click.mp3` at F198. `iphone_morph_whirr.mp3` (P1, generates after approval) at F200–212 — replaces the placeholder whirr. Soft AI hum begins ramping in at F224 as the glow appears.<br>**This is the morph from "headspace" to "product world."** From here onward, the cinematic environment is established and persists through Scene 7. |
 
 **Scene 1 cluster geometry (v1.2):**
 
@@ -718,211 +724,243 @@ The pitch shifts give the rapid-fire density a chaotic, varied texture instead o
 
 ---
 
-### Scene 2 — AI Voice-to-Customer
-**Time:** 0:07.2 – 0:10.4 (frames 216–312)
+### Scene 2 — AI Voice-to-Customer (v1.14 simplified)
+**Time:** 0:08.0 – 0:14.0 (frames 240–420 · 6.0s · 180 frames)
 **Feature shown:** AI voice-to-customer creation.
-**Reference:** `IMG_2409.PNG` — New Customer voice modal. `IMG_2410.PNG` — AI Assistant sheet.
+**Visual target (do not embed):** `IMG_2409.PNG` — New Customer voice modal. Build entirely as components per `kiva_components_for_norm.md` §5.
 **Goal:** "Adding a customer takes a sentence, not a form."
 
 > **🎬 v1.11 layer (identity + bed + caption):**
-> **Identity:** **INTIMATE** — tight close-ups, soft transitions, warm purple-on-white. Scene should feel personal, like a quiet moment of focus.
-> **Audio bed:** `bed_intimate_warm.mp3` (loops, -22 dBFS underbed) ← *generates after P2 approval*
-> **Focus caption:** *"AI extracted in 0.4 seconds."* — types in F285–F310, holds to F325. Position 24 px below the form-field block. White at 90% opacity, Inter_400Regular 18 px.
+> **Identity:** **INTIMATE** — tight close-ups, soft transitions, warm purple-on-white. Personal moment of focus.
+> **Audio bed:** `bed_intimate_warm.mp3` (loops, -22 dBFS underbed)
+> **Focus caption:** *"AI extracted in 0.4 seconds."* — types in F390–F410, holds to F420. Position: glass plate floating to the right of the phone, gap 24 px. White at 90% opacity, Inter_400Regular 18 px.
+
+> **🚨 v1.14 simplification rule:** Scene 2 opens with the iPhone **already showing the New Customer screen pre-loaded** (handed off from the morph at end of Scene 1). NO FAB tap, NO AI Assistant sheet, NO "New voice customer" row navigation. The viewer doesn't see how to GET to the feature — they see the feature itself.
 
 **Beat-by-beat:**
 
 | Range (s) | Frames | Action |
 |---|---|---|
-| 0:07.2–0:07.6 | 216–228 | iPhone settles. Camera push-in stops. Phone screen shows the dashboard (matching IMG_2410's background — navy header with stat cards reading £0 / £0 / 0 / 0). Bottom nav visible. Blue mic FAB at bottom-right. |
-| 0:07.6–0:08.0 | 228–240 | A WhatsApp banner slides down from the top of the phone screen: *"Hi, can you give me a quote? — Annie Yang"*. Subtle vibration cue. |
-| 0:08.0–0:08.4 | 240–252 | Thumb taps the blue mic FAB. Click ripple from FAB. AI Assistant sheet (IMG_2410) rises from the bottom over the dashboard with a 380 ms `easeOutCubic`. Header reads *"What do you need?"* Audio: `swoosh.mp3` (volume 60%). |
-| 0:08.4–0:08.8 | 252–264 | The *"New voice customer"* row in the sheet highlights (blue 4% bg flash, scale 1.02). Sheet dismisses. New Customer sheet (IMG_2409) rises in its place. *"AI powered"* badge + *"Use AI"* row visible. |
-| 0:08.8–0:09.4 | 264–282 | Mic button pulses (concentric blue rings per design spec — 64 px core, 88 px ring 1, 110 px ring 2). Audio waveform animates above the mic suggesting voice. Floating purple sparkle text appears around the mic, words flying in: *"Annie Yang"*, *"07700 900123"*, *"Notting Hill"*. |
-| 0:09.4–0:10.0 | 282–300 | Form auto-fills field by field (Name → Phone → Address → Contact method = WhatsApp). Each field landing: white-to-faint-purple flash, then settle, with a tick mark in `#15803D` to the right. Field cadence: ~120 ms each. |
-| 0:10.0–0:10.4 | 300–312 | Sheet dismisses with a downward slide. Camera transitions to Customers list (IMG_2416 styling). New row "Annie Yang" lands at top with a soft drop. Counter chip "Customers 2" → "Customers 3" rolls. Hold 6 frames, then cut. |
+| 0:08.0–0:09.0 | 240–270 | **Establish.** iPhone in 3D resting tilt, drift baseline running, AI glow halo at idle (blue, 35%). Phone screen shows the **New Customer sheet pre-opened** — `<AIBadge>` "AI powered" topbar, "Use AI" purple toggle row ON, INCLUDE chips visible (Name, Phone, Email, Address, Contact method), centered `<MicButton>` at rest, "Tap to start recording" caption beneath. Camera does a slow cinematic push-in 1.0× → 1.08× over these 30 frames (per §3.7.3). |
+| 0:09.0–0:10.0 | 270–300 | **Tap record.** Camera continues push-in toward the mic, now 1.08× → 1.18×. `<Thumb>` enters from bottom-right at F274, taps mic at **F282**. Ripple expands. Mic transitions from rest to active state — concentric blue rings begin pulsing (`PULSE_IN` preset). AI glow halo crossfades blue → purple (active state). Audio: `click.mp3` at F282, mic-activate blip (`notification1.mp3` pitched +4 semitones at 50% vol) at F284. |
+| 0:10.0–0:12.0 | 300–360 | **Words type beside mic in glass plate (the hero moment).** A `<GlassPlate>` materializes to the right of the mic at F300 (fade up + slight scale 0.95→1.0). Purple sparkle "AI listening…" mini-loader sits at the top of the plate. Then the words type in character-by-character on the plate, with subtle purple glow per word as it lands:<br>• **F304–322 (18f):** *"Annie Yang"* types in (10 chars, ~1.8 frames per char)<br>• **F322–326 (4f pause):** brief breath beat, sparkle pulses<br>• **F326–344 (18f):** *"07700 900123"* types in (12 chars, ~1.5 frames per char)<br>• **F344–348 (4f pause):** breath beat<br>• **F348–360 (12f):** *"Notting Hill"* types in (12 chars, 1 frame per char)<br>**Audio:** soft `click.mp3` at 20% vol on every-other typing character (consistent typing language). The mic continues its pulsing rings throughout. |
+| 0:12.0–0:13.0 | 360–390 | **Brief loading state.** Camera pulls back slightly (1.18× → 1.10×) as the glass plate fades. `<SparkleLoader>` 8-petal purple sparkle rotates clockwise center-screen on the phone. Heading types in: *"Transcribing your voice…"* + subtitle *"Turning audio into text."* Two-stage progress bar shows stage 1 fast-fill (frames 365–378) then stage 2 begin. **This is the v1.13 cinematic system at work — the loading is brief but cinematic, not a dead pause.** Audio: `ai_hum_ambient.mp3` (or per-scene bed `bed_intimate_warm.mp3` if generated) sustained underbed; soft progressive chime as stage 1 completes at F378. |
+| 0:13.0–0:13.5 | 390–405 | **Form auto-fills.** Loader cross-fades into the New Customer form fields appearing below the mic. Each `<FormField>` fills:<br>• F390: NAME field flashes purple, "Annie Yang" appears, green tick at F392<br>• F394: PHONE field flashes purple, "07700 900123" appears, green tick at F396<br>• F398: ADDRESS field flashes purple, "Notting Hill, London" appears, green tick at F400<br>• F402: CONTACT METHOD pill auto-locks to "WhatsApp" (pill flips to navy bg with white text)<br>Cadence: 4 frames apart. Subtle `click.mp3` at 25% on each field-fill. |
+| 0:13.5–0:14.0 | 405–420 | **Focus caption + transition.** As fields settle, the Focus Caption types in to the right of the phone in a `<GlassPlate>`: *"AI extracted in 0.4 seconds."* — F390 onset of caption typing (overlaps the field-fills slightly), full text by F410, holds to F420. Camera begins a perspective shift (rotateY drift toward the next scene's angle) preparing for the morph into Scene 3. |
 
-**Sound timeline:**
-- 228 — incoming WhatsApp ding (`notification1.mp3`, -10 dBFS)
-- 240 — `click.mp3` (FAB tap)
-- 244 — `swoosh.mp3` (sheet rise, 60% vol)
-- 264 — soft mic-activate chime (use `notification2.mp3` pitched up, 50% vol)
-- 282–300 — sparkle ticks at each field fill (`click.mp3` at 30% vol, every 4 frames during fill)
-- 300 — `swoosh.mp3` (sheet dismiss)
-- 306 — soft thump (`impact2.mp3` at 25% vol) on counter roll
+**Scene 2 sound timeline:**
+- F240 onward: `bed_intimate_warm.mp3` (or fallback `ai_hum_ambient.mp3`) underbed at -22 dBFS, loops
+- F282: `click.mp3` (thumb tap on mic)
+- F284: mic-activate blip (`notication1.mp3` pitched +4st, 50% vol)
+- F304, F306, F308…F360: sparse `click.mp3` typing texture at 20% on every-other character of "Annie Yang" / "07700 900123" / "Notting Hill"
+- F378: progressive chime (`notication1.mp3` pitched +5st, 35% vol — "stage 1 complete")
+- F392, F396, F400: soft `click.mp3` at 25% on each field-fill
+- F402: bouncy "match" chime (`sparkle_match.mp3` if P1 available, else `notication2.mp3` pitched +3st, 35% vol) on contact-method pill lock
+- F408–F410: typing ticks for the focus caption (consistent with §3.6.2 caption audio rule)
+- F415: `transition_warm_whoosh.mp3` (P3, after approval) preparing the morph into Scene 3 at F420
 
 ---
 
-### Scene 3 — AI Voice-to-Quote ★ HERO
-**Time:** 0:10.4 – 0:15.4 (frames 312–462)
+### Scene 3 — AI Voice-to-Quote ★ HERO (v1.14 simplified, 8s)
+**Time:** 0:14.0 – 0:22.0 (frames 420–660 · 8.0s · 240 frames)
 **Feature shown:** Voice-to-quote — the killer flow.
-**Reference:** `IMG_2418.PNG` (New Quote) → `IMG_2419.PNG` (Transcribing) → `IMG_2420.PNG` (Generating) → `IMG_2421.PNG` (Quote review).
-**Goal:** "Spend 5 seconds saying the job. Get a £2,454.60 itemised quote ready to send."
+**Visual target (do not embed):** `IMG_2418` → `IMG_2419` → `IMG_2420` → `IMG_2421`. All built as components per `kiva_components_for_norm.md`.
+**Goal:** "Speak the job. Get a £2,454.60 itemised quote ready to send."
 
 > **🎬 v1.11 layer (identity + bed + caption):**
-> **Identity:** **PRECISE** — clean punch-zooms, surgical cuts, zero wasted motion. Navy/blue dominant, with the white-flash money shot as the visual climax of the entire ad.
-> **Audio bed:** `bed_precise_tense.mp3` (loops, -22 dBFS, ramps slightly with `riser.mp3`) ← *generates after P2 approval*
-> **Transition in:** `transition_warm_whoosh.mp3` at F310–F315 from Scene 2 ← *generates after P3 approval*
-> **Focus caption:** *"Voice → quote. 12 seconds."* — types in F432–F454, holds to F458. Position 24 px below the £2,454.60 stamp. White at 90%, Inter_400Regular 18 px.
+> **Identity:** **PRECISE** — clean punch-zooms, surgical cuts, zero wasted motion. Navy/blue dominant. The white-flash before £2,454.60 is the visual climax of the entire ad.
+> **Audio bed:** `bed_precise_tense.mp3` (loops, -22 dBFS, ramps slightly into the money shot)
+> **Transition in:** `transition_warm_whoosh.mp3` at F415–F420 from Scene 2 → into Scene 3
+> **Focus caption:** *"Voice → quote. 12 seconds."* — types in F590–F614, holds to F625. Position: glass plate to the right of the phone, gap 24 px.
+
+> **🚨 v1.14 simplification rule:** Phone morphs from Scene 2 directly into the **New Quote screen with mic ALREADY ACTIVE** (mid-flow). NO Quick Start chip selection, NO customer picker, NO INCLUDE chips navigation. Open at the moment of voice capture; the viewer trusts the flow.
 
 **Beat-by-beat:**
 
 | Range (s) | Frames | Action |
 |---|---|---|
-| 0:10.4–0:10.8 | 312–324 | Camera reframes/cuts to New Quote screen. *"AI powered"* purple badge in topbar. Quick Start chips (*Power flush*, *Shower install*, *Toilet replacer*) visible. Heading *"New Quote"*. |
-| 0:10.8–0:11.4 | 324–342 | Mic button pulses big (concentric rings expand to 130/160 px during heavy state). Voice waveform animates above. A floating speech bubble shows the spoken description: *"Bathroom waste install — 32mm pipe, bath waste, basin trap, plumbing waste removal"*. |
-| 0:11.4–0:12.0 | 342–360 | Cut to Transcribing screen (IMG_2419). Purple sparkle loader (8-petal) rotates clockwise. Heading: *"Transcribing your voice…"* Subtitle: *"Turning audio into text — this takes a few seconds."* Stage 1 progress bar fills 0→100%. *"1s elapsed · usually 10–25s"* timer. |
-| 0:12.0–0:12.6 | 360–378 | Cut to Generating screen (IMG_2420). Heading: *"Generating your quote…"* Subtitle: *"AI is building line items, quantities and pricing."* Two-stage progress: stage 1 complete, stage 2 fills. Sparkle loader still spinning. |
-| 0:12.6–0:13.6 | 378–408 | **The reveal.** Cut to Quote Review (IMG_2421). Line items cascade in top-to-bottom at 100 ms intervals, each row sliding from right with a sparkle stamp on landing: *32mm & 40mm Waste Pipe & Fittings — 1 — £45.00*; *Bath Waste & Overflow — £25.00*; *Basin Waste & Trap — £20.00*; *WC Pan Connector — £15.00*; *General Consumables (PTFE, clips, flux, solder) — £40.00*; *Plumbing Waste Removal — £120.00*. |
-| 0:13.6–0:14.1 | 408–422 | Subtotal *£2,045.50* counts up. *Include tax* toggle clicks ON. *VAT (20%) £409.10* appears. |
-| 0:14.1–0:14.2 | 422–426 | **⚡ WHITE-FLASH PATTERN INTERRUPT (v1.3).** 2 frames pure white (422–424) → 2 frames pure navy `#0F172A` (424–426). Wakes the eye before the money shot. Audio: brief silence (cut all SFX for these 4 frames — silence + flash = maximum attention). |
-| 0:14.2–0:14.4 | 426–432 | **Total £2,454.60** stamps in: scale 0.6→1.15→1.0 spring, with a quick navy flash on the row. **Audio: `impact2.mp3` at frame 426** — this is the money shot. |
-| 0:14.4–0:14.8 | 432–444 | *Send quote →* button (navy filled, 11 px 600 white text per spec) — thumb taps it. Camera nudges 4 px down on press. Button briefly inverts (bg → white, text → navy), then a paper-airplane icon rockets out of the button up-and-right. |
-| 0:14.8–0:15.4 | 444–462 | Green "Sent via WhatsApp" toast banner slides down from the top with a checkmark. Hold ~6 frames. Cut. |
+**Beat-by-beat (v1.14):**
 
-**Sound timeline:**
-- 324 — mic activate chime + waveform whoosh
-- 342 — soft transcribe processing hum (low filtered noise loop, -22 dBFS)
-- 360 — soft chime layer adds (generation phase)
-- 378–408 — rapid `click.mp3` ticks at each line-item landing (10× ticks at 30% vol)
-- 408–426 — building counter-roll synth tone (rising pitch matches counting up)
-- **426 — `impact2.mp3` at 100%** — total stamp
-- 438 — `click.mp3` (send button)
-- 444 — `swoosh.mp3` (paper airplane)
-- 450 — soft achievement chime (`notification1.mp3` pitched up)
+| Range (s) | Frames | Action |
+|---|---|---|
+| 0:14.0–0:15.0 | 420–450 | **Open at voice capture.** Phone morph from Scene 2 lands on the New Quote screen with `<MicButton>` already active and pulsing big (rings 130/160 px heavy state). Camera does a slow cinematic push-in 1.0× → 1.15× over 30 frames, settling on the mic. AI glow halo intensifies (purple, active state). A floating glass-plate `<GlassPlate>` to the right of the phone shows the captured voice text streaming in: *"Bathroom waste install — 32mm pipe, bath waste, basin trap, plumbing waste removal."* Text types in over 24 frames (F424–F448), one frame per char, with sparse `click.mp3` typing texture. |
+| 0:15.0–0:16.0 | 450–480 | **Transcribe state.** Phone screen morphs (liquid transformation per §3.7.4) from active mic into the Transcribing state. `<SparkleLoader>` 8-petal purple sparkle rotates center-screen. Heading types in: *"Transcribing your voice…"* Subtitle below: *"Turning audio into text."* Two-stage progress: stage 1 fills smoothly F455–F478. `bed_precise_tense.mp3` underbed sustains; subtle hum layer adds. |
+| 0:16.0–0:17.0 | 480–510 | **Generate state.** Sparkle loader continues rotating. Heading morphs to *"Generating your quote…"* Subtitle: *"AI is building line items, quantities and pricing."* Stage 1 marked complete (purple checkmark), stage 2 fills F485–F508. Camera holds at 1.15×, slight drift continues. |
+| 0:17.0–0:18.6 | 510–558 | **Quote materializes — line items cascade.** Liquid morph from generating into Quote Review screen. `<AIBanner>` "AI generated from your voice description…" fades in at top. `<CustomerRow>` Mrs. Patel below it. `<JobTitleCard>` "Bathroom waste install." Then the `<LineItemRow>`s cascade in top-to-bottom, each sliding from the right with a sparkle stamp:<br>• F518: *32mm & 40mm Waste Pipe & Fittings — 1 — £45.00*<br>• F524: *Bath Waste & Overflow — 1 — £25.00*<br>• F530: *Basin Waste & Trap — 1 — £20.00*<br>• F536: *WC Pan Connector — 1 — £15.00*<br>• F542: *General Consumables (PTFE, clips, flux, solder) — 1 — £40.00*<br>• F550: *Plumbing Waste Removal — 1 — £120.00*<br>Per-item `click.mp3` at 25% vol on each landing (F518, F524, F530, F536, F542, F550). |
+| 0:18.6–0:19.4 | 558–582 | **Subtotal + VAT count up.** Subtotal *£2,045.50* rolls up over 12 frames (F560–F572). *Include tax* toggle visibly clicks ON at F574. *VAT (20%) £409.10* appears at F576. `counter_roll_money.mp3` (P0) ramps in starting F558, building toward the climax. |
+| 0:19.4–0:19.6 | 582–588 | **⚡ WHITE-FLASH PATTERN INTERRUPT (v1.3 locked).** 2 frames pure white (F582–F584) → 2 frames pure navy `#0F172A` (F584–F586) → 2 frames hold dark (F586–F588). Wakes the eye. **Audio: ALL SFX CUT to silence for frames F582–F587.** Silence + flash = maximum attention pivot. |
+| 0:19.6–0:19.8 | 588–594 | **Total £2,454.60 stamps in.** Camera does a final 1.15× → 1.22× punch-zoom synced to the stamp. Total scales 0.6 → 1.18 → 1.0 (spring damping 14, magnetic easing). Quick navy bg flash on the row. **Audio: `impact2.mp3` at 100% at F588** + `counter_roll_money.mp3` peak hits at F588. **THIS IS THE AD'S MONEY SHOT.** Slight chromatic aberration on the £2,454.60 text for 8 frames per §3.7.3 macro-lens rule. |
+| 0:19.8–0:20.5 | 594–615 | **Focus caption + send.** Glass-plate Focus Caption types in to the right of the phone: *"Voice → quote. 12 seconds."* (F590–F614, holds to F625). In parallel, the phone screen shows the *Send quote →* button. `<Thumb>` enters at F608 and taps the button at **F614**. Camera nudges 4 px down on press. Button briefly inverts (bg→white, text→navy). Audio: `click.mp3` at F614. |
+| 0:20.5–0:21.4 | 615–642 | **Quote sends.** A paper-airplane icon rockets out of the button up-and-right at F616. `swoosh.mp3` at F616. Phone screen morphs (liquid) into a sent confirmation. Green `<ToastBanner>` "Sent via WhatsApp ✓" slides down from the top with a checkmark at F624. `achievement_chime.mp3` (P0) at F628. |
+| 0:21.4–0:22.0 | 642–660 | **Hold + transition prep.** Camera pulls back from punch-zoom to 1.05× (resting). Drift baseline continues. Slight rotateY perspective shift begins preparing morph into Scene 4. `transition_sharp_impact.mp3` at F655–F660. |
+
+**Scene 3 sound timeline:**
+- F420 onward: `bed_precise_tense.mp3` underbed at -22 dBFS
+- F424–F448: typing ticks for voice-text glass plate (`click.mp3` at 20%, every 2 frames)
+- F455–F478: transcribe processing hum (filtered noise loop, -22 dBFS)
+- F485–F508: subtle generation chime layer adds
+- F518, F524, F530, F536, F542, F550: per-line-item ticks (`click.mp3` at 25%)
+- F558–F582: `counter_roll_money.mp3` building (rising pitch)
+- **F582–F587: HARD SILENCE for the white flash**
+- **F588: `impact2.mp3` at 100% — the money shot**
+- F614: `click.mp3` (send button tap)
+- F616: `swoosh.mp3` (paper airplane fly-off)
+- F628: `achievement_chime.mp3`
+- F655–F660: `transition_sharp_impact.mp3` morphing into Scene 4
 
 ---
 
-### Scene 4 — AI Expense Classification
-**Time:** 0:15.4 – 0:18.6 (frames 462–558)
+### Scene 4 — AI Expense Classification (v1.14 simplified, 5s)
+**Time:** 0:22.0 – 0:27.0 (frames 660–810 · 5.0s · 150 frames)
 **Feature shown:** Snap a receipt → AI classifies.
-**Reference:** `IMG_2422.PNG` — New Expense modal.
+**Visual target:** `IMG_2422.PNG`. Build as components.
 **Goal:** "Bookkeeping done in 2 seconds, on the way out of Screwfix."
 
 > **🎬 v1.11 layer (identity + bed + caption):**
-> **Identity:** **TACTILE** — hands-on, the receipt physically drops in, scan line is a tactile event, green confirms. Crisp, methodical rhythm — feels like checking work off a list.
-> **Audio bed:** `bed_tactile_clinical.mp3` (loops, -22 dBFS) ← *generates after P2 approval*
-> **Transition in:** `transition_sharp_impact.mp3` at F458–F462 from Scene 3 ← *generates after P3 approval*
-> **Focus caption:** *"Categorised automatically."* — types in F525–F549, holds to F555. Position 24 px below the highlighted "Construction Materials" chip. White at 90%, Inter_400Regular 18 px.
+> **Identity:** **TACTILE** — hands-on, receipt physically drops in, scan line is the tactile event, green confirms. Crisp, methodical.
+> **Audio bed:** `bed_tactile_clinical.mp3` (loops, -22 dBFS)
+> **Transition in:** `transition_sharp_impact.mp3` at F655–F660 from Scene 3
+> **Focus caption:** *"Categorised automatically."* — types in F740–F764, holds to F775. Glass plate to the right of the phone.
+
+> **🚨 v1.14 simplification rule:** Phone morphs from Scene 3 directly into the **New Expense screen with the receipt photo already attached and the scan in progress**. NO FAB tap, NO "+New Expense" navigation, NO photo-capture step. Open mid-scan; viewer sees AI doing its job.
+
+**Beat-by-beat (v1.14):**
 
 | Range (s) | Frames | Action |
 |---|---|---|
-| 0:15.4–0:15.8 | 462–474 | Cut to New Expense sheet (IMG_2422 — purple "Use AI" toggle ON, "Scanning receipt…" button). A receipt photo physically drops into the receipt-photo card with a slight bounce. |
-| 0:15.8–0:16.4 | 474–492 | A blue scan line (`#3B82F6`, 2 px, 30% glow) sweeps top-to-bottom across the receipt over 18 frames. OCR text fragments float off the receipt as the line passes (e.g. *"Wickes"*, *"£147.32"*, *"04/03/26"*). |
-| 0:16.4–0:17.2 | 492–516 | Form auto-fills below: *Description: "Wickes — bathroom fittings"*, *Amount: £147.32*, *Date: 04/03/2026*. Each field flashes faint purple on fill. |
-| 0:17.2–0:17.8 | 516–534 | Category chips appear at bottom row. The *"Construction Materials"* chip auto-highlights with a bouncy spring (scale 1.0→1.12→1.0), turning navy bg with white text per spec. AI badge confirms in top-right. |
-| 0:17.8–0:18.6 | 534–558 | Save button (full width, navy) gets a thumb tap. Sheet dismisses; the new expense row flies into the Expenses list view. Counter "Expenses 0" → "Expenses 1" rolls. Cut. |
+| 0:22.0–0:23.0 | 660–690 | **Open mid-scan.** Phone morph from Scene 3 lands on the New Expense sheet with the receipt photo card already populated (Wickes receipt visible) and the **"Scanning receipt…"** state active — purple sparkle spinner spinning. Camera does a slow push-in 1.0× → 1.12×. AI glow halo intensifies (purple, active). |
+| 0:23.0–0:23.8 | 690–714 | **Scan line sweep.** A blue scan line (`#3B82F6`, 2 px, 30% glow) sweeps top-to-bottom across the receipt over 18 frames (F690–F708). OCR text fragments float off the receipt as the line passes — "Wickes", "£147.32", "04/03/26" — small text that lifts up and fades. `scan_sweep.mp3` (P1) F690–F708. |
+| 0:23.8–0:24.6 | 714–738 | **Form auto-fills.** Below the receipt card, fields populate one-by-one with purple flash + tick:<br>• F714: Description = *"Wickes — bathroom fittings"*<br>• F722: Amount = *£147.32*<br>• F730: Date = *04/03/2026*<br>Each field 8 frames apart, `click.mp3` at 25% on each fill. |
+| 0:24.6–0:25.4 | 738–762 | **Category lock — the magic moment.** Category chip row appears below. The *"Construction Materials"* chip auto-highlights with a bouncy spring (scale 1.0 → 1.15 → 1.0 over 12 frames F744–F756), turning navy bg with white text. `<AIBadge>` confirms. `sparkle_match.mp3` (P1) at F744. **Focus caption *"Categorised automatically."*** types in on glass plate to the right F740–F764. |
+| 0:25.4–0:26.4 | 762–792 | **Save + flight.** `<Thumb>` enters from bottom-right, taps the Save button at F770. Sheet dismisses (liquid morph) and the new expense row flies into the Expenses list at F778. Counter "Expenses 0" → "Expenses 1" rolls at F784. Audio: `click.mp3` (save F770), `swoosh.mp3` (dismiss F774), soft `impact2.mp3` at 25% (counter roll F784). |
+| 0:26.4–0:27.0 | 792–810 | **Hold + transition prep.** Camera pulls back to 1.05×, slight perspective shift toward Scene 5's angle. `transition_glitch_cut.mp3` (P3) at F804–F810 signaling list-to-map modal shift. |
 
-**Sound timeline:**
-- 462 — soft paper drop (`impact2.mp3` at 30% vol pitched up)
-- 474–492 — scan whoosh (filtered swoosh sustained)
-- 492–516 — sparkle ticks per field fill
-- 522 — bouncy "match" chime on category lock
-- 540 — `click.mp3` (save)
-- 546 — `swoosh.mp3` (sheet dismiss)
+**Scene 4 sound timeline:**
+- F660 onward: `bed_tactile_clinical.mp3` underbed -22 dBFS
+- F660: `transition_sharp_impact.mp3` overlap from Scene 3
+- F665: soft paper-drop (`impact2.mp3` at 30%, pitched up — receipt settling in card)
+- F690–F708: `scan_sweep.mp3`
+- F714, F722, F730: per-field `click.mp3` ticks
+- F744: `sparkle_match.mp3` (category lock)
+- F740–F764: caption typing ticks
+- F770: `click.mp3` (save)
+- F774: `swoosh.mp3` (dismiss)
+- F784: soft `impact2.mp3` (counter roll)
+- F804–F810: `transition_glitch_cut.mp3` morphing into Scene 5
 
 ---
 
-### Scene 5 — AI Customer Route Optimization
-**Time:** 0:18.6 – 0:21.8 (frames 558–654)
+### Scene 5 — AI Customer Route Optimization (v1.14, 5.5s)
+**Time:** 0:27.0 – 0:32.5 (frames 810–975 · 5.5s · 165 frames)
 **Feature shown:** Map view with optimized route across customer pins.
-**Reference:** `IMG_2417.PNG` — Customers map view with London pins.
+**Visual target:** `IMG_2417.PNG`. Build chrome (status bar, chips, search, toggle, pins, nav) as components per `kiva_components_for_norm.md`. Use a cropped map-only slice of `IMG_2417` as a static background plate (per §3.5).
 **Goal:** "AI routes your day — drive less, work more."
 
 > **🎬 v1.11 layer (identity + bed + caption):**
-> **Identity:** **SPATIAL / CINEMATIC** — the only "breathing wide" scene in the ad. Wide-then-zoomed-in. Geographic. Sweeping. Gradient blue→purple route is the visual hero. This is the ad's exhale before the conversational close.
-> **Audio bed:** `bed_spatial_cinematic.mp3` (loops, -20 dBFS — slightly more present than other beds since this scene needs space) ← *generates after P2 approval*
-> **Transition in:** `transition_glitch_cut.mp3` at F555–F558 from Scene 4 — signals the modal shift from list to map ← *generates after P3 approval*
-> **Focus caption:** *"Saves 47 minutes today."* — types in F632–F654, holds to F660. Position 24 px below the "47 min" stat overlay. White at 90%, Inter_400Regular 18 px.
+> **Identity:** **SPATIAL / CINEMATIC** — the only "breathing wide" scene in the ad. Wide-then-zoomed-in. Geographic, sweeping. Gradient blue→purple route is the visual hero. The ad's exhale before the conversational close.
+> **Audio bed:** `bed_spatial_cinematic.mp3` (loops, -20 dBFS — more present than other beds since this scene needs space)
+> **Transition in:** `transition_glitch_cut.mp3` at F804–F810 from Scene 4
+> **Focus caption:** *"Saves 47 minutes today."* — types in F920–F942, holds to F955. Glass plate to the right of the phone.
+
+> **🚨 v1.14 simplification rule:** Already pre-navigated to the map view (existing v1.3 design — keep). The simplification here is just NOT introducing list/map toggle interaction; viewer arrives in map mode and stays there.
+
+**Beat-by-beat (v1.14):**
 
 | Range (s) | Frames | Action |
 |---|---|---|
-| 0:18.6–0:19.2 | 558–576 | **OPEN WIDE (v1.3 inverted camera).** Cut to a fully zoomed-OUT London map — viewer sees all 3 customer pins (Annie Y in Notting Hill, Nolan C in Shepherd's Bush, Stan C in Hammersmith) already placed across the wider map. Customer chips visible top of frame. Map at minimum zoom for spatial context first. |
-| 0:19.2–0:19.8 | 576–594 | **PUNCH-ZOOM IN.** Camera punch-zooms into the cluster (zoom level increases ~40%) over 18 frames using `easeInOutCubic`. Pins grow visibly larger. **Spatial pattern interrupt** — most viewers expect to start close and zoom out; we invert that. Audio: low filtered swoosh ramping up across the 18 frames. |
-| 0:19.8–0:20.4 | 594–612 | Three pins do a re-entry pulse (each gets a circular ripple expanding from base, 1.0 → 1.15 → 1.0 scale, ~200ms intervals). "AI powered" purple badge pops in top-right over the map. |
-| 0:20.4–0:20.9 | 612–627 | A glowing route line (gradient `#3B82F6` → `#6D28D9`) draws between the three pins in optimal sequence over 15 frames, with traveling light particles (3 small dots flowing along the path). |
-| 0:20.9–0:21.4 | 627–642 | Stat overlay materializes top-center: large "**47 min**" with subtitle "*time saved today*", and below it "*12.4 mi optimized*". Numbers count up from 0 over 12 frames. |
-| 0:21.4–0:21.8 | 642–654 | Brief hold on the optimized state. Camera prepares the transition. Cut. |
+| 0:27.0–0:27.8 | 810–834 | **Open WIDE (v1.3 inverted camera + v1.14 polish).** Phone morph from Scene 4 lands on the Customers map view at MINIMUM zoom — all three customer pins (Annie Y in Notting Hill, Nolan C in Shepherd's Bush, Stan C in Hammersmith) visible across a wide London frame. Customer chips visible at top. Camera holds wide for 24 frames so the viewer reads the geography. `map_zoom_whoosh.mp3` (P1) at F812. |
+| 0:27.8–0:28.4 | 834–852 | **PUNCH-ZOOM IN.** Camera punch-zooms into the pin cluster (~40% zoom increase) over 18 frames using `easeInOutCubic`. The phone screen content scales internally to simulate the map zooming. Spatial pattern interrupt — most ads zoom OUT after wide; we punch IN. |
+| 0:28.4–0:29.0 | 852–870 | **Pins re-entry pulse.** Three pins do a synchronized pulse (each: scale 1.0 → 1.15 → 1.0, 200 ms intervals across pins). Circular ripples expand from each pin's base. `<AIBadge>` "AI powered" purple chip pops in top-right of map. Per-pin `impact2.mp3` at 30% vol, descending pitch (F855, F861, F867). |
+| 0:29.0–0:29.8 | 870–894 | **Route line draws.** A glowing gradient line (`#3B82F6` → `#6D28D9`) draws between the three pins in optimal sequence over 18 frames, with 3 traveling light particles flowing along the path. `route_line_flow.mp3` (P1) sustained F870–F894. |
+| 0:29.8–0:30.6 | 894–918 | **Stat overlay materializes.** Top-center on the map: huge **"47 min"** (Inter_700Bold ~36px white) with subtitle *"time saved today"* (10px `#94A3B8`), and below *"12.4 mi optimized"* (8px `#94A3B8`). Numbers count up from 0 over 12 frames F900–F912. `counter_roll_money.mp3` adapted (or layered with subtle pitch shift to differentiate from Scene 3). `achievement_chime.mp3` at F912. |
+| 0:30.6–0:32.0 | 918–960 | **Focus caption + breathe.** Glass plate Focus Caption types in to the right of the phone: *"Saves 47 minutes today."* F920–F942, holds to F955. **This is the ad's spatial exhale beat** — camera holds steady, map breathes, nothing else competing. The viewer feels the spaciousness. |
+| 0:32.0–0:32.5 | 960–975 | **Transition prep.** Slight camera tilt + rotateY shift preparing morph into Scene 6 (intimate dialog). `transition_soft_fade.mp3` (P3) at F970–F975. |
 
-**Sound timeline:**
-- 558 — map zoom whoosh (low filtered swoosh)
-- 570, 576, 582 — three pin "thuds" (`impact2.mp3` at 35% vol, descending pitch)
-- 588 — magical AI hum begins (mid-pitched filtered tone, sustained)
-- 600 — line draw whoosh
-- 612 — counter-roll synth tone
-- 624 — achievement chime ("47 min" landing)
+**Scene 5 sound timeline:**
+- F810 onward: `bed_spatial_cinematic.mp3` underbed at -20 dBFS (more present than other scenes)
+- F804–F810: `transition_glitch_cut.mp3` overlap from Scene 4
+- F812: `map_zoom_whoosh.mp3`
+- F855, F861, F867: per-pin `impact2.mp3` at 30%, descending pitch
+- F870–F894: `route_line_flow.mp3` sustained
+- F900–F912: counter-roll layer (lower-pitched than Scene 3 to differentiate)
+- F912: `achievement_chime.mp3`
+- F920–F942: caption typing ticks
+- F970–F975: `transition_soft_fade.mp3` morphing into Scene 6
 
 ---
 
-### Scene 6 — AI Follow-up + AI Assistant brain
-**Time:** 0:21.8 – 0:26.8 (frames 654–804)
-**Features shown:** AI follow-up on quotes (5) + AI chatbot for admin decisions (6).
-**Reference:** `IMG_2410.PNG` — AI Assistant sheet ("What do you need?").
-**Goal:** "The AI doesn't just help — it acts. And when you don't know what to do next, it tells you."
+### Scene 6 — AI Follow-up (v1.14 simplified, 6.5s)
+**Time:** 0:32.5 – 0:39.0 (frames 975–1170 · 6.5s · 195 frames)
+**Feature shown:** AI follow-up on stale quotes — the AI writes and sends a follow-up message that converts the quote.
+**Goal:** "The AI doesn't just help — it acts. While you're working, it's closing the deal for you."
 
 > **🎬 v1.11 layer (identity + bed + caption):**
-> **Identity:** **CONVERSATIONAL** — messages exchange, status badge flips, the assistant rows cascade like a menu opening. Dialog-paced, satisfying back-and-forth. Warm WhatsApp green and the navy→green status flip are the dominant moments.
-> **Audio bed:** `bed_conversational_warm.mp3` (loops, -22 dBFS) ← *generates after P2 approval*
-> **Transition in:** `transition_soft_fade.mp3` at F650–F656 from Scene 5 — eases the cinematic exhale into intimate dialog ← *generates after P3 approval*
-> **Focus caption:** *"Wrote it. Sent it. Won the job."* — types in F710–F740, holds to F745. Position 24 px below the freshly-flipped "Accepted" badge. White at 90%, Inter_400Regular 18 px. The three-beat cadence ("Wrote it. Sent it. Won the job.") echoes the three actions the AI just completed.
+> **Identity:** **CONVERSATIONAL** — messages exchange, status badge flips. Dialog-paced, satisfying back-and-forth. Warm WhatsApp green and the navy→green status flip are the dominant moments.
+> **Audio bed:** `bed_conversational_warm.mp3` (loops, -22 dBFS)
+> **Transition in:** `transition_soft_fade.mp3` at F970–F975 from Scene 5
+> **Focus caption:** *"Wrote it. Sent it. Won the job."* — types in F1100–F1140, holds to F1155. Glass plate to the right of the phone. The three-beat cadence echoes the three actions the AI just completed.
 
-This scene has two halves.
+> **🚨 v1.14 simplification rule:** **DROPPED the AI Assistant sheet half** (was redundant with the chatbot moment elsewhere — the AI's whole job IS being the chatbot, shown implicitly through every action). Scene 6 is now 100% the AI follow-up flow: stale quote → bot writes → sends → reply → Accepted. No navigation to the assistant sheet.
 
-**Half A — AI follow-up (0:21.8–0:24.0, frames 654–720):**
-
-| Range (s) | Frames | Action |
-|---|---|---|
-| 0:21.8–0:22.2 | 654–666 | Cut to a Quotes list. One row reads *"Bathroom install — Mrs. Patel — £2,454.60 — Sent — 5 days ago"*. A pulsing yellow dot sits on the row indicating it's stale. |
-| 0:22.2–0:22.8 | 666–684 | Purple AI sparkle highlights the row. A small AI-bot avatar (purple gradient circle with sparkle icon) emerges from the row. A WhatsApp bubble forms next to the bot, typing-dots animate, then text appears: *"Hi Mrs. Patel — just checking in on the bathroom quote, want me to schedule it in?"* |
-| 0:22.8–0:23.4 | 684–702 | Bubble sends — paper airplane icon flies right off-screen. Tiny pause (4 frames). Reply bubble pops in from left: *"Yes please — this Saturday?"* with a sparkle entrance. |
-| 0:23.4–0:24.0 | 702–720 | Status pill on the original row animates: *Sent* (`#DBEAFE` bg, `#1D4ED8` text) flips/morphs to *Accepted* (`#DCFCE7` bg, `#15803D` text). Tiny green confetti micro-burst (~6 particles) at the badge. |
-
-**Half B — AI Assistant brain (0:24.0–0:26.8, frames 720–804):**
+**Beat-by-beat (v1.14):**
 
 | Range (s) | Frames | Action |
 |---|---|---|
-| 0:24.0–0:24.6 | 720–738 | Cut/transition back to dashboard. The AI Assistant sheet (matching IMG_2410) rises with a `swoosh`. Header *"What do you need?"* with subtitle *"Kiva AI can help you get it done faster"* and the small purple *"AI ASSISTANT"* tag. |
-| 0:24.6–0:26.0 | 738–780 | The five rows cascade in (top to bottom, ~120 ms interval): **New voice quote**, **New voice customer**, **See jobs on the map**, **Follow up on a quote**, **Job summary** — each with its colored leading icon per the reference. After landing, a highlight pulse cycles through them top-to-bottom (each row glows blue 8% bg for ~280 ms). |
-| 0:26.0–0:26.8 | 780–804 | Camera dollies back. The phone shrinks slightly (1.0 → 0.85 scale). Six small UI screen thumbnails (Customer modal, Quote review, Map, Expense, Follow-up bubble, Assistant sheet) float into orbit positions around the phone like a constellation. Hold for the lockup. |
+| 0:32.5–0:33.3 | 975–999 | **Open on stale quote.** Phone morph from Scene 5 lands on the Quotes list — focused on ONE row: *"Bathroom install — Mrs. Patel — £2,454.60 — Sent — 5 days ago"*. A pulsing yellow dot indicates staleness. Camera does a slow push-in 1.0× → 1.18× toward this row. AI glow halo intensifies (purple, active). |
+| 0:33.3–0:34.3 | 999–1029 | **AI bot emerges + writes.** A small AI-bot avatar (purple gradient circle with sparkle icon) emerges from the stale row at F1002 with a `POP_IN` spring. A WhatsApp green bubble forms next to it; typing-dots animate F1008–F1020 (tick-tick-tick `click.mp3` at 20%); then the message types in character-by-character F1020–F1029: *"Hi Mrs. Patel — just checking in on the bathroom quote, want me to schedule it in?"* (Note: long message, types fast — ~9 frames for ~80 chars, blur-fast typing reads as "AI fluency"). |
+| 0:34.3–0:35.1 | 1029–1053 | **Send.** Paper-airplane icon flies right out of the bubble at F1032. `swoosh.mp3` at F1032. Brief pause (8 frames) where the bubble settles into a "sent" state — translucent. Camera holds steady. |
+| 0:35.1–0:36.0 | 1053–1080 | **Reply lands.** Reply bubble pops in from left at F1056 with a sparkle entrance: *"Yes please — this Saturday?"* `notifcation2.mp3` at F1056 — incoming-message ding. Reply types in fast F1056–F1075. |
+| 0:36.0–0:36.6 | 1080–1098 | **Status flip — the satisfying moment.** Camera punches in slightly (1.18× → 1.25×) onto the original quote row. The status pill animates: *Sent* (`#DBEAFE` bg, `#1D4ED8` text) flips/morphs to *Accepted* (`#DCFCE7` bg, `#15803D` text) using `STATUS_FLIP` preset over 8 frames F1085–F1093 — cross-fade bg + scale 1.0→1.06→1.0 spring. Green confetti micro-burst (~6 particles) at the badge F1093. `achievement_chime.mp3` at F1093 + small celebration micro-chime layer. Slight chromatic aberration on the badge for 8 frames per §3.7.3 macro-lens rule. |
+| 0:36.6–0:38.6 | 1098–1158 | **Focus caption — the emotional payoff.** Glass plate Focus Caption types in to the right of the phone in three deliberate beats matching the narrative cadence:<br>• **F1100–F1116:** *"Wrote it."* (8 chars, 16 frames including 4-frame pause after)<br>• **F1116–F1136:** *"Sent it."* (7 chars, 14 frames including 4-frame pause)<br>• **F1136–F1155:** *"Won the job."* (12 chars, 19 frames)<br>Each phrase types in its own 4-frame breath beat between phrases (cursor blinks). The full sentence holds visible F1155 onward. **This is the ad's emotional climax** — the viewer feels the AI just did what they would normally do. |
+| 0:38.6–0:39.0 | 1158–1170 | **Hold + transition prep.** Camera holds, drift continues, AI glow halo brightens slightly. Begin pull-back preparing Scene 7 lockup. No transition sting — Scene 6→7 is a continuous emotional flow into the lockup. |
 
-**Sound timeline:**
-- 666 — soft alert ding (stale quote)
-- 672 — AI sparkle "thinking" hum
-- 678 — typing-dots tick-tick-tick (`click.mp3` at 20% vol, every 3 frames)
-- 690 — `swoosh.mp3` (send)
-- 696 — incoming reply ding (`notification2.mp3`)
-- 708 — celebration micro-chime + confetti pop
-- 720 — `swoosh.mp3` (assistant sheet rise, full vol)
-- 738–780 — rapid landing ticks for each row (5×)
-- 780–804 — magical low drone building anticipation for outro
+**Scene 6 sound timeline:**
+- F975 onward: `bed_conversational_warm.mp3` underbed at -22 dBFS
+- F970–F975: `transition_soft_fade.mp3` overlap from Scene 5
+- F985: soft alert ding (stale quote highlight, `notification1.mp3` at 30%)
+- F1002: AI sparkle "thinking" hum begins (warm AI texture, sustained)
+- F1008–F1020: typing-dots `click.mp3` at 20% every 3 frames (12 ticks)
+- F1020–F1029: rapid character-tick layer at 15% during AI message typing
+- F1032: `swoosh.mp3` (paper-airplane send)
+- F1056: `notifcation2.mp3` (reply ding)
+- F1056–F1075: light typing texture for reply bubble
+- F1093: `achievement_chime.mp3` + micro-celebration layer (status flip Accepted)
+- F1100–F1155: caption typing ticks (sparse, 20% vol, every-other char per §3.6 rule)
+- F1158 onward: `outro_drone.mp3` ramps in at -16 dBFS (begins building toward Scene 7)
 
 ---
 
-### Scene 7 — Logo lockup + CTA
-**Time:** 0:26.8 – 0:30.0 (frames 804–900)
-**Goal:** Brand recall + clear conversion ask.
+### Scene 7 — Logo lockup + CTA (v1.14, 6s)
+**Time:** 0:39.0 – 0:45.0 (frames 1170–1350 · 6.0s · 180 frames)
+**Goal:** Brand recall + clear conversion ask, with proper triumphant breath room.
 
 > **🎬 v1.11 layer (identity + bed + caption):**
-> **Identity:** **TRIUMPHANT** — pull-back from the feature constellation, sparkles converge into the logo, rest. The exhale of the entire ad. Navy + AI purple sparkles dominate.
-> **Audio bed:** `outro_drone.mp3` already-locked (P0, builds from -16 to -12 dBFS over the scene). No new bed needed.
-> **Transition in:** existing constellation-dissolve to sparkle convergence per existing spec — no new sting.
-> **Caption:** the **tagline IS the caption** here — *"Blue collar solutions to blue collar problems."* — already specced at F840–F858. No additional Focus Caption.
+> **Identity:** **TRIUMPHANT** — pull-back, sparkles converge into the logo, rest. The exhale of the entire ad.
+> **Audio bed:** `outro_drone.mp3` already-locked (P0, builds from -16 to -12 dBFS over the scene).
+> **Transition in:** continuous emotional flow from Scene 6 — no transition sting needed; the AI glow halo simply expands into the sparkle convergence.
+> **Caption:** the **tagline IS the caption** — *"Blue collar solutions to blue collar problems."*
+
+> **🚨 v1.14 simplification rule:** Scene 6 ends with the camera already pulled back; Scene 7 inherits that wide framing. No new navigation. The lockup is the natural resolution.
+
+**Beat-by-beat (v1.14):**
 
 | Range (s) | Frames | Action |
 |---|---|---|
-| 0:26.8–0:27.4 | 804–822 | The constellation of feature thumbnails dissolves into purple AI sparkle particles (~30 particles), all swirling inward toward the iPhone. Background dims to navy gradient (matching Scene 1 close). |
-| 0:27.4–0:28.0 | 822–840 | Particles converge into the Kiva logo (which lifts off the iPhone surface, scaling 1.0→1.4 over 18 frames) at frame center. Logo glow ramps up. iPhone fades out behind it. |
-| 0:28.0–0:28.6 | 840–858 | Tagline *"Blue collar solutions to blue collar problems"* fades in below the logo (gap 24 px), 4 px upward rise, white at 90% opacity, ~32 px semibold. |
-| 0:28.6–0:29.0 | 858–870 | CTA button appears below the tagline: navy `#0F172A` filled, scaled up for video (~18 px vertical / 28 px horizontal padding), 10 px radius, white 16 px 600 text reading **"Try Kiva free →"**. URL beneath in `#94A3B8` 14 px: *kiva.app*. Both fade up with 4 px rise. **Social proof line (v1.3)** appears immediately under the URL, smaller (12 px, `#64748B`, 500 weight): **"Used by 1,247+ UK tradespeople."** |
-| 0:29.0–0:29.4 | 870–882 | **🔁 LOOP CLOSURE (v1.3 attention boost).** The original Mrs. Patel iMessage card from Scene 1 slides in from the top-right corner of the frame at 70% scale (smaller than Scene 1's hero size). Same blue iMessage chrome, same sender. **But the body text now reads** *"see you Saturday 🤝 Quote accepted ✓"* — the green check sparkles in 4 frames after the card lands. Card lands at ~(1620, 200), -3° rotation, opacity 0.92. This is the curiosity loop closing — the viewer subconsciously realizes "the chaos at the start was solved." Audio: soft `notication1.mp3` at **frame 880**, much quieter than Scene 1 (-12 dBFS) so it whispers rather than punches. |
-| 0:29.4–0:30.0 | 882–900 | Hold. Mrs. Patel card sits in corner — quiet, satisfying. Subtle logo glow pulses one last time (opacity 0.6 → 0.9 → 0.6 over 18 frames). Final beat. The viewer is left with: logo, CTA, social proof, and the closed loop in the corner. |
+| 0:39.0–0:40.0 | 1170–1200 | **Pull-back + sparkle convergence.** Camera continues pulling back from Scene 6's framing. The phone shrinks slightly (1.0× → 0.85×). The AI glow halo around the phone expands and fragments into ~40 purple sparkle particles, all swirling toward the phone center in a slow vortex. Background dims to deeper navy→black. `outro_drone.mp3` building. |
+| 0:40.0–0:41.0 | 1200–1230 | **Particles converge → logo emerges.** Sparkles compress into the phone, then a brilliant flare bursts — and the Kiva logo emerges, lifting OFF the iPhone surface, scaling 1.0× → 1.4× over 24 frames as the iPhone itself fades down behind it. Logo glow `rgba(59,130,246,0.45)` ramps up. **Audio: `impact2.mp3` at 100% at F1218** — the logo lands. By F1230 the iPhone is gone, only the logo remains center-frame. |
+| 0:41.0–0:42.0 | 1230–1260 | **Tagline types in.** Below the logo (gap 28 px), the tagline types in character-by-character — same Linear/Notion typing language as the rest of the ad: *"Blue collar solutions to blue collar problems."* (~46 chars, ~28 frames typing F1232–F1260, ~0.6 frames/char). Inter_600SemiBold ~32 px, white at 90%. Sparse `click.mp3` typing texture at 20%. Cursor blinks after the period. |
+| 0:42.0–0:43.0 | 1260–1290 | **Tagline holds + CTA appears.** Tagline static. CTA button materializes 32 px below: `<Button variant="primary">` scaled up — bg `#0F172A`, padding 18px / 28px, radius 10, white Inter_600SemiBold 16 px text **"Try Kiva free →"**. Fade-up with 4 px rise. URL beneath `#94A3B8` Inter_400Regular 14 px: *kiva.app*. **Social proof** under URL, 12 px `#64748B` Inter_500Medium: *"Used by 1,247+ UK tradespeople."* Soft `click.mp3` at F1262 on CTA pop. |
+| 0:43.0–0:44.0 | 1290–1320 | **🔁 LOOP CLOSURE.** The original Mrs. Patel iMessage card from Scene 1 slides in from the top-right corner at 70% scale, in a `<GlassPlate>` to match the cinematic environment. Same blue iMessage chrome, same sender. **Body text now reads:** *"see you Saturday 🤝 Quote accepted ✓"* — green check ✓ sparkles in 4 frames after card lands. Card lands at approximately frame coords (1620, 200), -3° rotation, opacity 0.92. **This is the curiosity loop closing.** Audio: soft `notication1.mp3` at F1300 at **-12 dBFS** (whispers, doesn't punch). |
+| 0:44.0–0:45.0 | 1320–1350 | **Final breath.** Camera holds. Logo glow pulses one final time (opacity 0.6 → 0.95 → 0.6 over 30 frames). `outro_drone.mp3` resolves to its C-major hopeful chord and starts a slow fade-out at F1335. Mrs. Patel card sits quietly in corner. Tagline + CTA static. **The viewer is left with:** logo, CTA, social proof, the closed loop in the corner, and the feeling that the chaos from F0 is now resolved. Final frame F1350 = clean state. |
 
-**Sound timeline:**
-- 804 — magical sparkle convergence (filtered shimmer rising in pitch)
-- 822 — soft `impact2.mp3` (logo land)
-- 840 — gentle ascending chime (tagline)
-- 858 — soft `click.mp3` (CTA pop)
-- 880 — soft `notication1.mp3` at -12 dBFS (Mrs. Patel callback whisper)
-- 882–900 — sustained final tone, fades out at 900
+**Scene 7 sound timeline:**
+- F1170 onward: `outro_drone.mp3` building (-16 → -12 dBFS over the scene)
+- F1170–F1200: sparkle convergence shimmer (filtered noise rising in pitch)
+- F1218: `impact2.mp3` at 100% (logo land)
+- F1232–F1260: caption typing ticks on tagline (`click.mp3` 20%, every-other char)
+- F1262: soft `click.mp3` (CTA pop)
+- F1300: soft `notication1.mp3` at -12 dBFS (Mrs. Patel callback whisper) — the loop closure ding
+- F1320–F1350: drone holds, final glow pulses; F1335 begin fade-out, F1350 silence
 
 ---
 
@@ -930,7 +968,7 @@ This scene has two halves.
 
 This ad is "done" when:
 
-1. ✅ All 7 scenes render at 1920×1080 / 30 fps / 900 frames total = exactly 30.0 s.
+1. ✅ All 7 scenes render at 1920×1080 / 30 fps / **1350 frames total = exactly 45.0 s** (v1.14).
 2. ✅ Color tokens in `tokens.ts` exactly match the design spec values listed in §3.
 3. ✅ Every reference-image-derived screen visually matches its source PNG within reasonable tolerance (typography, spacing, color, layout). Use the design spec PDF for exact pixel values.
 4. ✅ The AI-purple/navy/blue semantic rule is respected in every animation.

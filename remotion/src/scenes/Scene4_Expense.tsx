@@ -20,12 +20,19 @@ import { popInProgress } from "../motion";
 // on the matched category chip.
 // =====================================================================
 
-const SHEET_RISE = 0; // 0–10
-const RECEIPT_DROP = 4; // 4–16
-const SCAN_SWEEP = 16; // 16–34
-const FORM_FILL = 34; // 34–58
-const CATEGORY_LOCK = 58; // 58–76
-const SAVE_TAP = 76; // 76–96
+// v1.14 retimed (Scene 4 local 0–150, abs 660–810):
+//   0–30    open MID-SCAN (receipt photo already attached; "Scanning…" state)
+//   30–54   blue scan line sweeps + OCR fragments
+//   54–78   form fields auto-fill (Description / Amount / Date)
+//   78–102  category lock — "Construction Materials" springs to navy
+//   102–132 save tap → sheet dismiss → list row drop → counter roll
+//   132–150 hold + transition prep
+const SHEET_RISE = 0;
+const RECEIPT_DROP = 0;
+const SCAN_SWEEP = 30;
+const FORM_FILL = 54;
+const CATEGORY_LOCK = 78;
+const SAVE_TAP = 110;
 
 export const Scene4Expense: React.FC = () => {
   const frame = useCurrentFrame();

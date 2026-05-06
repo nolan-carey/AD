@@ -22,16 +22,27 @@ import { popInProgress } from "../motion";
 // Adds 1.0→1.10 push-in zoom on the £2,454.60 total stamp — the money shot.
 // =====================================================================
 
+// v1.14 retimed phase markers (Scene 3 local 0–240, abs 420–660):
+//   0–30   open at voice capture (mic ALREADY ACTIVE — no Quick Start nav)
+//   30–60  transcribe state
+//   60–90  generate state
+//   90–138 quote review with line-item cascade
+//   138–162 subtotal + VAT count up
+//   162–168 ⚡ WHITE-FLASH PATTERN INTERRUPT (locked v1.3, retimed)
+//   168–174 £2,454.60 total stamp — money shot
+//   174–195 send button tap + paper airplane
+//   195–222 sent confirmation toast
+//   222–240 hold + transition prep
 const NEW_QUOTE_START = 0;
-const MIC_BIG = 12;
+const MIC_BIG = 0; // mic is already active when scene opens
 const TRANSCRIBE = 30;
-const GENERATING = 48;
-const REVIEW_START = 66;
-const SUBTOTAL_START = 96;
-const WHITE_FLASH = 110;
-const TOTAL_STAMP = 114;
-const SEND_TAP = 120;
-const TOAST_IN = 132;
+const GENERATING = 60;
+const REVIEW_START = 90;
+const SUBTOTAL_START = 138;
+const WHITE_FLASH = 162;
+const TOTAL_STAMP = 168;
+const SEND_TAP = 194;
+const TOAST_IN = 204;
 
 const LINE_ITEMS = [
   { name: "32mm & 40mm Waste Pipe & Fittings", qty: 1, price: 45.0 },

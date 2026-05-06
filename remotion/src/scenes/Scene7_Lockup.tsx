@@ -20,12 +20,19 @@ import { SfxAt } from "../components/SfxAt";
 // (= local 66) closing the curiosity loop opened in Scene 1.
 // =====================================================================
 
-const PARTICLES_START = 0; // 0–18  : particle swirl converges on iPhone
-const LOGO_LIFT = 18; // 18–36 : logo lifts/scales 1.0→1.4
-const TAGLINE_IN = 36; // 36–54 : tagline fades in
-const CTA_IN = 54; // 54–70 : CTA button + URL + social proof
-const PATEL_CALLBACK = 66; // 66–82 : Mrs. Patel card slides in from top-right
-const FINAL_HOLD = 78; // 78–96 : last logo-glow pulse, hold
+// v1.14 retimed (Scene 7 local 0–180, abs 1170–1350):
+//   0–30    pull-back + sparkle convergence (halo fragments into ~40 particles)
+//   30–60   particles converge → logo emerges + scales 1.0→1.4
+//   60–90   tagline types in: "Blue collar solutions to blue collar problems."
+//   90–120  CTA button "Try Kiva free →" + URL + social-proof line
+//   120–150 LOOP CLOSURE — Mrs. Patel callback slides in (top-right glass plate)
+//   150–180 final breath — logo glow pulses one more time; drone resolves
+const PARTICLES_START = 0;
+const LOGO_LIFT = 30;
+const TAGLINE_IN = 60;
+const CTA_IN = 90;
+const PATEL_CALLBACK = 120;
+const FINAL_HOLD = 150;
 
 export const Scene7Lockup: React.FC = () => {
   const frame = useCurrentFrame();

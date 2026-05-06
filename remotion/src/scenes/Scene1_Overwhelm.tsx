@@ -299,7 +299,7 @@ const SWOOSH_END = 168;
 const LOGO_START = 168;
 const TAGLINE_START = 186;
 const THUMB_START = 198;
-const SCENE_END = 216;
+const SCENE_END = 240; // v1.14: extended by 24f for cinematic morph breathing room
 
 export const Scene1Overwhelm: React.FC = () => {
   const frame = useCurrentFrame();
@@ -794,17 +794,27 @@ const ThumbAndMorph: React.FC<{ frame: number; fps: number }> = ({
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const morphProgress = interpolate(t, [4, 18], [0, 1], {
+  // v1.14: extended morph beat F198–F240
+  // F2..16 (t=2..16): logo Y-flip 0→180° as it morphs into a phone
+  // F16..26 (t=16..26): iPhone settles into 3D resting tilt (rotateY 90→-6, rotateX 0→3)
+  // F26..36 (t=26..36): phone scales up to full size; AI glow halo onset (handled by global AIGlow)
+  // F36..42 (t=36..42): hold final pose; drift baseline established
+  const morphProgress = interpolate(t, [2, 16], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
   const yRot = morphProgress * 180;
-  const phoneScale = interpolate(morphProgress, [0, 1], [0.5, 1], {
+  // After flip lands, settle to resting tilt over t=16..26
+  const settleP = interpolate(t, [16, 26], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
+    easing: EASE.outCubic,
   });
-  const finalTilt = interpolate(t, [10, 18], [0, 8], {
+  // Final phone tilt eases from "post-flip" 8° rotateZ → resting 0
+  const finalTilt = interpolate(settleP, [0, 1], [8, 0]);
+  // Phone grows from morph to full size over t=2..36 (slow grow continues past flip)
+  const phoneScale = interpolate(t, [2, 36], [0.5, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,

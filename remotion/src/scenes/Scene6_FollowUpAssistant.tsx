@@ -10,154 +10,116 @@ import { COLOR, EASE, SPRING } from "../tokens";
 import { SFX, GEN } from "../audio";
 import { PhoneFrame } from "../components/PhoneFrame";
 import { StatusBadge } from "../components/StatusBadge";
+import { GlassPlate } from "../components/GlassPlate";
 import { SfxAt } from "../components/SfxAt";
 import { popInProgress } from "../motion";
 
 // =====================================================================
-// SCENE 6 — AI Follow-up + AI Assistant brain (frames 654–804 = local 0–150)
-// Half A (0–66): Mrs. Patel quote row → AI bot bubble → reply → Sent→Accepted
-// Half B (66–150): AI Assistant sheet rises (real Dashboard sheetStyles) → 5
-// rows cascade → camera dollies back, 6 STYLIZED feature thumbnails orbit
-// the phone (no reference PNGs — every glyph rendered as components).
+// SCENE 6 — AI Follow-up (v1.14 simplified, frames 975–1170)
+// 195 frames @ 30fps · CONVERSATIONAL identity · 6.5s
+//
+// v1.14 dropped Half B (AI Assistant sheet + constellation) — Scene 6 is now
+// 100% the AI follow-up flow. Stale quote → AI bot writes → sends → reply
+// lands → status flips Sent→Accepted → triple-beat caption "Wrote it. Sent
+// it. Won the job."
 // =====================================================================
 
-const QUOTES_LIST_IN = 0;
-const ROW_HIGHLIGHT = 12;
-const BUBBLE_SEND = 30;
-const STATUS_FLIP = 48;
-const ASSISTANT_RISE = 66;
-const ROW_CASCADE = 84;
-const PULL_BACK = 126;
+const OPEN = 0; // 0–24    open on stale quote, push-in 1.0→1.18
+const ROW_HIGHLIGHT = 24; // 24–54   AI bot emerges, writes message
+const BUBBLE_SEND = 54; // 54–78   send (paper airplane), settle
+const REPLY_IN = 78; // 78–105  reply bubble lands
+const STATUS_FLIP = 105; // 105–123 status pill flips Sent→Accepted, punch-in
+const CAPTION_START = 123; // 123–183 triple-beat focus caption
+const HOLD = 183; // 183–195 hold + transition prep
 
-const ASSISTANT_ROWS = [
-  { title: "New voice quote", subtitle: "Speak the job, AI builds the quote", iconBg: COLOR.blue, glyph: "🎙" },
-  { title: "New voice customer", subtitle: "Add a customer in one sentence", iconBg: COLOR.blue, glyph: "✦" },
-  { title: "See jobs on the map", subtitle: "Drive less, work more", iconBg: "#22C55E", glyph: "📍" },
-  { title: "Follow up on a quote", subtitle: "AI nudges stale quotes", iconBg: COLOR.aiPurple, glyph: "↗" },
-  { title: "Job summary", subtitle: "End-of-day recap", iconBg: COLOR.navy, glyph: "≡" },
+// Caption windows (per v1.14 spec local frames 125–180)
+const CAPTION_BEATS = [
+  { text: "Wrote it.", start: 125, end: 141 },
+  { text: "Sent it.", start: 141, end: 161 },
+  { text: "Won the job.", start: 161, end: 180 },
 ];
 
 export const Scene6FollowUpAssistant: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Camera moves:
-  // Half A: gentle breathing 1.0 → 1.04 around the conversation, settle by status flip
-  const halfABreath = interpolate(frame, [ROW_HIGHLIGHT, BUBBLE_SEND, STATUS_FLIP + 8], [1.0, 1.04, 1.0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.inOutQuad,
-  });
-  // Pull-back at end: 1.0 → 0.85 (real "camera dolly" feel)
-  const phoneScale = interpolate(frame, [PULL_BACK, PULL_BACK + 18], [1.0, 0.85], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.inOutQuad,
-  });
-  const cameraScale = halfABreath * phoneScale;
+  // Camera push-in: 1.0 → 1.18 over open, hold during write/send, punch to 1.25
+  // at status flip, settle to 1.10 during caption, ease to 1.0 by transition.
+  const cameraScale = interpolate(
+    frame,
+    [OPEN, ROW_HIGHLIGHT, STATUS_FLIP, STATUS_FLIP + 12, CAPTION_START + 30, HOLD + 12],
+    [1.0, 1.18, 1.18, 1.25, 1.10, 1.0],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: EASE.inOutQuad,
+    }
+  );
 
   return (
-    <AbsoluteFill
-      style={{
-        background: `linear-gradient(135deg, ${COLOR.navy} 0%, ${COLOR.surfaceDark} 100%)`,
-      }}
-    >
+    <AbsoluteFill>
       <PhoneFrame scale={cameraScale}>
-        {frame < ASSISTANT_RISE && <QuotesListView frame={frame} fps={fps} />}
-        {frame >= ASSISTANT_RISE && <AssistantSheetView frame={frame} fps={fps} />}
+        <QuotesListView frame={frame} fps={fps} />
       </PhoneFrame>
 
-      {/* Stylized constellation thumbnails — outside phone, only during PULL_BACK */}
-      {frame >= PULL_BACK && <ConstellationThumbs frame={frame} />}
+      {/* Triple-beat focus caption — glass plate to the right of phone */}
+      {frame >= CAPTION_START && <TripleBeatCaption frame={frame} />}
 
       {/* === AUDIO === */}
       <SfxAt
-        src={SFX.notification2}
-        from={ROW_HIGHLIGHT}
-        volume={0.45}
-        playbackRate={0.95}
-      />
-      <SfxAt
-        src={SFX.riser}
-        from={ROW_HIGHLIGHT + 6}
+        src={GEN.aiHum}
+        from={0}
+        loop
         volume={(f) =>
-          interpolate(f, [0, 6, 12, 18], [0, 0.18, 0.18, 0], {
+          interpolate(f, [0, 8, 180, 195], [0, 0.08, 0.08, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        playbackRate={1.3}
-        durationInFrames={20}
+        durationInFrames={195}
       />
-      {[0, 3].map((o, i) => (
+      {/* Stale quote alert ding */}
+      <SfxAt src={SFX.notification1} from={10} volume={0.3} />
+      {/* Typing dots while bot composes */}
+      {[36, 39, 42, 45].map((f) => (
         <SfxAt
-          key={`typing-${i}`}
+          key={`type-dot-${f}`}
           src={SFX.click}
-          from={ROW_HIGHLIGHT + 12 + o}
+          from={f}
           volume={0.2}
           playbackRate={1.4}
         />
       ))}
-      <SfxAt src={SFX.swoosh} from={BUBBLE_SEND + 6} volume={0.55} />
-      <SfxAt
-        src={SFX.notification2}
-        from={BUBBLE_SEND + 12}
-        volume={0.55}
-      />
-      <SfxAt
-        src={SFX.notification1}
-        from={STATUS_FLIP + 6}
-        volume={0.6}
-        playbackRate={1.4}
-      />
-      <SfxAt src={SFX.swoosh} from={ASSISTANT_RISE} volume={0.85} />
-      {ASSISTANT_ROWS.map((_, i) => (
-        <SfxAt
-          key={`row-tick-${i}`}
-          src={SFX.click}
-          from={ROW_CASCADE + i * 4}
-          volume={0.35}
-          playbackRate={1.1 + i * 0.04}
-        />
-      ))}
-      {/* AI hum ambient underbed during the assistant sheet phase — -22 dBFS */}
-      <SfxAt
-        src={GEN.aiHum}
-        from={ASSISTANT_RISE}
-        volume={(f) =>
-          interpolate(f, [0, 8, 50, 60], [0, 0.08, 0.08, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        loop
-        durationInFrames={PULL_BACK - ASSISTANT_RISE + 6}
-      />
-      {/* Outro drone (generated) starts late in Scene 6 — bridges into Scene 7 */}
+      {/* Send swoosh */}
+      <SfxAt src={SFX.swoosh} from={BUBBLE_SEND + 4} volume={0.55} />
+      {/* Reply ding */}
+      <SfxAt src={SFX.notification2} from={REPLY_IN} volume={0.55} />
+      {/* Achievement chime on status flip */}
+      <SfxAt src={GEN.achievement} from={STATUS_FLIP + 6} volume={0.32} />
+      {/* Outro drone begins ramping in late Scene 6 (per spec — bridges into Scene 7) */}
       <SfxAt
         src={GEN.outroDrone}
-        from={PULL_BACK - 10}
+        from={HOLD - 12}
         volume={(f) =>
-          interpolate(f, [0, 10, 30, 36], [0, 0.16, 0.22, 0.25], {
+          interpolate(f, [0, 12, 24], [0, 0.16, 0.22], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        durationInFrames={36}
+        durationInFrames={28}
       />
     </AbsoluteFill>
   );
 };
 
 // =====================================================================
-// HALF A — Quotes list with the AI follow-up
+// QUOTES LIST VIEW — Mrs. Patel stale quote + AI bot conversation
 // =====================================================================
 const QuotesListView: React.FC<{ frame: number; fps: number }> = ({
   frame,
   fps,
 }) => {
   const dotPulse = 0.7 + 0.3 * Math.sin((frame / 6) * Math.PI * 2);
-
   return (
     <div
       style={{
@@ -182,6 +144,7 @@ const QuotesListView: React.FC<{ frame: number; fps: number }> = ({
       </div>
 
       <div style={{ padding: "12px 14px" }}>
+        {/* Stale quote row — pulses + AI sparkle */}
         <div
           style={{
             position: "relative",
@@ -231,7 +194,7 @@ const QuotesListView: React.FC<{ frame: number; fps: number }> = ({
           <StatusPillFlip frame={frame} />
         </div>
 
-        {frame >= ROW_HIGHLIGHT && frame < STATUS_FLIP && (
+        {frame >= ROW_HIGHLIGHT && frame < HOLD && (
           <BotConversation frame={frame} fps={fps} />
         )}
         {frame >= STATUS_FLIP && frame < STATUS_FLIP + 18 && (
@@ -244,9 +207,7 @@ const QuotesListView: React.FC<{ frame: number; fps: number }> = ({
 
 const StatusPillFlip: React.FC<{ frame: number }> = ({ frame }) => {
   const t = frame - STATUS_FLIP;
-  if (t < 0) {
-    return <StatusBadge status="sent" />;
-  }
+  if (t < 0) return <StatusBadge status="sent" />;
   const flipP = interpolate(t, [0, 8], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -265,24 +226,27 @@ const BotConversation: React.FC<{ frame: number; fps: number }> = ({
   frame,
   fps,
 }) => {
-  const botT = frame - ROW_HIGHLIGHT;
-  const botSp = popInProgress(frame, fps, ROW_HIGHLIGHT);
+  // Bot avatar emerges at ROW_HIGHLIGHT + 4 (frame 28)
+  const botSp = popInProgress(frame, fps, ROW_HIGHLIGHT + 4);
   const botY = interpolate(botSp, [0, 1], [-20, 0]);
   const botScale = interpolate(botSp, [0, 1], [0.6, 1]);
 
-  const bubbleT = frame - (ROW_HIGHLIGHT + 6);
+  // Outgoing bubble forms at ROW_HIGHLIGHT + 10
+  const bubbleT = frame - (ROW_HIGHLIGHT + 10);
   const bubbleVisible = bubbleT >= 0;
-  const showText = bubbleT >= 12;
+  const showText = bubbleT >= 14; // typing-dots hold for 14 frames, then text
 
+  // Send animation at BUBBLE_SEND
   const sendT = frame - BUBBLE_SEND;
-  const planeOpacity = interpolate(sendT, [0, 4, 12], [0, 1, 0], {
+  const planeOpacity = interpolate(sendT, [0, 4, 14], [0, 1, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const planeX = interpolate(sendT, [0, 12], [0, 200]);
+  const planeX = interpolate(sendT, [0, 14], [0, 220]);
 
-  const replyT = frame - (BUBBLE_SEND + 12);
-  const replySp = popInProgress(frame, fps, BUBBLE_SEND + 12);
+  // Reply bubble at REPLY_IN
+  const replyT = frame - REPLY_IN;
+  const replySp = popInProgress(frame, fps, REPLY_IN);
   const replyOpacity = replyT < 0 ? 0 : interpolate(replySp, [0, 1], [0, 1]);
   const replyScale = replyT < 0 ? 0.6 : interpolate(replySp, [0, 1], [0.6, 1]);
 
@@ -330,7 +294,7 @@ const BotConversation: React.FC<{ frame: number; fps: number }> = ({
         )}
       </div>
 
-      {sendT >= 0 && sendT < 12 && (
+      {sendT >= 0 && sendT < 14 && (
         <div
           style={{
             position: "absolute",
@@ -432,515 +396,88 @@ const ConfettiBurst: React.FC<{ frame: number }> = ({ frame }) => {
 };
 
 // =====================================================================
-// HALF B — AI Assistant sheet (real Dashboard sheetStyles)
+// TRIPLE-BEAT CAPTION — "Wrote it. Sent it. Won the job."
+// Each phrase types into its own line with a 4-frame breath beat between.
 // =====================================================================
-const AssistantSheetView: React.FC<{ frame: number; fps: number }> = ({
-  frame,
-  fps,
-}) => {
-  const t = frame - ASSISTANT_RISE;
-  const riseP = interpolate(t, [0, 12], [0, 1], {
+const TripleBeatCaption: React.FC<{ frame: number }> = ({ frame }) => {
+  const enter = interpolate(frame, [CAPTION_START, CAPTION_START + 6], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
-  const yOffset = interpolate(riseP, [0, 1], [600, 0]);
-
   return (
     <div
       style={{
-        width: "100%",
-        height: "100%",
-        background: COLOR.bg,
-        position: "relative",
-        fontFamily: "Inter, system-ui",
+        position: "absolute",
+        left: 1240,
+        top: 460,
+        width: 460,
+        opacity: enter,
       }}
     >
-      {/* Faded dashboard backdrop */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: COLOR.surfaceDark,
-          opacity: 0.5,
-        }}
-      />
-      {/* Real sheet shape — borderTopRadius 24, padding "10px 16px 28px" */}
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          top: 80,
-          bottom: 0,
-          background: COLOR.surface,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          padding: "10px 16px",
-          transform: `translateY(${yOffset}px)`,
-          boxShadow: "0 -8px 24px rgba(0,0,0,0.18)",
-        }}
-      >
+      <GlassPlate radius={16}>
         <div
           style={{
-            alignSelf: "center",
-            width: 36,
-            height: 4,
-            borderRadius: 2,
-            background: COLOR.border,
-            margin: "0 auto 16px",
-          }}
-        />
-        {/* AI ASSISTANT badge — real: bg ai purple solid, white text 8px 600 */}
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            background: COLOR.aiPurple,
-            color: "#fff",
-            borderRadius: 6,
-            padding: "3px 8px",
-            fontSize: 8,
-            fontWeight: 600,
-            letterSpacing: 0.8,
-            marginBottom: 8,
+            padding: "16px 20px",
+            fontFamily: "Inter, system-ui",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
           }}
         >
-          ✦ AI ASSISTANT
-        </div>
-        <div style={{ fontSize: 18, fontWeight: 700, color: COLOR.navy, marginBottom: 2 }}>
-          What do you need?
-        </div>
-        <div style={{ fontSize: 12, color: COLOR.textSec, fontWeight: 400, marginBottom: 14 }}>
-          Kiva AI can help you get it done faster
-        </div>
-        {ASSISTANT_ROWS.map((row, i) => {
-          const start = ROW_CASCADE + i * 4;
-          const sp = popInProgress(frame, fps, start);
-          const opacity = interpolate(sp, [0, 1], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          });
-          const y = interpolate(sp, [0, 1], [12, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          });
-          // highlight pulse cycles after all land
-          const pulseStart = ROW_CASCADE + ASSISTANT_ROWS.length * 4 + i * 6;
-          const pulseT = frame - pulseStart;
-          const pulseP =
-            pulseT >= 0 && pulseT < 8
-              ? interpolate(pulseT, [0, 4, 8], [0, 1, 0], {
-                  extrapolateLeft: "clamp",
-                  extrapolateRight: "clamp",
-                })
-              : 0;
-          return (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                paddingTop: 12,
-                paddingBottom: 12,
-                borderBottom: i < ASSISTANT_ROWS.length - 1 ? `1px solid ${COLOR.divider}` : "none",
-                opacity,
-                transform: `translateY(${y}px)`,
-                background: pulseP > 0 ? `rgba(59,130,246,${0.08 * pulseP})` : "transparent",
-                borderRadius: pulseP > 0 ? 8 : 0,
-                paddingLeft: pulseP > 0 ? 8 : 0,
-                paddingRight: pulseP > 0 ? 8 : 0,
-              }}
-            >
-              <div
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 10,
-                  background: row.iconBg,
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 16,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}
-              >
-                {row.glyph}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: COLOR.navy, marginBottom: 2 }}>
-                  {row.title}
-                </div>
-                <div style={{ fontSize: 11, color: COLOR.textSec }}>{row.subtitle}</div>
-              </div>
-              <div style={{ fontSize: 14, color: COLOR.textTer }}>›</div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-// =====================================================================
-// CONSTELLATION — 6 STYLIZED feature thumbs (no PNGs, all components)
-// =====================================================================
-const ConstellationThumbs: React.FC<{ frame: number }> = ({ frame }) => {
-  const t = frame - PULL_BACK;
-  const enterP = interpolate(t, [0, 18], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
-
-  const thumbs: { kind: ThumbKind; angle: number; dist: number }[] = [
-    { kind: "customer", angle: -150, dist: 540 },
-    { kind: "quote", angle: -100, dist: 580 },
-    { kind: "map", angle: -45, dist: 540 },
-    { kind: "expense", angle: 30, dist: 560 },
-    { kind: "followup", angle: 90, dist: 580 },
-    { kind: "assistant", angle: 150, dist: 540 },
-  ];
-
-  return (
-    <AbsoluteFill style={{ pointerEvents: "none" }}>
-      {thumbs.map((t, i) => {
-        const a = (t.angle * Math.PI) / 180;
-        const x = Math.cos(a) * t.dist * enterP;
-        const y = Math.sin(a) * t.dist * enterP;
-        const scale = 0.8 + 0.2 * enterP;
-        const rotate = t.angle * 0.05;
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              left: "50%",
-              top: "50%",
-              width: 130,
-              height: 280,
-              transform: `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${scale}) rotate(${rotate}deg)`,
-              opacity: enterP,
-              borderRadius: 16,
-              overflow: "hidden",
-              boxShadow: "0 18px 40px rgba(0,0,0,0.45)",
-              border: `2px solid rgba(255,255,255,0.08)`,
-              background: COLOR.bg,
-            }}
-          >
-            <ThumbContent kind={t.kind} />
-          </div>
-        );
-      })}
-    </AbsoluteFill>
-  );
-};
-
-type ThumbKind = "customer" | "quote" | "map" | "expense" | "followup" | "assistant";
-
-const ThumbContent: React.FC<{ kind: ThumbKind }> = ({ kind }) => {
-  const headerBar = (
-    <div
-      style={{
-        height: 28,
-        background: COLOR.navy,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 8px",
-      }}
-    >
-      <span style={{ fontSize: 7, color: "#fff", fontWeight: 600 }}>9:41</span>
-      <span style={{ fontSize: 7, color: "rgba(255,255,255,0.7)" }}>•••</span>
-    </div>
-  );
-  if (kind === "customer") {
-    return (
-      <>
-        {headerBar}
-        <div style={{ padding: 10, fontFamily: "Inter, system-ui" }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: COLOR.navy, marginBottom: 6 }}>
-            New Customer
-          </div>
-          <div
-            style={{
-              background: COLOR.aiPurpleBg,
-              borderRadius: 4,
-              padding: "4px 6px",
-              fontSize: 6,
-              color: COLOR.aiPurple,
-              fontWeight: 600,
-              marginBottom: 8,
-            }}
-          >
-            ✦ Use AI
-          </div>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 18 }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                background: COLOR.navy,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontSize: 14,
-                boxShadow: `0 0 0 6px rgba(59,130,246,0.18), 0 0 0 12px rgba(59,130,246,0.08)`,
-              }}
-            >
-              🎙
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-  if (kind === "quote") {
-    return (
-      <>
-        {headerBar}
-        <div style={{ padding: 10, fontFamily: "Inter, system-ui" }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: COLOR.navy, marginBottom: 6 }}>
-            Quote Review
-          </div>
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 6,
-                color: COLOR.textSec,
-                padding: "3px 0",
-                borderBottom: `1px solid ${COLOR.divider}`,
-              }}
-            >
-              <span>Line {i}</span>
-              <span style={{ color: COLOR.navy, fontWeight: 600 }}>£XX</span>
-            </div>
-          ))}
-          <div
-            style={{
-              marginTop: 8,
-              background: COLOR.navy,
-              color: "#fff",
-              borderRadius: 4,
-              padding: "5px 6px",
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 8,
-              fontWeight: 700,
-            }}
-          >
-            <span>Total</span>
-            <span>£2,454.60</span>
-          </div>
-        </div>
-      </>
-    );
-  }
-  if (kind === "map") {
-    return (
-      <>
-        {headerBar}
-        <div
-          style={{
-            position: "relative",
-            height: "calc(100% - 28px)",
-            background: "linear-gradient(135deg, #DBEAFE 0%, #E0F2FE 100%)",
-          }}
-        >
-          {[
-            { x: 30, y: 60, color: "#7CA0CB" },
-            { x: 70, y: 100, color: "#A89BC9" },
-            { x: 90, y: 160, color: "#8FB99D" },
-          ].map((p, i) => (
-            <div
-              key={i}
-              style={{
-                position: "absolute",
-                left: p.x,
-                top: p.y,
-                width: 14,
-                height: 14,
-                borderRadius: "50%",
-                background: p.color,
-                border: "2px solid #fff",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-              }}
-            />
-          ))}
-        </div>
-      </>
-    );
-  }
-  if (kind === "expense") {
-    return (
-      <>
-        {headerBar}
-        <div style={{ padding: 10, fontFamily: "Inter, system-ui" }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: COLOR.navy, marginBottom: 6 }}>
-            New Expense
-          </div>
-          <div
-            style={{
-              background: "#F8FAFC",
-              border: `1px solid ${COLOR.border}`,
-              borderRadius: 4,
-              padding: 4,
-              display: "flex",
-              gap: 6,
-              alignItems: "center",
-              marginBottom: 6,
-            }}
-          >
-            <div style={{ width: 16, height: 20, background: "#FAFAFA", borderRadius: 2 }} />
-            <span style={{ fontSize: 6, color: COLOR.textSec, fontWeight: 600 }}>Receipt</span>
-          </div>
-          <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-            {[
-              { label: "Construction", bg: COLOR.navy, color: "#fff" },
-              { label: "Parts", bg: COLOR.surface, color: COLOR.textSec },
-            ].map((c, i) => (
+          {CAPTION_BEATS.map((beat, i) => {
+            if (frame < beat.start) return null;
+            const visible = Math.min(
+              beat.text.length,
+              Math.floor(((frame - beat.start) / (beat.end - beat.start)) * beat.text.length)
+            );
+            const showCursor = visible < beat.text.length;
+            // Final beat ("Won the job.") gets a subtle scale-pulse on landing
+            const isLast = i === CAPTION_BEATS.length - 1;
+            const pulseT = frame - beat.end;
+            const pulseScale =
+              isLast && pulseT >= 0 && pulseT <= 8
+                ? interpolate(pulseT, [0, 4, 8], [1, 1.06, 1], {
+                    extrapolateLeft: "clamp",
+                    extrapolateRight: "clamp",
+                  })
+                : 1;
+            return (
               <div
                 key={i}
                 style={{
-                  background: c.bg,
-                  color: c.color,
-                  fontSize: 6,
-                  fontWeight: 600,
-                  padding: "2px 5px",
-                  borderRadius: 8,
-                  border: `1px solid ${c.bg === COLOR.surface ? COLOR.border : c.bg}`,
+                  fontSize: i < 2 ? 22 : 26,
+                  fontWeight: i < 2 ? 600 : 700,
+                  color: i < 2 ? "rgba(255,255,255,0.85)" : "#fff",
+                  letterSpacing: -0.3,
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 4,
+                  transform: `scale(${pulseScale})`,
+                  transformOrigin: "left center",
+                  textShadow:
+                    isLast && visible >= beat.text.length
+                      ? "0 0 14px rgba(109,40,217,0.45)"
+                      : "none",
                 }}
               >
-                {c.label}
+                <span>{beat.text.slice(0, visible)}</span>
+                {showCursor && (
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: 2,
+                      height: i < 2 ? 22 : 26,
+                      background: "rgba(255,255,255,0.7)",
+                      opacity: Math.floor(frame / 7) % 2 === 0 ? 1 : 0,
+                    }}
+                  />
+                )}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      </>
-    );
-  }
-  if (kind === "followup") {
-    return (
-      <>
-        {headerBar}
-        <div style={{ padding: 10, fontFamily: "Inter, system-ui" }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: COLOR.navy, marginBottom: 6 }}>
-            Follow-up
-          </div>
-          <div style={{ display: "flex", gap: 4, alignItems: "flex-start", marginBottom: 6 }}>
-            <div
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: 6,
-                background: `linear-gradient(135deg, ${COLOR.aiPurple}, ${COLOR.blue})`,
-                color: "#fff",
-                fontSize: 6,
-                fontWeight: 800,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              ✦
-            </div>
-            <div
-              style={{
-                background: COLOR.aiPurpleBg,
-                color: COLOR.aiPurple,
-                fontSize: 6,
-                padding: "3px 5px",
-                borderRadius: 6,
-                fontWeight: 500,
-                lineHeight: 1.3,
-              }}
-            >
-              Hi Mrs. Patel — checking in…
-            </div>
-          </div>
-          <div
-            style={{
-              background: COLOR.acceptedBg,
-              color: COLOR.accepted,
-              fontSize: 6,
-              padding: "3px 5px",
-              borderRadius: 6,
-              fontWeight: 600,
-              alignSelf: "flex-start",
-              display: "inline-block",
-            }}
-          >
-            ✦ Yes please
-          </div>
-        </div>
-      </>
-    );
-  }
-  // assistant
-  return (
-    <>
-      {headerBar}
-      <div style={{ padding: 10, fontFamily: "Inter, system-ui" }}>
-        <div
-          style={{
-            background: COLOR.aiPurple,
-            color: "#fff",
-            fontSize: 6,
-            fontWeight: 700,
-            padding: "2px 4px",
-            borderRadius: 3,
-            alignSelf: "flex-start",
-            display: "inline-block",
-            marginBottom: 4,
-            letterSpacing: 0.4,
-          }}
-        >
-          ✦ AI
-        </div>
-        <div style={{ fontSize: 9, fontWeight: 700, color: COLOR.navy, marginBottom: 8 }}>
-          What do you need?
-        </div>
-        {ASSISTANT_ROWS.slice(0, 4).map((row, i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "3px 0",
-              borderBottom: i < 3 ? `1px solid ${COLOR.divider}` : "none",
-            }}
-          >
-            <div
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: 3,
-                background: row.iconBg,
-                color: "#fff",
-                fontSize: 6,
-                fontWeight: 700,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {row.glyph}
-            </div>
-            <span style={{ fontSize: 6, color: COLOR.navy, fontWeight: 600 }}>{row.title}</span>
-          </div>
-        ))}
-      </div>
-    </>
+      </GlassPlate>
+    </div>
   );
 };

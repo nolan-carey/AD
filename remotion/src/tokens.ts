@@ -98,16 +98,17 @@ export const TYPE = {
   ctaLabel: { size: 22, weight: 600 },
 } as const;
 
-// Master timeline anchor (ad_plan.md §5). All scenes register their durations against this.
+// Master timeline anchor (ad_plan.md §5 v1.14 — 45s/1350 frames).
+// All scenes register their durations against this.
 export const FPS = 30;
-export const TOTAL_FRAMES = 900; // 30s @ 30fps
+export const TOTAL_FRAMES = 1350; // 45s @ 30fps
 
 export const SCENES = {
-  scene1: { from: 0, duration: 216 }, // 0:00.0 – 0:07.2
-  scene2: { from: 216, duration: 96 }, // 0:07.2 – 0:10.4
-  scene3: { from: 312, duration: 150 }, // 0:10.4 – 0:15.4
-  scene4: { from: 462, duration: 96 }, // 0:15.4 – 0:18.6
-  scene5: { from: 558, duration: 96 }, // 0:18.6 – 0:21.8
-  scene6: { from: 654, duration: 150 }, // 0:21.8 – 0:26.8
-  scene7: { from: 804, duration: 96 }, // 0:26.8 – 0:30.0
+  scene1: { from: 0, duration: 240 }, //    0:00.0 – 0:08.0  (8.0s · +24f for morph breath)
+  scene2: { from: 240, duration: 180 }, //  0:08.0 – 0:14.0  (6.0s · v1.14 simplified)
+  scene3: { from: 420, duration: 240 }, //  0:14.0 – 0:22.0  (8.0s · HERO)
+  scene4: { from: 660, duration: 150 }, //  0:22.0 – 0:27.0  (5.0s)
+  scene5: { from: 810, duration: 165 }, //  0:27.0 – 0:32.5  (5.5s)
+  scene6: { from: 975, duration: 195 }, //  0:32.5 – 0:39.0  (6.5s · v1.14 — AI follow-up only, Half B dropped)
+  scene7: { from: 1170, duration: 180 }, // 0:39.0 – 0:45.0  (6.0s)
 } as const;

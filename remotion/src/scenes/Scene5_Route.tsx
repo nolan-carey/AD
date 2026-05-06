@@ -20,11 +20,19 @@ import { popInProgress } from "../motion";
 // Real Map/index.js anatomy applied: banner, filter chips, drop-pin SVG.
 // =====================================================================
 
-const OPEN_WIDE_END = 18;
-const PUNCH_ZOOM_END = 36;
-const PIN_PULSE_START = 36;
-const ROUTE_DRAW = 54;
-const STAT_OVERLAY = 69;
+// v1.14 retimed (Scene 5 local 0–165, abs 810–975):
+//   0–24    open WIDE on London with all 3 pins placed (hold for geography)
+//   24–42   PUNCH-ZOOM IN (~40% zoom over 18 frames easeInOutCubic)
+//   42–60   pin re-entry pulse (sequenced 200ms intervals)
+//   60–84   route line draws (gradient blue→purple, traveling particles)
+//   84–108  stat overlay "47 min" / "12.4 mi" counts up
+//   108–150 focus caption "Saves 47 minutes today." + spatial exhale beat
+//   150–165 transition prep (rotateY shift toward Scene 6)
+const OPEN_WIDE_END = 24;
+const PUNCH_ZOOM_END = 42;
+const PIN_PULSE_START = 42;
+const ROUTE_DRAW = 60;
+const STAT_OVERLAY = 84;
 
 // Pin landing positions in 393×852 phone-screen logical px.
 // Three customers across London: Annie Y (Notting Hill / upper-left),

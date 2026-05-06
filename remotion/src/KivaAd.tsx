@@ -25,8 +25,8 @@ import { Scene7Lockup } from "./scenes/Scene7_Lockup";
 // Flip to true once Sound/music/bed.mp3 is dropped in (C7 directive).
 const HAS_MUSIC_BED = false;
 
-// 8-frame crossfade overlap between scenes (companion §5.0 morph transition)
-const CROSSFADE = 8;
+// 12-frame crossfade overlap between scenes (ad_plan §5 v1.14 morph transition)
+const CROSSFADE = 12;
 
 // Per-scene AIGlow state — purple "active" during AI-heavy moments, blue "idle" elsewhere.
 const SCENE_GLOW = [
