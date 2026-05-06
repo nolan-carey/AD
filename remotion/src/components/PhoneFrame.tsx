@@ -1,32 +1,71 @@
 import React from "react";
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { COLOR, PHONE } from "../tokens";
 
 interface PhoneFrameProps {
   children: React.ReactNode;
-  // In-frame transform (rotation/translation/scale tweaks) — applied on top of the base centering.
+  // Legacy 2D transform string (kept for backward compatibility — used for
+  // pre-v1.13 scenes that pass an explicit rotateZ string).
   transform?: string;
   // 1.0 = phone at canonical PHONE.scale (~83% of 1080 frame height)
   scale?: number;
   // Shadow intensity 0–1
   shadow?: number;
+  // === v1.13 3D rendering props (companion §5.0) ===
+  // Externally-driven rotation (degrees) — drift is added on top.
+  rotateY?: number;
+  rotateX?: number;
+  rotateZ?: number;
+  // Z-axis translation for parallax control between scenes.
+  translateZ?: number;
+  // Disable the constant drift for stills or rendering tests.
+  disableDrift?: boolean;
 }
 
-// The iPhone chrome: rounded bezel, dynamic island, home indicator, status bar.
-// Children render inside the screen area (393 x 852 logical px after status/home).
+// =====================================================================
+// PhoneFrame — iPhone 15 chrome rendered in 3D (ad_plan §3.7.2 + companion §5.0)
+//   • Resting tilt rotateY -6°, rotateX +3° (angled toward viewer)
+//   • Constant drift sine waves on Y/X rotation + Y translate
+//   • Inner glow box-shadow bleed (display = light source)
+//   • Lighting overlay gradients (top-left highlight + bottom-right blue rim)
+//   • Backward compatible with the 2D `transform` + `scale` API
+// =====================================================================
+
 export const PhoneFrame: React.FC<PhoneFrameProps> = ({
   children,
   transform = "",
   scale = 1,
   shadow = 1,
+  rotateY = -6,
+  rotateX = 3,
+  rotateZ = 0,
+  translateZ = 0,
+  disableDrift = false,
 }) => {
+  const frame = useCurrentFrame();
   const totalScale = PHONE.scale * scale;
+
+  // Constant drift (companion §5.0)
+  const driftRotY = disableDrift ? 0 : Math.sin(frame / 36) * 0.8;
+  const driftRotX = disableDrift ? 0 : Math.cos(frame / 42) * 0.5;
+  const driftY = disableDrift ? 0 : Math.sin(frame / 30) * 3;
+
+  const composedTransform = `
+    translateY(${driftY}px)
+    translateZ(${translateZ}px)
+    rotateY(${rotateY + driftRotY}deg)
+    rotateX(${rotateX + driftRotX}deg)
+    rotateZ(${rotateZ}deg)
+    scale(${totalScale})
+    ${transform}
+  `;
 
   return (
     <AbsoluteFill
       style={{
         justifyContent: "center",
         alignItems: "center",
+        transformStyle: "preserve-3d",
       }}
     >
       <div
@@ -34,18 +73,21 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
           width: PHONE.width,
           height: PHONE.height,
           position: "relative",
-          transform: `scale(${totalScale}) ${transform}`,
+          transform: composedTransform,
           transformOrigin: "center center",
+          transformStyle: "preserve-3d",
           borderRadius: PHONE.bezelRadius,
           background: "#000",
-          boxShadow: `0 ${40 * shadow}px ${80 * shadow}px rgba(0,0,0,${
-            0.55 * shadow
-          }), 0 ${10 * shadow}px ${30 * shadow}px rgba(0,0,0,${0.4 * shadow})`,
+          boxShadow: `
+            0 ${40 * shadow}px ${80 * shadow}px rgba(0,0,0,${0.55 * shadow}),
+            0 ${10 * shadow}px ${30 * shadow}px rgba(0,0,0,${0.4 * shadow}),
+            0 0 80px rgba(59,130,246,0.25)
+          `,
           padding: 6,
           boxSizing: "border-box",
         }}
       >
-        {/* Inner bezel */}
+        {/* Inner bezel — the screen */}
         <div
           style={{
             position: "absolute",
@@ -124,6 +166,32 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
           >
             {children}
           </div>
+
+          {/* === v1.13 lighting overlays (no real 3D lights) === */}
+          {/* Top-left key highlight (warm) */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 30%)",
+              pointerEvents: "none",
+              zIndex: 20,
+              mixBlendMode: "screen",
+            }}
+          />
+          {/* Bottom-right rim (cool blue) */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(315deg, rgba(59,130,246,0.06) 0%, transparent 25%)",
+              pointerEvents: "none",
+              zIndex: 21,
+              mixBlendMode: "screen",
+            }}
+          />
         </div>
       </div>
     </AbsoluteFill>
