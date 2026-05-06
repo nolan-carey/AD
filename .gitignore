@@ -33,7 +33,9 @@ yarn-error.log*
 
 # Generated audio (regenerable from test.py — don't bloat repo)
 Sound/generated/
+Sound/music/
 remotion/public/sound/generated/
+remotion/public/sound/music/
 
 # Claude Code internal state (per-machine)
 .claude/

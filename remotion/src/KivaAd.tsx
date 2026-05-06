@@ -1,5 +1,11 @@
 import React from "react";
-import { AbsoluteFill, Sequence, staticFile, useCurrentFrame } from "remotion";
+import {
+  AbsoluteFill,
+  Sequence,
+  interpolate,
+  staticFile,
+  useCurrentFrame,
+} from "remotion";
 import { Audio } from "@remotion/media";
 import { SCENES } from "./tokens";
 import { INTER } from "./fonts";
@@ -23,7 +29,11 @@ import { Scene7Lockup } from "./scenes/Scene7_Lockup";
 // =====================================================================
 
 // Flip to true once Sound/music/bed.mp3 is dropped in (C7 directive).
-const HAS_MUSIC_BED = false;
+// v1.18: bed generated via ElevenLabs Music API + manually approved.
+const HAS_MUSIC_BED = true;
+// White-flash hard-silence window (Scene 3 v1.3 locked rule, abs frames).
+const WHITE_FLASH_MUTE_START = 582;
+const WHITE_FLASH_MUTE_END = 588;
 
 // 12-frame crossfade overlap between scenes (ad_plan §5 v1.14 morph transition)
 const CROSSFADE = 12;
@@ -144,11 +154,23 @@ const SceneStack: React.FC = () => {
         </SceneCrossfade>
       </Sequence>
 
-      {/* Music bed — gated until user drops a file at Sound/music/bed.mp3 */}
+      {/* Music bed (v1.18) — generated 45s cinematic instrumental.
+          Volume sits at -18 dBFS (~0.15) so SFX punch through the mix.
+          Honors Scene 3's white-flash hard-silence rule (F582–F588) and
+          fades the final 1.5s (F1305–F1350) per §4.6.3 success criterion. */}
       {HAS_MUSIC_BED && (
         <Audio
           src={staticFile("sound/music/bed.mp3")}
-          volume={0.4}
+          volume={(f) => {
+            if (f >= WHITE_FLASH_MUTE_START && f < WHITE_FLASH_MUTE_END) return 0;
+            if (f >= 1305) {
+              return interpolate(f, [1305, 1350], [0.15, 0], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+              });
+            }
+            return 0.15;
+          }}
         />
       )}
     </>
