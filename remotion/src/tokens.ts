@@ -98,17 +98,19 @@ export const TYPE = {
   ctaLabel: { size: 22, weight: 600 },
 } as const;
 
-// Master timeline anchor (ad_plan.md §5 v1.14 — 45s/1350 frames).
-// All scenes register their durations against this.
+// Master timeline anchor (ad_plan.md §5 v1.20 — 27s/810 frames, 8 scenes).
+// v1.20 structural reset: Expense classification CUT, AI Business Assistant
+// added, Scene 8 final hero shot added, runtime compressed.
 export const FPS = 30;
-export const TOTAL_FRAMES = 1350; // 45s @ 30fps
+export const TOTAL_FRAMES = 810; // 27s @ 30fps
 
 export const SCENES = {
-  scene1: { from: 0, duration: 240 }, //    0:00.0 – 0:08.0  (8.0s · +24f for morph breath)
-  scene2: { from: 240, duration: 180 }, //  0:08.0 – 0:14.0  (6.0s · v1.14 simplified)
-  scene3: { from: 420, duration: 240 }, //  0:14.0 – 0:22.0  (8.0s · HERO)
-  scene4: { from: 660, duration: 150 }, //  0:22.0 – 0:27.0  (5.0s)
-  scene5: { from: 810, duration: 165 }, //  0:27.0 – 0:32.5  (5.5s)
-  scene6: { from: 975, duration: 195 }, //  0:32.5 – 0:39.0  (6.5s · v1.14 — AI follow-up only, Half B dropped)
-  scene7: { from: 1170, duration: 180 }, // 0:39.0 – 0:45.0  (6.0s)
+  scene1: { from: 0, duration: 180 }, //    0:00 – 0:06   (6.0s · Overwhelm intro — typing/cluster/swoosh)
+  scene2: { from: 180, duration: 60 }, //   0:06 – 0:08   (2.0s · Logo→iPhone hero reveal — slow + dramatic)
+  scene3: { from: 240, duration: 120 }, //  0:08 – 0:12   (4.0s · Voice→Quote HERO 1)
+  scene4: { from: 360, duration: 90 }, //   0:12 – 0:15   (3.0s · Quote→Customer transformation HERO 2)
+  scene5: { from: 450, duration: 90 }, //   0:15 – 0:18   (3.0s · Route Optimization HERO 3)
+  scene6: { from: 540, duration: 90 }, //   0:18 – 0:21   (3.0s · AI Follow-up HERO 4)
+  scene7: { from: 630, duration: 90 }, //   0:21 – 0:24   (3.0s · AI Business Assistant)
+  scene8: { from: 720, duration: 90 }, //   0:24 – 0:27   (3.0s · Final Device Hero Shot HERO 5 — new tagline)
 } as const;

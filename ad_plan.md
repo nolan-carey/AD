@@ -9,7 +9,7 @@
 
 > Anything that needs the **user's explicit go-ahead** lives here. Always shown at the very top of the doc. When this section reads "(none — all clear)", Norm can proceed with everything in ACTIVE DIRECTIVES without further user input. When this section has items, **Norm pauses on those specific items** until the user marks them ✅.
 
-**(none — all clear)**
+1. **🎼 Music prompt needs re-timing for new 27s runtime.** The §4.6.2 prompt was calibrated for a 45s ad with peaks at 0:04.6 / 0:19.6 / 0:36 / 0:40.6. With v1.20's 27-second runtime, those marker times no longer match. **Steve's proposed new peak times:** PEAK 1 at 0:04.5 (overwhelm climax — unchanged), HARD SILENCE 0:05.2–0:05.6 (unchanged), PEAK 2 at 0:11.0 (Voice→Quote money shot), PEAK 3 at 0:18.5 (Follow-up success), PEAK 4 at 0:25.0 (final hero reveal). Reply *"approve music re-timing"* and Steve rewrites the §4.6.2 prompt accordingly. Norm holds music generation until then. This is the only item gating the rest of the project.
 
 ---
 
@@ -17,6 +17,7 @@
 
 > Every revision logged here. Most recent on top. Norm — read this first to see what changed since your last build.
 
+- **v1.20 · 2026-05-06** · **🪓 STOP ADDING — START CUTTING. User reframe: 27s, 5 hero moments, transformation storytelling.** User flagged that the plan was overstuffing and we were "going in circles." Direction: an Apple-style SaaS commercial is memorable because of 2–3 moments, not because it shows 10 features. **Major cuts and structural reset:** (1) Runtime **45s → 27s** = 810 frames. (2) Feature count reduced — **expense classification CUT**. Voice-to-customer reframed as a *transformation* (quote card morphs into customer profile, not a separate scene). AI Business Assistant added back as final feature. (3) **NEW motion vocabulary** locked in §3.7 — *sweeps / zooms / expands / holds* as the four primitives. Transformation-based storytelling: UI elements MORPH between features. (4) **CUT § feature-title flashes** (deprecated — text noise). (5) **CUT per-scene focus captions** (deprecated — replaced by ONE final tagline). (6) **NEW final tagline: *"Run smarter. Earn more."*** — replaces "Blue collar solutions to blue collar problems" in Scene 7 lockup (the old tagline is parked, can be revived if user wants). (7) **NEW 8-scene structure** in §5 master timeline. Scene specs in §6 will be rewritten per-scene in v1.21 follow-up — for now, §5 + the new structure preview is enough for Norm to plan Phase D refactors. **What's preserved:** §3.7 cinematic system (every scene still inherits 3D phone, gradient world, glow halo, glassmorphism, drift, magnetic motion, morph-not-cut philosophy). Atoms/molecules are unaffected. Audio infrastructure unchanged but cue density will drop.
 - **v1.19 · 2026-05-06** · **🎯 Music prompt strengthened for timing accuracy.** User flagged: "did you make it compose to peak at the correct times?" Steve answered: yes (5 explicit markers in the prompt) but honestly noted that AI music generators don't guarantee exact-second timing (typically ±1–2s drift). Strengthened the music prompt in §4.6.2: lifted timing language from "Three-act structure with these timing markers" → "**CRITICAL TIMING REQUIREMENTS — TREAT AS HARD CONSTRAINTS, NOT SUGGESTIONS**". Restructured to put the 5 markers at the TOP of the prompt as primary instructions, with the narrative wrapping them as secondary context. Each marker now numbered (MARKER 1–5) with explicit duration and character. Approval still ✅ (the strengthened prompt is a refinement, not a new direction). **Fallback plan if music drifts:** Steve will shift ad timing to match the music's actual peaks (Option B — "the music drives the ad's timing, not vice versa," like film scoring). This gets queued as v1.20 if needed after Norm sends the music for review.
 - **v1.18 · 2026-05-06** · **✅ Music bed prompt APPROVED.** §4.6.4 gate flipped to ✅. Norm is unblocked to extend `test.py` with `music_generation()` helper and run `generate_music_bed()` (single 45s generation, ~11,250 credits). After generation completes, Norm sends `bed.mp3` to user for listen against the §4.6.3 success checklist. If passes, drops at `Sound/music/bed.mp3` and flips `HAS_MUSIC_BED` in `KivaAd.tsx:21`. If fails (e.g. silence at 0:05.2 ignored, peaks not present, vocals leaked), user pings Steve — Steve revises prompt — Norm re-runs (max 2 retries before falling back to licensing). 🚦 PENDING APPROVALS cleared. **Every approval gate in the project is now ✅.**
 - **v1.17 · 2026-05-06** · **🎼 Music bed pivot — generating via ElevenLabs Music API.** Replaces the Uppbeat/Epidemic licensing recommendation from v1.16. New **§4.6** added with locked music prompt structured as a 3-act narrative with explicit peak-second references (the user's instruction: *"tell it what second to peak etc"*). Cost: ~11,250 credits one-time. Music gate ⏸ AWAITING REVIEW — user listens to the prompt set in §4.6, then approves a single generation run. Norm extends `test.py` with `music_generation()` helper (template in §4.6.1). Once approved + generated, drops at `Sound/music/bed.mp3` and flag flips in `KivaAd.tsx:21`.
@@ -85,6 +86,7 @@
 |---|---|---|---|
 | C1 | P0 | Extend `test.py` with the `sound_effects()` helper from §4.5.1 (code template provided). Test with one P0 sound (`phone_vibration_loop`) before any batch. | ✅ |
 | C2 | P0 | Run `generate_all(priority_filter="P0")` — 5 sounds, ~2,150 credits. **STOP after this batch.** Send the 5 mp3s back through the user for listen before running P1. | ✅ |
+| C-music | P1 | **HOLD on `generate_music_bed()`** — the §4.6 prompt is calibrated for 45s; with v1.20's 27s runtime the timing markers are wrong. Steve rewrites the prompt in v1.21 once user approves the new peak times in 🚦 PENDING APPROVALS. **Do NOT run music generation yet.** | ⏸ (gated on prompt re-timing) |
 | C3 | P1 | After user listens to P0 and replies "P1 approved": run `generate_all(priority_filter="P1")` — 5 more, ~480 credits. | ✅ |
 | **C4** | **P2 (v1.11)** | **5 per-scene atmospheric beds.** Run `generate_all(priority_filter="P2")` — 5 sounds, ~3,200 credits. **STOP after batch — send the 5 mp3s to user for listen before running P3.** | ✅ |
 | **C5** | **P3 (v1.11)** | **4 transition stings between scenes.** After user listens to P2 and replies "P3 approved": run `generate_all(priority_filter="P3")` — 4 sounds, ~180 credits. | ✅ (gated on user listen of C4) |
@@ -93,11 +95,31 @@
 
 ---
 
-### Phase D — Scene composition
+### Phase D — Scene composition (v1.20 — ad is now 27s with 5 hero moments)
 
-> Per scene, compose atoms + molecules per the per-scene timeline in §6. Reference `kiva_components_for_norm.md` for component anatomy; reference `ad_plan.md` §6 for what-appears-when.
+> 🚨 **v1.20 STRUCTURAL RESET — read carefully.**
 >
-> **v1.11 layer applies to every scene:** each scene's spec in §6 now opens with a `🎬 v1.11 layer` block defining (a) **Visual identity** (one of: INTIMATE / PRECISE / TACTILE / SPATIAL / CONVERSATIONAL / TRIUMPHANT — see §3.6), (b) **Audio bed** to underlay, (c) **Focus caption** that types in at the scene's anchor moment. **Do not skip these — they're what kills the visual repetitiveness across scenes.** If a per-scene bed (P2) hasn't been generated yet, fall back to `ai_hum_ambient.mp3` until P2 batch lands.
+> The ad is now **27 seconds = 810 frames**. The scene structure is in §5. Existing v1.14 per-scene specs in §6 are OUT OF DATE — they will be rewritten in v1.21. For now, work from §5's high-level structure and the four motion primitives in §3.7.3.5 (sweep / zoom / expand / hold).
+>
+> **What you DON'T need to build anymore:**
+> - Expense classification scene (CUT)
+> - Per-scene focus captions (DEPRECATED §3.6.2)
+> - Per-scene feature-title flashes (DEPRECATED §3.6.4)
+>
+> **What you DO need to build:**
+> - 5 hero moments per §5 (Voice→Quote · Quote→Customer transformation · Route map · Follow-up · Final hero shot)
+> - Each hero ends with a HOLD of ≥18 frames (§3.7.3.5 locked rule)
+> - Transformation storytelling: instead of cuts between scenes, UI ELEMENTS EXPAND from one feature into the next (e.g. quote card grows into customer profile)
+> - Final tagline at Scene 8: ***"Run smarter. Earn more."*** (replaces "Blue collar solutions to blue collar problems" — old tagline parked)
+>
+> **What still applies (don't rebuild):**
+> - §3.7 cinematic system (3D phone, gradient world, AI glow, glassmorphism, drift, magnetic motion)
+> - All atoms + molecules from `kiva_components_for_norm.md` §5.1–5.3
+> - `<CinematicWrapper>`, `<AIGlow>`, `<GlassPlate>`, `<PhoneFrame>` from §5.0
+> - Music bed prompt + helper at §4.6 (still ✅ approved — generate when ready)
+> - Sound design library §4 (cue density will drop in v1.21 scene rewrites)
+>
+> **Action for you right now:** (1) Update `Root.tsx` to `durationInFrames=810`. (2) Update `KivaAd.tsx` `<Sequence>` ranges to the 8-scene timeline in §5. (3) Audit your existing scene work: most of Scene 1 (overwhelm) carries forward unchanged; Scene 2 (logo→iPhone) needs slowdown + dramatic lighting sweep + slow camera push; Scenes 3–7 will be rewritten in v1.21 (HOLD off on detailed scene composition until v1.21 lands). Scene 8 (final hero shot) is new and needs the new tagline. (4) Continue music generation (`generate_music_bed()`) — still ✅ approved, **but the music prompt timing markers will need to be re-prompted for the new 27s runtime in v1.21.** Don't run music yet — see ACTIVE DIRECTIVES update below.
 
 | Scene | Frames | Status | v1.14 special rules |
 |---|---|---|---|
@@ -123,7 +145,7 @@
 |---|---|
 | Render target | 1920 × 1080 (16:9) |
 | Frame rate | 30 fps |
-| Total duration | **45.0 s = 1350 frames** (locked v1.14) |
+| Total duration | **27.0 s = 810 frames** (locked v1.20) |
 | Stack | Remotion 4 · React 19 · TypeScript |
 | Project root | `/Users/nolancarey/Desktop/KivaADS/remotion/` |
 | Studio command | `npm start` (from `/remotion`) |
@@ -133,7 +155,7 @@
 
 ```
 remotion/src/
-  Root.tsx                 ← register one composition: KivaAd, 1350 frames
+  Root.tsx                 ← register one composition: KivaAd, 810 frames
   KivaAd.tsx               ← top-level <Series> sequencing all 7 scenes
   scenes/
     Scene1_Overwhelm.tsx
@@ -280,7 +302,7 @@ Each scene's identity drives camera framing, color emphasis, transition style, a
 | 6 — Follow-up | **CONVERSATIONAL** | messages exchanging, dialog-paced | warm WhatsApp green, status flip blue→green | satisfying back-and-forth |
 | 7 — Lockup | **TRIUMPHANT** | pull-back, sparkles converging | navy + AI purple sparkles | resolved, exhale |
 
-### 3.6.2 Focus caption system
+### 3.6.2 Focus caption system *(DEPRECATED v1.20 — text noise; replaced by ONE final tagline)*
 
 When the camera punch-zooms onto a hero element in Scenes 2–6, a **Focus Caption** types in beside it. Caption acts as quiet narration — clarifies what the AI just did. One caption per scene; never multiple. Avoid jargon. Speaks to the user as a respected adult tradesperson.
 
@@ -314,7 +336,7 @@ Don't:
 - Use sales language ("Save time!", "Boost productivity!") — that's not Jobber voice
 - Animate captions into existence with anything other than the typing pattern (visual consistency with §6 Scene 1)
 
-### 3.6.4 Feature-title flashes (locked v1.16)
+### 3.6.4 Feature-title flashes *(DEPRECATED v1.20 — text noise; the v1.20 hero structure makes labels unnecessary)*
 
 > **Why this exists:** ~80% of paid social views are MUTED. Without text labeling each feature, muted viewers can't quickly read what's happening. Title flashes solve this without adding runtime — they overlay the existing scene-establish beat.
 
@@ -416,6 +438,19 @@ The "camera" in Remotion is the viewport — we move it via transforming the par
 | **Shallow depth of field** | When camera focuses on a UI element | Apply `filter: blur(8px) brightness(0.7)` to background gradient + ambient particles. Foreground (phone + focused element) sharp. Easing: 12-frame ramp in/out. |
 | **Macro lens chromatic aberration** | At peak zoom moments only (Scene 3 £2,454.60 stamp, Scene 6 status flip) | Subtle `text-shadow: 1px 0 rgba(239,68,68,0.3), -1px 0 rgba(59,130,246,0.3)` on the focused element for ~10 frames. Authentic real-lens texture. |
 | **Vignette + soft focus falloff** | Always | Frame edges 8% darker (already in the environment); slight blur (1px) on outer 5% of frame. Eye is drawn to center. |
+
+### 3.7.3.5 Motion vocabulary — the four primitives (locked v1.20)
+
+> **The user reframe (v1.20):** stop showing screens, start directing attention. These four motion primitives are the verbs the ad speaks.
+
+| Primitive | When to use | Variants |
+|---|---|---|
+| **SWEEP** | Reveal moments. The light/UI sweeps across a screen, exposing what was hidden underneath. | "cinematic light sweep" · "directional UI wipe" · "blue glow sweep reveal" |
+| **ZOOM** | Direct attention. Camera pulls the viewer toward a specific element. Slow > fast. | "camera slowly zooms into active card" · "UI expands toward viewer" · "focus pull onto selected metric" |
+| **EXPAND** | Transformation. One UI element becomes another via growth, not via swap. **This is the storytelling move that separates SaaS demos from premium ads.** | "selected card expands fullscreen" · "map grows outward from panel" · "waveform transforms into quote interface" · "quote card expands into customer profile" |
+| **HOLD** | Let the moment land. After every hero beat, pause. The breathing room is what makes a moment "premium." | "hold final frame for 0.8 seconds" · "allow scene to breathe" · "pause after successful automation" |
+
+**The HOLD rule (v1.20 lock):** every HERO moment in §5 (the 5 starred beats) ends with a HOLD of at least 18 frames (0.6s). No exceptions. This is the difference between *startup demo* and *Apple-style commercial*.
 
 ### 3.7.4 Motion philosophy — extends companion doc §3
 
@@ -791,25 +826,34 @@ User reviews the prompt in §4.6.2 + the success criteria in §4.6.3. When ready
 
 ---
 
-## 5. Master timeline (v1.14 — 45s)
+## 5. Master timeline (v1.20 — 27s, 5 hero moments)
 
-| # | Scene | Time | Frames | Duration | Hero feature |
+| # | Scene | Time | Frames | Duration | What it is |
 |---|---|---|---|---|---|
-| 1 | Cold open — Notification overwhelm | 0:00.0 – 0:08.0 | 0 – 240 | 8.0s | (hook) |
-| 2 | AI Voice-to-Customer | 0:08.0 – 0:14.0 | 240 – 420 | 6.0s | Feature 1 |
-| 3 | **AI Voice-to-Quote** ★ HERO | 0:14.0 – 0:22.0 | 420 – 660 | 8.0s | Feature 2 |
-| 4 | AI Expense Classification | 0:22.0 – 0:27.0 | 660 – 810 | 5.0s | Feature 3 |
-| 5 | AI Customer Route Optimization | 0:27.0 – 0:32.5 | 810 – 975 | 5.5s | Feature 4 |
-| 6 | AI Follow-up | 0:32.5 – 0:39.0 | 975 – 1170 | 6.5s | Feature 5 |
-| 7 | Logo lockup + CTA | 0:39.0 – 0:45.0 | 1170 – 1350 | 6.0s | (close) |
+| 1 | **Overwhelm intro** | 0:00 – 0:06 | 0 – 180 | 6.0s | Hook (largely preserved from v1.6 — typing animation, cluster, swoosh) |
+| 2 | **Logo → iPhone hero reveal** | 0:06 – 0:08 | 180 – 240 | 2.0s | Slow it down. Dramatic lighting sweep + slow camera push. THE hero reveal. |
+| 3 | **Voice → Quote (HERO #1)** | 0:08 – 0:12 | 240 – 360 | 4.0s | Mic press → waveform reacts → speech appears → camera zooms into text → text restructures into quote → quote card EXPANDS beautifully → HOLD. |
+| 4 | **Quote → Customer profile (transformation)** | 0:12 – 0:15 | 360 – 450 | 3.0s | Quote card EXPANDS into customer profile. Customer info auto-fills. Camera pans across profile. |
+| 5 | **Route Optimization (HERO #2)** | 0:15 – 0:18 | 450 – 540 | 3.0s | Map expands fullscreen. Sweeping route lines. Dynamic zooms. Subtle map tilt/parallax. |
+| 6 | **AI Follow-up (HERO #3)** | 0:18 – 0:21 | 540 – 630 | 3.0s | Message types itself. AI glow pulse. Auto-send. SENT → clean success state → HOLD. |
+| 7 | **AI Business Assistant** | 0:21 – 0:24 | 630 – 720 | 3.0s | Dashboard expands. Camera zooms into stat cards. ONE hero metric only — no chart soup. |
+| 8 | **Final Device Hero Shot** | 0:24 – 0:27 | 720 – 810 | 3.0s | Phone floating in cinematic space. Slow rotation. Soft reflections. Breathing room. **Tagline: *"Run smarter. Earn more."*** |
 
-**Total:** 45.0 s = 1350 frames @ 30 fps.
+**Total:** 27.0 s = 810 frames @ 30 fps.
 
-**Scene 6 simplified (v1.14):** dropped the dual-feature "AI Assistant brain" half. The AI Assistant sheet cycle was redundant with the chatbot moment elsewhere and added navigation. Scene 6 now focuses 100% on the **AI follow-up** action — the AI bot writing/sending a follow-up message that converts a stale quote to Accepted. Feature 6 (AI chatbot for admin decisions) was always thin as a standalone moment; we now show it implicitly through the entire ad — every AI action IS the chatbot acting.
+**Three structural changes you should know about:**
+1. **Expense classification CUT.** Feature count reduced for breathing room.
+2. **Voice-to-customer reframed as a TRANSFORMATION.** Instead of a separate scene with FAB taps and form filling, the quote card from Scene 3 EXPANDS into a customer profile in Scene 4. Same feature, told as a morph, not a switch.
+3. **AI Business Assistant added** in Scene 7. ONE hero metric (no chart soup) — e.g. *"£12,847 generated this month"* or *"7 hours saved this week"*.
 
-**Scene 3 still hero:** 8s for the voice-to-quote flow. Big enough to make the £2,454.60 reveal land properly with a slow cinematic push-in.
+**The 5 hero moments to deliver:**
+- **🎯 Hero 1** — Voice → Quote (Scene 3). The "oh wow" moment. Don't rush.
+- **🎯 Hero 2** — Quote → Customer transformation (Scene 4). The morph IS the moment.
+- **🎯 Hero 3** — Route map expand (Scene 5). Spatial feel.
+- **🎯 Hero 4** — AI follow-up auto-write+send (Scene 6). Magical.
+- **🎯 Hero 5** — Final device shot (Scene 8). The exhale + tagline.
 
-**Cinematic transitions absorbed in scene durations:** every scene boundary uses overlapping `<Sequence>` (12-frame morph crossfade) per `kiva_components_for_norm.md` §5.0. The phone is continuous; only the screen content morphs. **No hard cuts.**
+**Cinematic system (§3.7) still applies to all scenes** — 3D floating iPhone, navy gradient world, AI glow halo, glassmorphism overlays, drift, magnetic motion. **Morph for continuity, hard-cut for emphasis** (§3.7.4 unchanged).
 
 ---
 

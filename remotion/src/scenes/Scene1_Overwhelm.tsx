@@ -296,10 +296,13 @@ const QUESTION_MARK_FRAME =
 const FREEZE_START = 138;
 const SWOOSH_START = 156;
 const SWOOSH_END = 168;
+// v1.20: logo / tagline / thumb-morph moved to Scene 2 (Logo→iPhone reveal).
+// Kept here as constants only because the audio code still references them; nothing past
+// frame 180 is rendered now (Scene 1 ends at SCENE_END=180).
 const LOGO_START = 168;
 const TAGLINE_START = 186;
 const THUMB_START = 198;
-const SCENE_END = 240; // v1.14: extended by 24f for cinematic morph breathing room
+const SCENE_END = 180; // v1.20: scene contracted from 240→180
 
 export const Scene1Overwhelm: React.FC = () => {
   const frame = useCurrentFrame();
@@ -370,13 +373,7 @@ export const Scene1Overwhelm: React.FC = () => {
 
       <HookText frame={frame} swooshProgress={swooshProgress} />
 
-      {frame >= LOGO_START && frame < THUMB_START + 2 && (
-        <LogoReveal frame={frame} fps={fps} />
-      )}
-
-      {frame >= TAGLINE_START && <Tagline frame={frame} />}
-
-      {frame >= THUMB_START && <ThumbAndMorph frame={frame} fps={fps} />}
+      {/* v1.20: Logo/tagline/thumb-morph moved to Scene 2 (Logo→iPhone reveal). */}
 
       {/* === AUDIO === */}
       {/* Phone vibration loop (generated SFX) frames 0–156 — -18 dBFS, deepens, cuts at swoosh */}
