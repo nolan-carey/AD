@@ -8,7 +8,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { COLOR, EASE, SPRING } from "../tokens";
-import { SFX, IMG } from "../audio";
+import { SFX, GEN, IMG } from "../audio";
 import { PhoneFrame } from "../components/PhoneFrame";
 import { SfxAt } from "../components/SfxAt";
 import { popInProgress } from "../motion";
@@ -103,49 +103,35 @@ export const Scene5Route: React.FC = () => {
       </PhoneFrame>
 
       {/* === AUDIO === */}
+      {/* Map zoom whoosh (generated) — punch-zoom phase 18→36, -10 dBFS */}
       <SfxAt
-        src={SFX.swoosh}
-        from={0}
+        src={GEN.mapZoom}
+        from={OPEN_WIDE_END - 4}
         volume={(f) =>
-          interpolate(f, [0, 18, 36], [0.4, 0.65, 0.0], {
+          interpolate(f, [0, 8, 22], [0, 0.32, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        playbackRate={0.6}
-        durationInFrames={36}
+        durationInFrames={24}
       />
+      {/* AI hum ambient underbed during pin pulses + route draw — -22 dBFS */}
       <SfxAt
-        src={SFX.riser}
+        src={GEN.aiHum}
         from={PIN_PULSE_START - 6}
         volume={(f) =>
-          interpolate(f, [0, 12, 50], [0, 0.18, 0.12], {
+          interpolate(f, [0, 12, 36, 50], [0, 0.08, 0.08, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        playbackRate={1.2}
-        durationInFrames={60}
+        loop
+        durationInFrames={56}
       />
-      <SfxAt src={SFX.swoosh} from={ROUTE_DRAW} volume={0.45} playbackRate={1.1} />
-      <SfxAt
-        src={SFX.riser}
-        from={STAT_OVERLAY}
-        volume={(f) =>
-          interpolate(f, [0, 6, 12], [0, 0.4, 0.0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        playbackRate={1.4}
-        durationInFrames={14}
-      />
-      <SfxAt
-        src={SFX.notification1}
-        from={STAT_OVERLAY + 12}
-        volume={0.6}
-        playbackRate={1.4}
-      />
+      {/* Route line flow (generated) — energy flowing along the path — -14 dBFS */}
+      <SfxAt src={GEN.routeFlow} from={ROUTE_DRAW} volume={0.2} />
+      {/* Achievement chime on "47 min" stat landing — -10 dBFS */}
+      <SfxAt src={GEN.achievement} from={STAT_OVERLAY + 12} volume={0.32} />
     </AbsoluteFill>
   );
 };

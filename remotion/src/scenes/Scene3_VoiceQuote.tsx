@@ -7,7 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { COLOR, EASE, SPRING } from "../tokens";
-import { SFX } from "../audio";
+import { SFX, GEN } from "../audio";
 import { PhoneFrame } from "../components/PhoneFrame";
 import { MicButton } from "../components/MicButton";
 import { AISparkleLoader } from "../components/AISparkleLoader";
@@ -110,16 +110,17 @@ export const Scene3VoiceQuote: React.FC = () => {
         volume={muteDuringFlash(frame, 0.55)}
         playbackRate={1.4}
       />
+      {/* AI hum ambient (generated) — underbed during Transcribe + Generate, -22 dBFS */}
       <SfxAt
-        src={SFX.riser}
+        src={GEN.aiHum}
         from={TRANSCRIBE}
         volume={(f) =>
-          interpolate(f, [0, 6, 12, 30], [0, 0.12, 0.16, 0.18], {
+          interpolate(f, [0, 6, 30, 36], [0, 0.08, 0.08, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        playbackRate={0.55}
+        loop
         durationInFrames={REVIEW_START - TRANSCRIBE}
       />
       {LINE_ITEMS.map((_, i) => (
@@ -131,26 +132,26 @@ export const Scene3VoiceQuote: React.FC = () => {
           playbackRate={1.1 + i * 0.04}
         />
       ))}
+      {/* Counter-roll money tone (generated, peaks at total stamp 426) — -10 dBFS peak */}
+      {/* Volume cuts to 0 during white-flash 110–114 to honor the audio-cut rule. */}
       <SfxAt
-        src={SFX.riser}
+        src={GEN.counterRoll}
         from={SUBTOTAL_START}
-        volume={(f) =>
-          interpolate(f, [0, 8, 14], [0.0, 0.45, 0.0], {
+        volume={(f) => {
+          // f is frames since SfxAt start; absolute frame = SUBTOTAL_START + f
+          const absFrame = SUBTOTAL_START + f;
+          if (absFrame >= WHITE_FLASH && absFrame < TOTAL_STAMP) return 0;
+          return interpolate(f, [0, 14, 16, 18], [0.0, 0.32, 0.32, 0.0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
-          })
-        }
-        playbackRate={1.3}
-        durationInFrames={WHITE_FLASH - SUBTOTAL_START}
+          });
+        }}
+        durationInFrames={TOTAL_STAMP - SUBTOTAL_START + 4}
       />
       <SfxAt src={SFX.click} from={SEND_TAP + 6} volume={0.85} />
       <SfxAt src={SFX.swoosh} from={SEND_TAP + 12} volume={0.7} />
-      <SfxAt
-        src={SFX.notification1}
-        from={TOAST_IN}
-        volume={0.6}
-        playbackRate={1.3}
-      />
+      {/* Achievement chime on send confirmation toast (frame 444 = TOAST_IN + ~12) */}
+      <SfxAt src={GEN.achievement} from={TOAST_IN} volume={0.32} />
     </AbsoluteFill>
   );
 };

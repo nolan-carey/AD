@@ -172,6 +172,71 @@ Every modal/sheet in the ad uses the same physics so the product feels coherent.
 
 > Components grouped by complexity: **Atoms** (smallest reusable units) → **Molecules** (compositions of atoms) → **Organisms** (full screens / large surfaces). Each entry: source-file reference, anatomy, tokens, Remotion build hint.
 
+### 5.0 Cinematic environment (v1.1 addition — required by `ad_plan.md` §3.7)
+
+> These are NOT Kiva-product components — they're the **cinematic shell** the entire ad lives inside. Build these BEFORE the per-scene atoms in §5.1, since every scene composes inside them.
+
+#### `<CinematicWrapper>` — top-level environment in `KivaAd.tsx`
+- **Renders:** the navy→black gradient backdrop, animated noise texture, vignette, layered Z-depth context, and constant camera drift.
+- **CSS:**
+  - Outer: `width: 1920, height: 1080, perspective: 1500px, transformStyle: 'preserve-3d', position: 'relative'`
+  - Background layer: `linear-gradient(135deg, #0F172A 0%, #000000 100%)`, full-frame, `Z=-100`
+  - Noise overlay: a tiled noise SVG at `opacity: 0.015`, slowly translating `+0.3px/frame` (gentle texture drift)
+  - Vignette: radial-gradient, transparent center → `rgba(0,0,0,0.25)` corners
+- **Camera drift (always running, computed from frame):**
+  - `translateX = sin(frame / 36) * 4`
+  - `translateY = cos(frame / 30) * 2`
+  - `rotateZ = sin(frame / 48) * 0.3`
+- **Children render inside the perspective context** so 3D transforms on phone + overlays compose correctly.
+
+#### `<AIGlow state="idle|active" />` — soft halo behind the phone
+- **Anatomy:** a single absolutely-positioned div behind the phone. `width/height: 80% of phone size`, centered. `border-radius: 50%`. `filter: blur(80px)` (idle) or `blur(120px)` (active).
+- **Color:**
+  - `idle`: `background: rgba(59,130,246,0.35)` — blue
+  - `active`: `background: rgba(109,40,217,0.40)` — purple
+- **Transition:** crossfade over 12 frames via `interpolate`. Use Remotion `useCurrentFrame` + a `state` prop driven by scene logic (any AI moment activates).
+
+#### `<GlassPlate>` — glassmorphism container for floating overlays
+- **Use for:** notification cards in Scene 1, Focus Captions (§3.6), Mrs. Patel callback in Scene 7, any UI overlay that floats OUTSIDE the phone screen.
+- **Do NOT use for:** UI inside the phone screen — those use opaque tokens normally.
+- **CSS:**
+  - `background: rgba(255,255,255,0.06)`
+  - `backdrop-filter: blur(20px) saturate(140%)`
+  - `WebkitBackdropFilter` for Safari/Chromium parity
+  - `border: 1px solid rgba(255,255,255,0.12)`
+  - `border-radius: 16` (overridable via prop for variant)
+  - `box-shadow: 0 8px 32px rgba(0,0,0,0.4)`
+- **Norm: existing `<NotificationCard>` (8 chrome variants) should compose `<GlassPlate>` as its container** — replace the existing solid card chrome with glass treatment. Keep the per-variant chrome accents (red bar for missed call, green for WhatsApp, etc.) as inner color washes.
+
+#### `<PhoneFrame>` — UPDATED for 3D rendering
+- Replaces the v1.0 spec.
+- **Anatomy:** iPhone 15 chrome (rounded corners, dynamic island, status bar). Logical canvas 393×852 pt. The frame itself sits inside a 3D perspective context (provided by `<CinematicWrapper>`).
+- **Props:**
+  - `rotateY`, `rotateX`, `rotateZ` (degrees) — driven externally by the parent scene component to apply constant drift + scene-specific perspective shifts
+  - `translateZ` (px) — for parallax control between scenes
+  - `screenContent` — children rendered inside the screen bezel
+- **Resting position** (default when no scene override applies): `rotateY: -6°, rotateX: +3°`. The phone is angled toward the viewer.
+- **Constant drift** (computed from frame, layered ON TOP of any externally-set rotation):
+  - `rotateY drift = sin(frame / 36) * 0.8`
+  - `rotateX drift = cos(frame / 42) * 0.5`
+  - `translateY drift = sin(frame / 30) * 3`
+- **Inner glow:** the screen bezel has `box-shadow: 0 0 80px rgba(59,130,246,0.25)` — display itself acts as a light source bleeding into the surrounding navy environment.
+- **Lighting illusion** (achieved via overlay gradients, no real 3D lights):
+  - Top-left highlight: thin diagonal `linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 30%)`
+  - Bottom-right rim: `linear-gradient(315deg, rgba(59,130,246,0.06) 0%, transparent 25%)`
+
+#### Scene transition pattern — morph not cut
+
+> **Replaces the old `<Series>` cut pattern.** Per `ad_plan.md` §3.7.4, scenes morph through the iPhone, not cut.
+
+- Top-level `KivaAd.tsx` uses overlapping `<Sequence>` blocks (8–12 frame overlap) instead of `<Series>`.
+- The **phone itself** is a single component that persists across the entire 900 frames; only its `screenContent` prop changes per scene.
+- Scene transitions cross-fade the screen content (old scene 100→0 opacity, new scene 0→100, over 8–12 frames).
+- During the overlap, an optional **transition sting** plays (see §4.5 P3 sounds: `transition_warm_whoosh`, `transition_sharp_impact`, `transition_glitch_cut`, `transition_soft_fade` — different sting per scene boundary for variety).
+- The phone's `rotateY`/`rotateX` may shift slightly during the transition (a "perspective shift" — see §3.7.3 of `ad_plan.md`) — adds physicality.
+
+---
+
 ### 5.1 Atoms
 
 #### `<StatusBar />` — iOS chrome
@@ -481,4 +546,4 @@ Norm's mental model: build the components once (faithful to the real Kiva), then
 5. **Don't copy code 1:1 even where it'd compile.** Remotion has its own animation primitives (`spring`, `interpolate`); use those — not RN's `Animated` API. The companion doc §3 has the 6 motion presets that translate the RN feel to Remotion.
 6. **If something's not in this index** but you need it for an ad moment, ping back through the user — Steve will add it. The index is the source of truth for "what's referenceable."
 
-— Steve, Master SaaS Ad Designer · v1.1 · 2026-05-06
+— Steve, Master SaaS Ad Designer · v1.2 · 2026-05-06 (cinematic environment system added per ad_plan.md §3.7)

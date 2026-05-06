@@ -7,7 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { COLOR, EASE, SPRING } from "../tokens";
-import { SFX } from "../audio";
+import { SFX, GEN } from "../audio";
 import { PhoneFrame } from "../components/PhoneFrame";
 import { StatusBadge } from "../components/StatusBadge";
 import { SfxAt } from "../components/SfxAt";
@@ -120,16 +120,29 @@ export const Scene6FollowUpAssistant: React.FC = () => {
           playbackRate={1.1 + i * 0.04}
         />
       ))}
+      {/* AI hum ambient underbed during the assistant sheet phase — -22 dBFS */}
       <SfxAt
-        src={SFX.riser}
-        from={PULL_BACK - 10}
+        src={GEN.aiHum}
+        from={ASSISTANT_RISE}
         volume={(f) =>
-          interpolate(f, [0, 10, 30, 36], [0, 0.18, 0.28, 0.32], {
+          interpolate(f, [0, 8, 50, 60], [0, 0.08, 0.08, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        playbackRate={1.0}
+        loop
+        durationInFrames={PULL_BACK - ASSISTANT_RISE + 6}
+      />
+      {/* Outro drone (generated) starts late in Scene 6 — bridges into Scene 7 */}
+      <SfxAt
+        src={GEN.outroDrone}
+        from={PULL_BACK - 10}
+        volume={(f) =>
+          interpolate(f, [0, 10, 30, 36], [0, 0.16, 0.22, 0.25], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          })
+        }
         durationInFrames={36}
       />
     </AbsoluteFill>

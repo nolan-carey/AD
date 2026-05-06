@@ -7,7 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { COLOR, EASE, SPRING } from "../tokens";
-import { SFX } from "../audio";
+import { SFX, GEN } from "../audio";
 import { PhoneFrame } from "../components/PhoneFrame";
 import { SheetContainer } from "../components/SheetContainer";
 import { SfxAt } from "../components/SfxAt";
@@ -70,17 +70,20 @@ export const Scene4Expense: React.FC = () => {
       </PhoneFrame>
 
       {/* === AUDIO === */}
+      {/* Scan sweep (generated) during the OCR scan — -12 dBFS */}
+      <SfxAt src={GEN.scanSweep} from={SCAN_SWEEP} volume={0.25} />
+      {/* AI hum ambient underbed during scan + form-fill — -22 dBFS */}
       <SfxAt
-        src={SFX.swoosh}
+        src={GEN.aiHum}
         from={SCAN_SWEEP}
         volume={(f) =>
-          interpolate(f, [0, 8, 18], [0, 0.45, 0], {
+          interpolate(f, [0, 6, 36, 42], [0, 0.08, 0.08, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        playbackRate={0.7}
-        durationInFrames={18}
+        loop
+        durationInFrames={CATEGORY_LOCK - SCAN_SWEEP}
       />
       {[0, 8, 16].map((offset, i) => (
         <SfxAt
@@ -91,11 +94,13 @@ export const Scene4Expense: React.FC = () => {
           playbackRate={1.2 + i * 0.05}
         />
       ))}
+      {/* sparkle_match FALLBACK (locked-prompt 0.4s blocked at API min 0.5s) —
+          per §4.5.5, use notification1 pitched +5 semitones at the category lock. */}
       <SfxAt
         src={SFX.notification1}
         from={CATEGORY_LOCK + 4}
-        volume={0.55}
-        playbackRate={1.5}
+        volume={0.32}
+        playbackRate={Math.pow(2, 5 / 12)}
       />
       <SfxAt src={SFX.click} from={SAVE_TAP + 4} volume={0.85} />
       <SfxAt src={SFX.swoosh} from={SAVE_TAP + 8} volume={0.55} />

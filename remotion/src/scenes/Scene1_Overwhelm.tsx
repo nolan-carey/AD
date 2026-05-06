@@ -7,7 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { COLOR, EASE, SPRING } from "../tokens";
-import { SFX } from "../audio";
+import { SFX, GEN } from "../audio";
 import { NotificationCard, NotifVariant } from "../components/NotificationCard";
 import { KivaLogo } from "../components/KivaLogo";
 import { SfxAt } from "../components/SfxAt";
@@ -379,19 +379,19 @@ export const Scene1Overwhelm: React.FC = () => {
       {frame >= THUMB_START && <ThumbAndMorph frame={frame} fps={fps} />}
 
       {/* === AUDIO === */}
-      {/* Sub-bass vibration loop frames 0–156 (deepens 138–156, cuts at swoosh) */}
+      {/* Phone vibration loop (generated SFX) frames 0–156 — -18 dBFS, deepens, cuts at swoosh */}
       <SfxAt
-        src={SFX.riser}
+        src={GEN.phoneVibration}
         from={0}
         volume={(f) =>
           interpolate(
             f,
             [0, 30, 100, 138, 156],
-            [0.06, 0.1, 0.16, 0.2, 0.0],
+            [0.08, 0.13, 0.18, 0.22, 0.0],
             { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
           )
         }
-        playbackRate={0.5}
+        loop
         durationInFrames={156}
       />
 
@@ -455,6 +455,8 @@ export const Scene1Overwhelm: React.FC = () => {
 
       {/* Thumb tap click at 198 */}
       <SfxAt src={SFX.click} from={THUMB_START} volume={0.85} />
+      {/* iPhone morph whirr (generated SFX) frames 200–212 — -14 dBFS */}
+      <SfxAt src={GEN.morphWhirr} from={THUMB_START + 2} volume={0.2} />
     </AbsoluteFill>
   );
 };

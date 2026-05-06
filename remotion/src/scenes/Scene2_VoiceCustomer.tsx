@@ -7,7 +7,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { COLOR, EASE, SPRING } from "../tokens";
-import { SFX } from "../audio";
+import { SFX, GEN } from "../audio";
 import { PhoneFrame } from "../components/PhoneFrame";
 import { MicButton } from "../components/MicButton";
 import { Thumb } from "../components/Thumb";
@@ -134,6 +134,19 @@ export const Scene2VoiceCustomer: React.FC = () => {
         />
       ))}
       <SfxAt src={SFX.swoosh} from={LIST_TRANSITION} volume={0.55} />
+      {/* AI hum ambient underbed during mic-pulse + form-fill — -22 dBFS */}
+      <SfxAt
+        src={GEN.aiHum}
+        from={MIC_PULSE}
+        volume={(f) =>
+          interpolate(f, [0, 6, 30, 36], [0, 0.08, 0.08, 0], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          })
+        }
+        loop
+        durationInFrames={LIST_TRANSITION - MIC_PULSE + 6}
+      />
     </AbsoluteFill>
   );
 };

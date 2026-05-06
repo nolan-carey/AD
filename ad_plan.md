@@ -9,7 +9,7 @@
 
 > Anything that needs the **user's explicit go-ahead** lives here. Always shown at the very top of the doc. When this section reads "(none — all clear)", Norm can proceed with everything in ACTIVE DIRECTIVES without further user input. When this section has items, **Norm pauses on those specific items** until the user marks them ✅.
 
-**(none — all clear)**
+1. **🎼 Music bed — file still needed (creative direction ✅ approved 2026-05-06).** Steve's recommendation: **license one 30s instrumental from Uppbeat** (free tier, requires attribution credit at the end). Search "tense to uplifting tech corporate ambient" — pick something with subtle synth pads and a gentle build. Drop the file at `Sound/music/bed.mp3` and Norm will wire it. **If you'd rather pay for premium quality**, Epidemic Sound (~$15/mo) is the upgrade — better mastering, no attribution required. Either works. Norm leaves a hook for this and continues without it for now (see Phase C7 directive).
 
 ---
 
@@ -17,6 +17,9 @@
 
 > Every revision logged here. Most recent on top. Norm — read this first to see what changed since your last build.
 
+- **v1.13 · 2026-05-06** · **🎥 CINEMATIC SYSTEM — major addition.** User flagged that the plan captured mechanics but missed the soul: **emotional arc, premium visual style, cinematic camera, motion philosophy.** New mega-section **§3.7 Cinematic system** locks four interlocking systems: (a) **3-act emotional arc** (Suffering → Resolution → Triumph) explicitly named, (b) **Visual style** — dark navy-to-black cinematic gradient backdrop, 3D floating iPhone (not flat), high-contrast lighting, soft AI blue/purple glow halo, glassmorphism on overlays, layered Z-depth, premium startup launch aesthetic, (c) **Camera language** — constant subtle drift, slow cinematic push-ins, perspective shifts, occasional orbit around device, shallow DoF, macro lens feel with subtle chromatic aberration, vignette/soft focus falloff at frame edges, (d) **Motion philosophy** — magnetic motion via custom cubic-bezier, **morph transitions instead of hard cuts** between scenes, liquid UI transformations, continuity-driven animation, breathing room rule (≤3 simultaneous moving things). Each scene now inherits this system. **Significant Norm impact:** existing `<Series>` scene structure shifts to overlapping `<Sequence>` so the iPhone stays continuous across scene boundaries; new `<GlassPlate>` and `<AIGlow>` components needed; KivaAd.tsx top-level wrapper now hosts the gradient, drift, and lighting. Existing atoms/molecules are unaffected — this layer wraps them.
+- **v1.12 · 2026-05-06** · **✅ All v1.11 approvals flipped.** User confirmed "approve everything." (1) §4.5 P2 (5 per-scene atmospheric beds) — ✅ APPROVED. (2) §4.5 P3 (4 transition stings) — ✅ APPROVED. (3) Music bed creative direction — ✅ APPROVED; Steve recommends Uppbeat free tier with attribution OR Epidemic Sound ($15/mo) — user picks and drops file at `Sound/music/bed.mp3`. New Phase C directives C4 and C5 unblocked. Norm can now run `generate_all(priority_filter="P2")` and `generate_all(priority_filter="P3")` after completing P0+P1 batch. Each batch still requires sending mp3s to user for listen before moving on.
+- **v1.11 · 2026-05-06** · **🎬 Three-pronged creative depth pass.** User flagged that visuals were repetitive, focus moments needed reinforcing words, and sound design needed more depth. (1) **NEW §3.6** — *Per-scene visual identity & focus captions*. Each scene gets a unique character (INTIMATE / PRECISE / TACTILE / SPATIAL / CONVERSATIONAL / TRIUMPHANT) so the ad doesn't feel like the same beat repeating. Plus a typed Focus Caption per scene reinforces what just happened (e.g. *"Voice → quote. 12 seconds."* under the £2,454.60 stamp). (2) **§4.5 expanded** with 9 new SFX prompts: 5 per-scene atmospheric beds (P2) replacing the shared `ai_hum_ambient` underbed for Scenes 2–6, and 4 transition stings (P3) for variety at scene boundaries. **Approval gate split** — original 10 prompts remain ✅ APPROVED; new 9 are ⏸ AWAITING REVIEW. (3) **Per-scene specs updated** — each Scene 2–7 now opens with a v1.11 identity/bed/caption header. (4) **Music bed decision parked** in 🚦 PENDING APPROVALS for user license choice.
 - **v1.10 · 2026-05-06** · **Companion doc gets a Code Reference Index.** New §9 added to `kiva_components_for_norm.md` — gives Norm a structured "where to look in the real Kiva codebase" map: per-ad-scene → file, per-component-type → file, per-Kiva-feature → file. Plus 6 rules for how to use the index without falling into traps (read for grounding not importing, scan with grep, trust `theme/` over screens, etc.). Lets Norm peek at the actual implementation when an animation moment needs more grounding without spending time understanding the whole RN codebase. **Use:** when designing a feature zoom-in or interaction moment, glance at the relevant Kiva file to ground the JSX shape — then build the Remotion equivalent.
 - **v1.9 · 2026-05-06** · **🧹 ACTIVE DIRECTIVES rewritten for clarity.** Directives had grown chronologically across 8 versions with ordering issues, contradictions, and stale items. Replaced with a phased structure: 🎯 NEXT ACTION beacon → Phase A (Foundation) → Phase B (Atoms/Molecules) → Phase C (Audio) → Phase D (Scenes). Within each phase, P0 → P1. Resolved 3 specific issues: (1) Pause-on-Scenes-2–7 directive removed (contradicted Scene 1 WIP-acceptable). (2) "Wait for v1.5 deepening" references removed — companion doc now provides equivalent detail at the component level, so per-frame deepening is no longer blocking. (3) Stale "iPhone frame style" open question removed (resolved in companion doc).
 - **v1.8 · 2026-05-06** · **🆕 Companion doc — `kiva_components_for_norm.md` written.** Steve audited the real Kiva React Native codebase at `/Users/nolancarey/kiva/Frontend/` and produced a full mock-component spec for Norm: anatomy, tokens (verified-matching), translation rules (RN → Remotion web React), 6 canonical motion presets (POP_IN / SOFT_LAND / QUICK_TAP / FADE_RISE / PULSE_IN / STATUS_FLIP), phone-interaction language (`<Thumb>` component, sheet rise/dismiss physics, scroll behavior), and per-component specs for ~25 components grouped Atoms/Molecules/Organisms. Build order prioritized in §6 of that doc. **This is now the source of truth for "what each Kiva UI element looks like and how it animates."** `ad_plan.md` continues to own "which elements appear when in the timeline." Norm should read `kiva_components_for_norm.md` before any more scene implementation work — it directly resolves the v1.7 reference-PNG issue at the architectural level.
@@ -47,10 +50,13 @@
 
 | ID | Priority | Task |
 |---|---|---|
-| A1 | P0 | Scaffold project skeleton: `Root.tsx` registers a single composition `KivaAd` at 1920×1080 / 30 fps / 900 frames. Top-level `KivaAd.tsx` sequences 7 placeholder scene files via `<Series>` with durations from §5. |
+| A1 | P0 | Scaffold project skeleton: `Root.tsx` registers a single composition `KivaAd` at 1920×1080 / 30 fps / 900 frames. ⚠️ **v1.13 update:** top-level `KivaAd.tsx` no longer uses `<Series>` for scene sequencing — use overlapping `<Sequence>` blocks so the iPhone persists across scene boundaries (morph transitions, not cuts). Screen-content layer cross-fades; phone itself stays continuous. |
 | A2 | P0 | Build `src/tokens.ts` from §3 (verified to match real Kiva `theme/colors.js`). |
 | A3 | P0 | Load Inter font via `@remotion/google-fonts/Inter` — see `kiva_components_for_norm.md` §1. |
-| A4 | P0 | Build `<PhoneFrame>` — iPhone 15 chrome, logical canvas 393×852 pt, scalable via prop. |
+| A4 | P0 | Build `<PhoneFrame>` — iPhone 15 chrome, logical canvas 393×852 pt, scalable via prop. ⚠️ **v1.13 update:** PhoneFrame now renders inside a 3D-perspective parent (`transform: perspective(1500px)`); supports props for `rotateY`, `rotateX`, `translateY`, `translateX` to drive the constant drift + scene-specific perspective shifts. Inner display has soft `box-shadow` glow bleed. |
+| **A5** | **P0 (v1.13)** | **Build the cinematic environment wrapper in `KivaAd.tsx`.** Per §3.7.2: navy→black gradient bg, animated noise overlay, vignette, AI glow halo (blue/purple, intensifies during AI moments via prop). Camera drift baseline (sine-wave translates + rotation). Layered Z-depth via `transform-style: preserve-3d`. **All scenes render INSIDE this wrapper.** |
+| **A6** | **P0 (v1.13)** | **Build `<GlassPlate>` component** for glassmorphism overlays (notification cards, focus captions, Mrs. Patel callback, any element floating outside the phone). CSS: `backdrop-filter: blur(20px) saturate(140%)`, `bg: rgba(255,255,255,0.06)`, `border: 1px solid rgba(255,255,255,0.12)`, `box-shadow: 0 8px 32px rgba(0,0,0,0.4)`. |
+| **A7** | **P0 (v1.13)** | **Build `<AIGlow>` component** — soft blue/purple halo behind the phone. Two states (props): `idle` (blue 35% opacity, ~80px blur) and `active` (purple 40% opacity, ~120px blur). Crossfades between states over 12 frames via `interpolate`. |
 
 ---
 
@@ -67,20 +73,25 @@
 
 ---
 
-### Phase C — Audio pipeline (✅ §4.5 APPROVED — unblocked)
+### Phase C — Audio pipeline (P0+P1 ✅ APPROVED · P2+P3 ⏸ AWAITING REVIEW)
 
-| ID | Priority | Task |
-|---|---|---|
-| C1 | P0 | Extend `test.py` with the `sound_effects()` helper from §4.5.1 (code template provided). Test with one P0 sound (`phone_vibration_loop`) before any batch. |
-| C2 | P0 | Run `generate_all(priority_filter="P0")` — 5 sounds, ~2,150 credits. **STOP after this batch.** Send the 5 mp3s back through the user for approval before running P1. |
-| C3 | P1 | After user approves P0: run `generate_all(priority_filter="P1")` — 5 more, ~480 credits. |
-| C4 | — | **If any single SFX comes back unusable, flag the `id` to the user — do NOT modify the prompt yourself.** Steve revises → re-run only that ID. |
+| ID | Priority | Task | Gate |
+|---|---|---|---|
+| C1 | P0 | Extend `test.py` with the `sound_effects()` helper from §4.5.1 (code template provided). Test with one P0 sound (`phone_vibration_loop`) before any batch. | ✅ |
+| C2 | P0 | Run `generate_all(priority_filter="P0")` — 5 sounds, ~2,150 credits. **STOP after this batch.** Send the 5 mp3s back through the user for listen before running P1. | ✅ |
+| C3 | P1 | After user listens to P0 and replies "P1 approved": run `generate_all(priority_filter="P1")` — 5 more, ~480 credits. | ✅ |
+| **C4** | **P2 (v1.11)** | **5 per-scene atmospheric beds.** Run `generate_all(priority_filter="P2")` — 5 sounds, ~3,200 credits. **STOP after batch — send the 5 mp3s to user for listen before running P3.** | ✅ |
+| **C5** | **P3 (v1.11)** | **4 transition stings between scenes.** After user listens to P2 and replies "P3 approved": run `generate_all(priority_filter="P3")` — 4 sounds, ~180 credits. | ✅ (gated on user listen of C4) |
+| C6 | — | **If any single SFX comes back unusable, flag the `id` to the user — do NOT modify the prompt yourself.** Steve revises → re-run only that ID. | — |
+| **C7** | **P1 (v1.12)** | **Wire a music-bed hook in `KivaAd.tsx`.** Add a single `<Audio src={staticFile('Sound/music/bed.mp3')} volume={0.4} />` element gated on `staticFile` existence — if the file doesn't exist yet, render nothing (no error). Once the user drops the licensed track at that path, the music bed will activate automatically. Volume note: bed sits at -20 to -16 dBFS so SFX punch through cleanly. | — |
 
 ---
 
 ### Phase D — Scene composition
 
 > Per scene, compose atoms + molecules per the per-scene timeline in §6. Reference `kiva_components_for_norm.md` for component anatomy; reference `ad_plan.md` §6 for what-appears-when.
+>
+> **v1.11 layer applies to every scene:** each scene's spec in §6 now opens with a `🎬 v1.11 layer` block defining (a) **Visual identity** (one of: INTIMATE / PRECISE / TACTILE / SPATIAL / CONVERSATIONAL / TRIUMPHANT — see §3.6), (b) **Audio bed** to underlay, (c) **Focus caption** that types in at the scene's anchor moment. **Do not skip these — they're what kills the visual repetitiveness across scenes.** If a per-scene bed (P2) hasn't been generated yet, fall back to `ai_hum_ambient.mp3` until P2 batch lands.
 
 | Scene | Status | Special locked rules |
 |---|---|---|
@@ -245,6 +256,162 @@ export const COLOR = {
 
 ---
 
+## 3.6 Per-scene visual identity & focus captions (locked v1.11)
+
+> **Why this exists:** without per-scene identity, the ad reads as "same demo on repeat" — phone → sheet → form → done, six times. The fix is two systems working together: (a) every scene has its own visual character, (b) every scene has ONE typed caption that reinforces what the AI feature just did.
+
+### 3.6.1 Visual identity per scene
+
+Each scene's identity drives camera framing, color emphasis, transition style, and audio bed. **Norm: when composing each scene, sanity-check every motion against the scene's identity. If it doesn't fit, reconsider.**
+
+| Scene | Identity | Camera vibe | Color emphasis | Rhythm |
+|---|---|---|---|---|
+| 1 — Overwhelm | **CHAOTIC** | locked, multi-card cluster | mixed/chaotic | escalating |
+| 2 — Voice-to-Customer | **INTIMATE** | tight close-ups, soft transitions | warm purple-on-white | soft, breathing |
+| 3 — Voice-to-Quote (HERO) | **PRECISE** | clean punch-zooms, surgical cuts | navy/blue, white-flash money shot | controlled, rising |
+| 4 — Expense | **TACTILE** | hands-on, receipt physically dropped | green confirms, neutral white | crisp, methodical |
+| 5 — Route Map | **SPATIAL** | the only "breathing wide" scene — wide-then-zoomed | gradient blue→purple route | cinematic, sweeping |
+| 6 — Follow-up | **CONVERSATIONAL** | messages exchanging, dialog-paced | warm WhatsApp green, status flip blue→green | satisfying back-and-forth |
+| 7 — Lockup | **TRIUMPHANT** | pull-back, sparkles converging | navy + AI purple sparkles | resolved, exhale |
+
+### 3.6.2 Focus caption system
+
+When the camera punch-zooms onto a hero element in Scenes 2–6, a **Focus Caption** types in beside it. Caption acts as quiet narration — clarifies what the AI just did. One caption per scene; never multiple. Avoid jargon. Speaks to the user as a respected adult tradesperson.
+
+**Caption styling (locked):**
+- Font: Inter_400Regular, 18 px
+- Color: white at 90% opacity (or navy if the underlying bg is light)
+- Position: 24 px gap from the focal element — typically below or to the right depending on composition
+- Typing animation: 1 char per frame (consistent with Scene 1 "Feeling overwhelmed?" typing language)
+- Hold: 0.6 s after typing completes
+- Exit: 8-frame fade as camera pulls back to next beat
+- Audio: soft `click.mp3` at **20% volume** on every-other character
+
+**Locked captions per scene:**
+
+| Scene | Anchor moment | Caption text | Typing window (frames) | Hold to |
+|---|---|---|---|---|
+| 2 | After form auto-fills | *"AI extracted in 0.4 seconds."* | F285–F310 (~25 frames typed) | F325 |
+| 3 | Right after £2,454.60 stamp | *"Voice → quote. 12 seconds."* | F432–F454 (~22 frames) | F458 |
+| 4 | After category chip locks in | *"Categorised automatically."* | F525–F549 (~24 frames) | F555 |
+| 5 | After "47 min" stat lands | *"Saves 47 minutes today."* | F632–F654 (~22 frames) | F660 |
+| 6 | After Sent → Accepted flips | *"Wrote it. Sent it. Won the job."* | F710–F740 (~30 frames) | F745 |
+| 7 | n/a — the tagline IS the caption | *"Blue collar solutions to blue collar problems."* (existing) | per existing spec | per existing spec |
+
+**Why these specific words:** every caption is short, plain English, and *says what the AI did* — not what it could do, not why it's amazing, not "supercharge your workflow." The Jobber-voice rule from §2.5. If a caption sounds like a SaaS-bro tagline, rewrite.
+
+### 3.6.3 Anti-patterns
+
+Don't:
+- Add multiple captions per scene (one is the rule — clutter kills focus)
+- Use captions to explain what the UI is showing (the UI shows itself; captions tell the *meaning*)
+- Use sales language ("Save time!", "Boost productivity!") — that's not Jobber voice
+- Animate captions into existence with anything other than the typing pattern (visual consistency with §6 Scene 1)
+
+---
+
+## 3.7 Cinematic system (locked v1.13)
+
+> **What this section is:** the SOUL of the ad. §3 covers tokens. §3.5 covers reference image use. §3.6 covers per-scene identity + focus captions. **§3.7 is the visual/emotional/camera/motion world the entire ad lives inside.** Every scene inherits from this — the per-scene specs in §6 add specifics on top of what §3.7 establishes.
+
+### 3.7.1 Emotional arc — the 3-act spine
+
+The 30-second ad is a story with three movements. **Every creative decision must serve the arc.**
+
+| Act | Time | Frames | Emotional state | Audio character |
+|---|---|---|---|---|
+| **I — Suffering** | 0:00–0:07.2 | 0–216 | Stress · overwhelm · clutter · mental overload of running a blue-collar business alone | Sub-bass rumble, layered notification chaos, riser building, then HARD silence at the swoosh |
+| **II — Resolution** | 0:07.2–0:26.8 | 216–804 | Calm intelligent automation · operational clarity · "the AI is doing the work for me" | Per-scene atmospheric beds (P2), warm sparse texture, gentle build of hope |
+| **III — Triumph** | 0:26.8–0:30.0 | 804–900 | Magical · smooth · intelligent · relieving · resolved | `outro_drone.mp3` resolving in C major — the exhale |
+
+**The narrative through-line:** *"You're drowning in admin → an AI brain takes over → you finally feel free."*
+
+### 3.7.2 Visual style — the cinematic environment
+
+The ad lives in a single visual world. **Norm: the KivaAd.tsx top-level wrapper IS this environment. Every scene is composed inside it.**
+
+**Background — always present:**
+- Cinematic gradient: `linear-gradient(135deg, #0F172A 0%, #000000 100%)` filling the full 1920×1080 frame.
+- Subtle moving noise overlay (`rgba(255,255,255,0.015)` animated) — gives the gradient texture, prevents banding.
+- Vignette: radial-gradient corners darken to `#000` at -8% lightness — focuses the eye toward the phone.
+
+**The iPhone — the hero object:**
+- **Always rendered in 3D.** Never flat. Floats at the center of the frame with subtle constant motion (drift + breath).
+- **Resting tilt:** Y-rotate `-6°`, X-rotate `+3°`. The phone is angled toward the viewer like it's being shown to them.
+- **Constant drift (always running):** sine-wave motion — `translateY ±3px` over 4s + `translateX ±2px` over 5s + `rotateY ±0.8°` over 6s. Different frequencies prevent obvious looping.
+- **Lighting (simulated via shadows + highlights):** key light upper-left, warm temperature; rim light lower-right, cool temperature. Specular highlight on the rounded edge.
+- **Inner glow:** the phone *display* is itself a light source — soft `box-shadow: 0 0 80px rgba(59,130,246,0.25)` outside the screen bounds (bleeds into the navy environment).
+
+**AI signal glow:**
+- Soft blue halo `rgba(59,130,246,0.35)` ambient around the phone at all times.
+- During AI moments (mic active, sparkle loader spinning, generating quote), halo intensifies and shifts toward purple `rgba(109,40,217,0.40)`.
+- Glow uses CSS `filter: blur(40px)` on a separate layer behind the phone.
+
+**Glassmorphism (overlays in front of phone):**
+- Notification cards (Scene 1), Focus Captions (§3.6), Mrs. Patel callback (Scene 7), and any UI overlay that "floats in front of" the phone use:
+  - `background: rgba(255,255,255,0.06)`
+  - `backdrop-filter: blur(20px) saturate(140%)`
+  - `border: 1px solid rgba(255,255,255,0.12)` (subtle inner edge)
+  - `box-shadow: 0 8px 32px rgba(0,0,0,0.4)` (depth shadow)
+- **NOT for in-phone UI** — UI inside the phone screen renders with normal opaque tokens. Glass is for elements that exist OUTSIDE the phone.
+
+**Layered depth (Z-axis):**
+- Background gradient: `Z = -100` (visually farthest)
+- Far ambient particles (Scene 7): `Z = -50`
+- Phone: `Z = 0` (the anchor)
+- Foreground UI overlays (focus captions, callbacks): `Z = +30` to `+50`
+- Foreground particles + thumb: `Z = +80`
+- Use CSS `transform-style: preserve-3d` on the parent + per-child `translateZ()` to make this real, not faked with scale.
+
+**Aesthetic anchor:** This should feel like the launch film for a premium startup product — Linear, Arc Browser, or a 30-second iPhone keynote moment. **NOT** a generic SaaS feature demo.
+
+### 3.7.3 Camera language — the camera is alive
+
+The "camera" in Remotion is the viewport — we move it via transforming the parent container. **The camera is never static.**
+
+| Camera move | When | How |
+|---|---|---|
+| **Constant subtle drift** | Always (baseline motion under everything else) | Sine-wave: `translateX ±4px / 6s`, `translateY ±2px / 5s`, `rotateZ ±0.3° / 8s`. Layered with phone drift to feel organic. |
+| **Slow cinematic push-in** | When zooming on a feature (Scenes 2–6 anchor moments, the £2,454.60 reveal in 3, etc.) | `scale 1.0 → 1.4` over **45–60 frames** (1.5–2 sec). NEVER snap zoom. |
+| **Dynamic perspective shift** | Scene transitions, between feature reveals | `rotateY` shifts ±5°, `rotateX` shifts ±3° over 30 frames as scene morphs. Camera "looks at" the phone from a new angle. |
+| **Slight orbit around device** | Once or twice in the ad — Scene 5 (route reveal) is a candidate, Scene 7 (lockup) is another | `rotateY` 8–12° over 60+ frames. Reveals the phone's edge briefly. Use sparingly — too much makes the ad feel woozy. |
+| **Shallow depth of field** | When camera focuses on a UI element | Apply `filter: blur(8px) brightness(0.7)` to background gradient + ambient particles. Foreground (phone + focused element) sharp. Easing: 12-frame ramp in/out. |
+| **Macro lens chromatic aberration** | At peak zoom moments only (Scene 3 £2,454.60 stamp, Scene 6 status flip) | Subtle `text-shadow: 1px 0 rgba(239,68,68,0.3), -1px 0 rgba(59,130,246,0.3)` on the focused element for ~10 frames. Authentic real-lens texture. |
+| **Vignette + soft focus falloff** | Always | Frame edges 8% darker (already in the environment); slight blur (1px) on outer 5% of frame. Eye is drawn to center. |
+
+### 3.7.4 Motion philosophy — extends companion doc §3
+
+In addition to the 6 motion presets in `kiva_components_for_norm.md` §3, these globally:
+
+1. **Magnetic motion.** Replace standard `easeOutCubic` with cubic-bezier `(0.2, 0.0, 0.0, 1.0)` — elements approaching their target *accelerate slightly* near the end (like magnetism pulling them in). Use for any element moving to a target position.
+
+2. **Morph transitions, not cuts.** Between scenes, the iPhone stays continuous. The screen *content* cross-fades over 8–12 frames while the phone itself maintains its position (with its drift continuing). **No hard cuts at scene boundaries.** Implementation: shift from `<Series>` to overlapping `<Sequence>` with crossfade on the screen-content layer only.
+
+3. **Liquid UI transformations.** When one UI element becomes another (button → toast, sheet rises into form revealing fields), don't swap. Source element scales `1.0 → 0.95 → 1.0` while target element scales `1.05 → 1.0`, overlapping by 6 frames. Feels elastic, alive.
+
+4. **Continuity-driven animation.** Every animated element has motion BEFORE entering frame and motion AFTER leaving frame. Nothing snaps in/out. Notification cards in Scene 1 already do this. Apply the rule to focus captions, the iPhone morph, the sparkle convergence.
+
+5. **Breathing room rule.** No frame should have more than **3 simultaneously animated elements**. If a beat needs more than 3, stagger.
+
+6. **Fast but readable pacing.** Kinetic ≠ frantic. After every burst of motion, allow 4–8 frames of relative calm so the eye can catch up.
+
+### 3.7.5 Per-scene inheritance checklist
+
+> Norm: when composing each scene, verify ALL of these apply. The cinematic system is global — scenes don't opt out.
+
+- [ ] iPhone is rendered in 3D with resting tilt + constant drift
+- [ ] Background is the navy→black gradient with vignette
+- [ ] AI blue/purple glow halo present around phone, intensifying during AI moments
+- [ ] Glassmorphism on any UI overlay outside the phone (notification cards, focus captions, callbacks)
+- [ ] Layered Z-depth respected (background → particles → phone → overlays → particles)
+- [ ] Camera has constant drift baseline running
+- [ ] Scene-to-scene transition is a morph (cross-fade screen content), not a cut
+- [ ] Motion uses magnetic easing, not standard ease-out
+- [ ] Liquid transformations applied wherever one UI element becomes another
+- [ ] No frame violates the breathing-room rule (max 3 simultaneous animated elements)
+
+---
+
 ## 4. Sound design library
 
 | File | Use |
@@ -335,6 +502,19 @@ SFX_QUEUE = [
     {"id": "sparkle_match", "prompt": "Quick bright sparkle chime, two cascading notes, like a magical UI element snapping into the correct slot. Light, satisfying, AI-coded, glassy texture, no reverb tail.", "duration": 0.4, "priority": "P1"},
     {"id": "map_zoom_whoosh", "prompt": "Cinematic camera zoom whoosh from wide to close, low filtered noise sweep with a subtle Doppler shift. Used in modern map applications. No music, no clicks, smooth tail.", "duration": 0.8, "priority": "P1"},
     {"id": "route_line_flow", "prompt": "Subtle flowing electronic energy travelling along a path, like data moving through a network line. Soft synthetic stream, faint UI texture, no harsh elements, no melody.", "duration": 1.0, "priority": "P1"},
+
+    # ── P2: Per-scene atmospheric beds (v1.11 addition — replaces shared ai_hum_ambient as Scenes 2–6 underbed) ──
+    {"id": "bed_intimate_warm", "prompt": "Warm intimate ambient bed with soft purple-tinted texture and barely audible synth pad. Personal, close, no melody, no rhythm. Designed to loop seamlessly under voiceover or close-up UI moments. Suggests a quiet moment of focus.", "duration": 6.0, "priority": "P2"},
+    {"id": "bed_precise_tense", "prompt": "Tense ambient bed with subtle rising pulse and clean digital texture. Building anticipation. Suggests precision work or AI calculation. Loops seamlessly. No melody, no music, mid-range warmth.", "duration": 8.0, "priority": "P2"},
+    {"id": "bed_tactile_clinical", "prompt": "Clean clinical ambient bed with subtle electronic scanning texture and gentle warmth, like a modern receipt scanner or a methodical app process. Loops seamlessly. No melody.", "duration": 6.0, "priority": "P2"},
+    {"id": "bed_spatial_cinematic", "prompt": "Spacious cinematic ambient bed with airy reverb and subtle distant pulse. Suggests open geography and movement, like driving through a city. Loops seamlessly. No melody, just texture.", "duration": 6.0, "priority": "P2"},
+    {"id": "bed_conversational_warm", "prompt": "Friendly warm ambient bed with subtle communicative texture, like soft connectivity between people. Suggests messages flowing back and forth. Loops seamlessly. No melody, no rhythm.", "duration": 6.0, "priority": "P2"},
+
+    # ── P3: Transition stings between scenes (v1.11 addition — variety at scene boundaries) ──
+    {"id": "transition_warm_whoosh", "prompt": "Warm filtered whoosh with subtle low-end thump, transitioning from intimate close-up to precise focus. No high frequencies, no harsh elements. Half a second total.", "duration": 0.5, "priority": "P3"},
+    {"id": "transition_sharp_impact", "prompt": "Sharp clean impact with brief reverb tail, used as a scene transition between a precise quote moment and a tactile receipt-scanning scene. Premium, deliberate.", "duration": 0.4, "priority": "P3"},
+    {"id": "transition_glitch_cut", "prompt": "Brief electronic glitch-cut transition with subtle digital texture, suggesting a switch in modality from list to map view. Modern, restrained, not chaotic. Under half a second.", "duration": 0.3, "priority": "P3"},
+    {"id": "transition_soft_fade", "prompt": "Soft warm fade transition with gentle high-frequency shimmer, suggesting connection and conversation, used between a map scene and a follow-up message scene. Warm.", "duration": 0.6, "priority": "P3"},
 ]
 
 
@@ -394,6 +574,17 @@ if __name__ == "__main__":
 | 8 | `sparkle_match` | Scene 4 | 522 (category lock) | -10 dBFS | One-shot, 0.4s | Bespoke — needs to feel "AI just got it right" not "level up" |
 | 9 | `map_zoom_whoosh` | Scene 5 | 576 (punch-zoom) | -10 dBFS | One-shot, 0.8s | Library whooshes are too aggressive; we want filtered, controlled |
 | 10 | `route_line_flow` | Scene 5 | 612 (line draws) | -14 dBFS | One-shot, 1.0s | Bespoke energy-along-path texture — no library equivalent |
+| **P2 — Per-scene atmospheric beds (v1.11 addition · ⏸ AWAITING REVIEW)** | | | | | | |
+| 11 | `bed_intimate_warm` | Scene 2 | 216–312 underbed | -22 dBFS | Seamless loop, 6s | Gives Scene 2 its INTIMATE identity — replaces shared hum |
+| 12 | `bed_precise_tense` | Scene 3 | 312–462 underbed | -22 dBFS, ramps slightly with riser | Seamless loop, 8s | Builds tension into the £2,454.60 reveal |
+| 13 | `bed_tactile_clinical` | Scene 4 | 462–558 underbed | -22 dBFS | Seamless loop, 6s | Clinical receipt-scan character |
+| 14 | `bed_spatial_cinematic` | Scene 5 | 558–654 underbed | -20 dBFS (more present, since Scene 5 is the cinematic exhale) | Seamless loop, 6s | Spacious geographic feel |
+| 15 | `bed_conversational_warm` | Scene 6 | 654–804 underbed | -22 dBFS | Seamless loop, 6s | Warm dialog atmosphere |
+| **P3 — Transition stings (v1.11 addition · ⏸ AWAITING REVIEW)** | | | | | | |
+| 16 | `transition_warm_whoosh` | between 2→3 | F310–F315 | -10 dBFS | One-shot, 0.5s | Variety at boundary instead of generic swoosh |
+| 17 | `transition_sharp_impact` | between 3→4 | F458–F462 | -8 dBFS | One-shot, 0.4s | Pattern interrupt for tactile shift |
+| 18 | `transition_glitch_cut` | between 4→5 | F555–F558 | -10 dBFS | One-shot, 0.3s | Modal shift list→map signaled audibly |
+| 19 | `transition_soft_fade` | between 5→6 | F650–F656 | -12 dBFS | One-shot, 0.6s | Warm easing into conversation scene |
 
 ### 4.5.4 Cost analysis
 
@@ -403,8 +594,10 @@ ElevenLabs Sound Generation pricing (as of 2026): roughly **100 character credit
 |---|---|---|---|---|
 | First-pass P0 | 5 | 21.5 s | ~2,150 | 2.15% |
 | First-pass P1 | 5 | 4.8 s | ~480 | 0.48% |
-| Total clean run | 10 | 26.3 s | ~2,630 | **2.6%** |
-| Worst case (1 retry per sound) | 20 | 52.6 s | ~5,260 | 5.3% |
+| **First-pass P2 (v1.11 — beds)** | **5** | **32.0 s** | **~3,200** | **3.2%** |
+| **First-pass P3 (v1.11 — stings)** | **4** | **1.8 s** | **~180** | **0.18%** |
+| Total clean run (all 19) | 19 | 60.1 s | ~6,010 | **6.0%** |
+| Worst case (1 retry per sound) | 38 | 120.2 s | ~12,020 | 12% |
 
 **Key cost-discipline rules:**
 1. **No exploratory prompts.** Every prompt in §4.5.3 has been written for one-shot generation. If a result is unusable, the user pings Steve — Steve revises the prompt — Norm re-runs ONLY that single ID (not the whole batch).
@@ -425,11 +618,18 @@ To keep the SFX count tight, the following originally-considered atmospheric lay
 
 ### 4.5.6 ✅ APPROVAL GATE
 
-| Status | Approved by | Date |
-|---|---|---|
-| **✅ APPROVED** | User (relayed by Steve) | 2026-05-06 |
+| Batch | Status | Approved by | Date |
+|---|---|---|---|
+| P0 (5 sounds) | **✅ APPROVED** | User | 2026-05-06 |
+| P1 (5 sounds) | **✅ APPROVED** | User | 2026-05-06 |
+| **P2 (v1.11 — 5 per-scene beds)** | **✅ APPROVED** | User (relayed by Steve) | 2026-05-06 |
+| **P3 (v1.11 — 4 transition stings)** | **✅ APPROVED** | User (relayed by Steve) | 2026-05-06 |
 
-Norm is unblocked to run `generate_all(priority_filter="P0")`. After P0 batch completes, send the 5 mp3 files to the user via the project for review. Wait for explicit "P1 approved" before running the second batch. If any prompt produces unusable output, flag the `id` back through the user — Steve revises, re-run only that single ID per the cost-discipline rule in §4.5.4.
+**Norm's behavior under split approvals:**
+- Run `generate_all(priority_filter="P0")` — already approved.
+- Run `generate_all(priority_filter="P1")` after sending P0 mp3s to user for listen and getting explicit "P1 approved" reply.
+- **Do NOT run P2 or P3 generation yet.** User reviews the prompt set in §4.5.3 v1.11 additions; when they reply "approve P2" or "approve P3" or "approve both", Steve flips the corresponding gate to ✅ and Norm runs.
+- Per the cost-discipline rule in §4.5.4: if any single prompt produces unusable output, flag the specific `id` to the user — Steve revises that one prompt — re-run that single ID. Do not re-run the whole batch.
 
 ---
 
@@ -524,6 +724,11 @@ The pitch shifts give the rapid-fire density a chaotic, varied texture instead o
 **Reference:** `IMG_2409.PNG` — New Customer voice modal. `IMG_2410.PNG` — AI Assistant sheet.
 **Goal:** "Adding a customer takes a sentence, not a form."
 
+> **🎬 v1.11 layer (identity + bed + caption):**
+> **Identity:** **INTIMATE** — tight close-ups, soft transitions, warm purple-on-white. Scene should feel personal, like a quiet moment of focus.
+> **Audio bed:** `bed_intimate_warm.mp3` (loops, -22 dBFS underbed) ← *generates after P2 approval*
+> **Focus caption:** *"AI extracted in 0.4 seconds."* — types in F285–F310, holds to F325. Position 24 px below the form-field block. White at 90% opacity, Inter_400Regular 18 px.
+
 **Beat-by-beat:**
 
 | Range (s) | Frames | Action |
@@ -552,6 +757,12 @@ The pitch shifts give the rapid-fire density a chaotic, varied texture instead o
 **Feature shown:** Voice-to-quote — the killer flow.
 **Reference:** `IMG_2418.PNG` (New Quote) → `IMG_2419.PNG` (Transcribing) → `IMG_2420.PNG` (Generating) → `IMG_2421.PNG` (Quote review).
 **Goal:** "Spend 5 seconds saying the job. Get a £2,454.60 itemised quote ready to send."
+
+> **🎬 v1.11 layer (identity + bed + caption):**
+> **Identity:** **PRECISE** — clean punch-zooms, surgical cuts, zero wasted motion. Navy/blue dominant, with the white-flash money shot as the visual climax of the entire ad.
+> **Audio bed:** `bed_precise_tense.mp3` (loops, -22 dBFS, ramps slightly with `riser.mp3`) ← *generates after P2 approval*
+> **Transition in:** `transition_warm_whoosh.mp3` at F310–F315 from Scene 2 ← *generates after P3 approval*
+> **Focus caption:** *"Voice → quote. 12 seconds."* — types in F432–F454, holds to F458. Position 24 px below the £2,454.60 stamp. White at 90%, Inter_400Regular 18 px.
 
 **Beat-by-beat:**
 
@@ -587,6 +798,12 @@ The pitch shifts give the rapid-fire density a chaotic, varied texture instead o
 **Reference:** `IMG_2422.PNG` — New Expense modal.
 **Goal:** "Bookkeeping done in 2 seconds, on the way out of Screwfix."
 
+> **🎬 v1.11 layer (identity + bed + caption):**
+> **Identity:** **TACTILE** — hands-on, the receipt physically drops in, scan line is a tactile event, green confirms. Crisp, methodical rhythm — feels like checking work off a list.
+> **Audio bed:** `bed_tactile_clinical.mp3` (loops, -22 dBFS) ← *generates after P2 approval*
+> **Transition in:** `transition_sharp_impact.mp3` at F458–F462 from Scene 3 ← *generates after P3 approval*
+> **Focus caption:** *"Categorised automatically."* — types in F525–F549, holds to F555. Position 24 px below the highlighted "Construction Materials" chip. White at 90%, Inter_400Regular 18 px.
+
 | Range (s) | Frames | Action |
 |---|---|---|
 | 0:15.4–0:15.8 | 462–474 | Cut to New Expense sheet (IMG_2422 — purple "Use AI" toggle ON, "Scanning receipt…" button). A receipt photo physically drops into the receipt-photo card with a slight bounce. |
@@ -610,6 +827,12 @@ The pitch shifts give the rapid-fire density a chaotic, varied texture instead o
 **Feature shown:** Map view with optimized route across customer pins.
 **Reference:** `IMG_2417.PNG` — Customers map view with London pins.
 **Goal:** "AI routes your day — drive less, work more."
+
+> **🎬 v1.11 layer (identity + bed + caption):**
+> **Identity:** **SPATIAL / CINEMATIC** — the only "breathing wide" scene in the ad. Wide-then-zoomed-in. Geographic. Sweeping. Gradient blue→purple route is the visual hero. This is the ad's exhale before the conversational close.
+> **Audio bed:** `bed_spatial_cinematic.mp3` (loops, -20 dBFS — slightly more present than other beds since this scene needs space) ← *generates after P2 approval*
+> **Transition in:** `transition_glitch_cut.mp3` at F555–F558 from Scene 4 — signals the modal shift from list to map ← *generates after P3 approval*
+> **Focus caption:** *"Saves 47 minutes today."* — types in F632–F654, holds to F660. Position 24 px below the "47 min" stat overlay. White at 90%, Inter_400Regular 18 px.
 
 | Range (s) | Frames | Action |
 |---|---|---|
@@ -635,6 +858,12 @@ The pitch shifts give the rapid-fire density a chaotic, varied texture instead o
 **Features shown:** AI follow-up on quotes (5) + AI chatbot for admin decisions (6).
 **Reference:** `IMG_2410.PNG` — AI Assistant sheet ("What do you need?").
 **Goal:** "The AI doesn't just help — it acts. And when you don't know what to do next, it tells you."
+
+> **🎬 v1.11 layer (identity + bed + caption):**
+> **Identity:** **CONVERSATIONAL** — messages exchange, status badge flips, the assistant rows cascade like a menu opening. Dialog-paced, satisfying back-and-forth. Warm WhatsApp green and the navy→green status flip are the dominant moments.
+> **Audio bed:** `bed_conversational_warm.mp3` (loops, -22 dBFS) ← *generates after P2 approval*
+> **Transition in:** `transition_soft_fade.mp3` at F650–F656 from Scene 5 — eases the cinematic exhale into intimate dialog ← *generates after P3 approval*
+> **Focus caption:** *"Wrote it. Sent it. Won the job."* — types in F710–F740, holds to F745. Position 24 px below the freshly-flipped "Accepted" badge. White at 90%, Inter_400Regular 18 px. The three-beat cadence ("Wrote it. Sent it. Won the job.") echoes the three actions the AI just completed.
 
 This scene has two halves.
 
@@ -671,6 +900,12 @@ This scene has two halves.
 ### Scene 7 — Logo lockup + CTA
 **Time:** 0:26.8 – 0:30.0 (frames 804–900)
 **Goal:** Brand recall + clear conversion ask.
+
+> **🎬 v1.11 layer (identity + bed + caption):**
+> **Identity:** **TRIUMPHANT** — pull-back from the feature constellation, sparkles converge into the logo, rest. The exhale of the entire ad. Navy + AI purple sparkles dominate.
+> **Audio bed:** `outro_drone.mp3` already-locked (P0, builds from -16 to -12 dBFS over the scene). No new bed needed.
+> **Transition in:** existing constellation-dissolve to sparkle convergence per existing spec — no new sting.
+> **Caption:** the **tagline IS the caption** here — *"Blue collar solutions to blue collar problems."* — already specced at F840–F858. No additional Focus Caption.
 
 | Range (s) | Frames | Action |
 |---|---|---|

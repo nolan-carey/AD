@@ -8,7 +8,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { COLOR, EASE, SPRING } from "../tokens";
-import { SFX, IMG } from "../audio";
+import { SFX, GEN, IMG } from "../audio";
 import { KivaLogo } from "../components/KivaLogo";
 import { NotificationCard } from "../components/NotificationCard";
 import { SfxAt } from "../components/SfxAt";
@@ -119,17 +119,16 @@ export const Scene7Lockup: React.FC = () => {
         volume={0.25}
         playbackRate={0.95}
       />
-      {/* Sustained outro drone */}
+      {/* Outro drone (generated) — sustained C-major bloom under the close, -16→-12 dBFS */}
       <SfxAt
-        src={SFX.riser}
+        src={GEN.outroDrone}
         from={0}
         volume={(f) =>
-          interpolate(f, [0, 30, 80, 96], [0.18, 0.28, 0.32, 0.0], {
+          interpolate(f, [0, 30, 70, 96], [0.16, 0.22, 0.25, 0.0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        playbackRate={0.95}
         durationInFrames={96}
       />
     </AbsoluteFill>

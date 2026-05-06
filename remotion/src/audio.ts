@@ -10,6 +10,24 @@ export const SFX = {
   impact2: staticFile("sound/impact2.mp3"),
 } as const;
 
+// ElevenLabs-generated cinematic SFX layers (ad_plan §4.5.3).
+// Locked prompts in test.py SFX_QUEUE — regenerate via generate_all().
+// Files live in /remotion/public/sound/generated/ (gitignored).
+// Note: `sparkle_match` was not generated (locked duration 0.4s < API min 0.5s).
+// Per §4.5.5 fallback rule, Scene 4's category-lock cue uses notification1 pitched +5
+// instead — until Steve revises the SFX_QUEUE entry.
+export const GEN = {
+  phoneVibration: staticFile("sound/generated/phone_vibration_loop.mp3"),
+  counterRoll: staticFile("sound/generated/counter_roll_money.mp3"),
+  achievement: staticFile("sound/generated/achievement_chime.mp3"),
+  aiHum: staticFile("sound/generated/ai_hum_ambient.mp3"),
+  outroDrone: staticFile("sound/generated/outro_drone.mp3"),
+  morphWhirr: staticFile("sound/generated/iphone_morph_whirr.mp3"),
+  scanSweep: staticFile("sound/generated/scan_sweep.mp3"),
+  mapZoom: staticFile("sound/generated/map_zoom_whoosh.mp3"),
+  routeFlow: staticFile("sound/generated/route_line_flow.mp3"),
+} as const;
+
 // Per ad_plan.md §3.5, reference PNGs from /ReferenceImages/ MUST NOT be placed
 // directly into a scene composition as full-screen assets. The only allowed
 // asset uses are:
