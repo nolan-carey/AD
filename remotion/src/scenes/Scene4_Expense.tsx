@@ -7,641 +7,412 @@ import {
   useVideoConfig,
 } from "remotion";
 import { COLOR, EASE, SPRING } from "../tokens";
-import { SFX, GEN } from "../audio";
+import { GEN, SFX } from "../audio";
 import { PhoneFrame } from "../components/PhoneFrame";
-import { SheetContainer } from "../components/SheetContainer";
+import { MicButton } from "../components/MicButton";
+import { GlassPlate } from "../components/GlassPlate";
 import { SfxAt } from "../components/SfxAt";
-import { popInProgress } from "../motion";
 
 // =====================================================================
-// SCENE 4 — AI Expense Classification (frames 462–558 = local 0–96)
-// Real Expenses/index.js modalStyles applied: aiPoweredBg toggle row, receipt
-// card pattern, category chips. Adds zoom-in on the scan moment + scale pulse
-// on the matched category chip.
+// SCENE 4 — Voice → Quote transformation (v1.21, frames 345–450)
+// 105 frames @ 30fps · 3.5s · HERO
+// (file kept as Scene4_Expense.tsx — content rebuilt from §6 verbatim)
+//
+// Three sub-beats from user storyboard:
+//   F0–F21 (345–366):   Mic expands. Camera zooms into mic. Mic expands
+//                       outward into circular AI interface. Background UI
+//                       softly blurs. Waveform appears.
+//                       TEXT (above waveform): "Tell Kiva what you need…"
+//   F21–F69 (366–414):  Voice input appears live. TEXT:
+//                       "Create a quote for John Smith — bathroom leak
+//                        repair — £280 labour and materials."
+//                       Highlights pulse: John Smith, bathroom leak repair,
+//                       £280. Camera slow zoom toward £280.
+//   F69–F105 (414–450): Text transforms into quote card. Words magnetically
+//                       move into structured fields:
+//                         John Smith
+//                         Bathroom Leak Repair
+//                         Labour: £180
+//                         Materials: £100
+//                         TOTAL: £280  (counts £0 → £280)
+//                       Blue glow pulse. HOLD 0.7s.
 // =====================================================================
 
-// v1.14 retimed (Scene 4 local 0–150, abs 660–810):
-//   0–30    open MID-SCAN (receipt photo already attached; "Scanning…" state)
-//   30–54   blue scan line sweeps + OCR fragments
-//   54–78   form fields auto-fill (Description / Amount / Date)
-//   78–102  category lock — "Construction Materials" springs to navy
-//   102–132 save tap → sheet dismiss → list row drop → counter roll
-//   132–150 hold + transition prep
-const SHEET_RISE = 0;
-const RECEIPT_DROP = 0;
-const SCAN_SWEEP = 30;
-const FORM_FILL = 54;
-const CATEGORY_LOCK = 78;
-const SAVE_TAP = 110;
+const MIC_EXPAND_END = 21;
+const VOICE_TEXT_START = 21;
+const VOICE_TEXT_END = 69;
+const QUOTE_CARD_START = 69;
+const SCENE_END = 105;
+
+const VOICE_LINE = "Create a quote for John Smith — bathroom leak repair — £280 labour and materials.";
 
 export const Scene4Expense: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Camera scan-zoom: gentle 1.0 → 1.05 push during scan, settle by 40
-  const scanZoom = interpolate(frame, [SCAN_SWEEP - 2, SCAN_SWEEP + 16, FORM_FILL + 6], [1.0, 1.05, 1.0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.inOutQuad,
-  });
-  // Category lock zoom: gentle pop on the chip lock
-  const lockPunch = interpolate(frame, [CATEGORY_LOCK, CATEGORY_LOCK + 6, CATEGORY_LOCK + 14], [1.0, 1.04, 1.0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
-  const cameraScale = scanZoom * lockPunch;
+  // Camera push toward £280 during voice phase
+  const cameraScale = interpolate(
+    frame,
+    [0, MIC_EXPAND_END, VOICE_TEXT_END, QUOTE_CARD_START + 16, SCENE_END],
+    [1.05, 1.12, 1.18, 1.05, 1.0],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: EASE.inOutQuad,
+    }
+  );
+
+  // Background UI blur during voice phases
+  const bgBlur = interpolate(
+    frame,
+    [MIC_EXPAND_END, VOICE_TEXT_END, QUOTE_CARD_START + 6],
+    [0, 8, 0],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }
+  );
 
   return (
     <AbsoluteFill
       style={{
-        background: `linear-gradient(135deg, ${COLOR.navy} 0%, ${COLOR.surfaceDark} 100%)`,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingLeft: 240,
       }}
     >
-      <PhoneFrame scale={cameraScale}>
-        {/* Faded dashboard backdrop behind the sheet */}
-        <FadedDashboard frame={frame} />
-
-        {frame < SAVE_TAP + 16 && (
-          <SheetContainer
-            frame={frame}
-            riseAtFrame={SHEET_RISE}
-            dismissAtFrame={SAVE_TAP + 4}
-            backdropOpacity={0.45}
-          >
-            <NewExpenseSheetContent frame={frame} fps={fps} />
-          </SheetContainer>
-        )}
-
-        {frame >= SAVE_TAP + 12 && <ExpensesList frame={frame} fps={fps} />}
-      </PhoneFrame>
+      <div
+        style={{
+          transform: `scale(${cameraScale})`,
+          transformStyle: "preserve-3d",
+        }}
+      >
+        <PhoneFrame scale={1.0}>
+          {frame < QUOTE_CARD_START ? (
+            <MicAndVoice frame={frame} fps={fps} bgBlur={bgBlur} />
+          ) : (
+            <QuoteCard frame={frame} fps={fps} />
+          )}
+        </PhoneFrame>
+      </div>
 
       {/* === AUDIO === */}
-      {/* Scan sweep (generated) during the OCR scan — -12 dBFS */}
-      <SfxAt src={GEN.scanSweep} from={SCAN_SWEEP} volume={0.25} />
-      {/* TACTILE bed (v1.11 P2) — full-scene underbed, -22 dBFS */}
       <SfxAt
-        src={GEN.bedTactile}
+        src={GEN.bedPrecise}
         from={0}
         loop
         volume={(f) =>
-          interpolate(f, [0, 8, 132, 150], [0, 0.08, 0.08, 0], {
+          interpolate(f, [0, 8, 95, 105], [0, 0.08, 0.08, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        durationInFrames={150}
+        durationInFrames={SCENE_END}
       />
-      {[0, 8, 16].map((offset, i) => (
-        <SfxAt
-          key={`tick-${i}`}
-          src={SFX.click}
-          from={FORM_FILL + offset}
-          volume={0.3}
-          playbackRate={1.2 + i * 0.05}
-        />
-      ))}
-      {/* sparkle_match (v1.15 — re-generated after duration bump) on category lock */}
       <SfxAt
-        src={GEN.sparkleMatch}
-        from={CATEGORY_LOCK + 4}
-        volume={0.32}
+        src={SFX.notification1}
+        from={0}
+        volume={0.5}
+        playbackRate={Math.pow(2, 4 / 12)}
       />
-      <SfxAt src={SFX.click} from={SAVE_TAP + 4} volume={0.85} />
-      <SfxAt src={SFX.swoosh} from={SAVE_TAP + 8} volume={0.55} />
-      {/* transition_glitch_cut (v1.15) — Scene 4→5 boundary, abs F804 = local F144 */}
-      <SfxAt src={GEN.transGlitch} from={144} volume={0.32} />
+      <SfxAt src={GEN.counterRoll} from={QUOTE_CARD_START + 4} volume={0.32} />
+      <SfxAt src={SFX.impact2} from={QUOTE_CARD_START + 22} volume={0.4} />
     </AbsoluteFill>
   );
 };
 
-// Minimal faded dashboard backdrop (the sheet covers most of it)
-const FadedDashboard: React.FC<{ frame: number }> = ({ frame }) => (
-  <div
-    style={{
-      width: "100%",
-      height: "100%",
-      background: COLOR.surfaceDark,
-      opacity: 0.7,
-    }}
-  />
-);
-
 // =====================================================================
-// NEW EXPENSE SHEET CONTENT — translated from real Expenses/index.js modalStyles
+// MIC + VOICE (frames 0–69 local)
 // =====================================================================
-const NewExpenseSheetContent: React.FC<{ frame: number; fps: number }> = ({
-  frame,
-  fps,
-}) => {
-  return (
-    <div style={{ fontFamily: "Inter, system-ui" }}>
-      {/* Title row */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 4,
-        }}
-      >
-        <div style={{ fontSize: 18, fontWeight: 700, color: COLOR.navy }}>New Expense</div>
-        <div style={{ fontSize: 14, color: COLOR.textTer }}>×</div>
-      </div>
-      <div style={{ fontSize: 11, color: COLOR.textTer, marginBottom: 14 }}>
-        Snap a receipt — AI classifies it.
-      </div>
-
-      {/* AI toggle row — real: aiPoweredBg, padding 12/10, radius 10 */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          background: COLOR.aiPurpleBg,
-          border: `1px solid ${COLOR.border}`,
-          borderRadius: 10,
-          padding: "10px 12px",
-          marginBottom: 12,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1 }}>
-          <div style={{ fontSize: 14, color: COLOR.aiPurple }}>✦</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: COLOR.navy }}>Use AI</div>
-            <div style={{ fontSize: 9, color: COLOR.textTer, marginTop: 2 }}>
-              Scanning receipt…
-            </div>
-          </div>
-        </div>
-        <div
-          style={{
-            width: 36,
-            height: 20,
-            borderRadius: 10,
-            background: COLOR.aiPurple,
-            padding: 2,
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
-          }}
-        >
-          <div style={{ width: 16, height: 16, borderRadius: 8, background: "#fff" }} />
-        </div>
-      </div>
-
-      {/* Receipt photo card — real: padding 8, radius 12, border, gap 12 */}
-      <ReceiptCard frame={frame} fps={fps} />
-
-      {/* Form fields */}
-      <FormFields frame={frame} />
-
-      {/* Category chips */}
-      <CategoryChips frame={frame} fps={fps} />
-
-      {/* Save button */}
-      <SaveButton frame={frame} />
-    </div>
-  );
-};
-
-// =====================================================================
-// RECEIPT CARD with scan line
-// =====================================================================
-const ReceiptCard: React.FC<{ frame: number; fps: number }> = ({ frame, fps }) => {
-  // Receipt drop animation
-  const dropSp = popInProgress(frame, fps, RECEIPT_DROP);
-  const dropY = interpolate(dropSp, [0, 1], [-20, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const dropOpacity = interpolate(dropSp, [0, 1], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
+const MicAndVoice: React.FC<{
+  frame: number;
+  fps: number;
+  bgBlur: number;
+}> = ({ frame, fps, bgBlur }) => {
   return (
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        marginTop: 4,
-        marginBottom: 14,
-        padding: 8,
+        width: "100%",
+        height: "100%",
         background: COLOR.bg,
-        border: `1px solid ${COLOR.border}`,
-        borderRadius: 12,
         position: "relative",
-        transform: `translateY(${dropY}px)`,
-        opacity: dropOpacity,
+        fontFamily: "Inter, system-ui",
       }}
     >
-      {/* Receipt thumbnail (mock) */}
+      {/* Soft-blurred background dashboard */}
       <div
         style={{
-          position: "relative",
-          width: 56,
-          height: 56,
-          borderRadius: 8,
-          background: "#FAFAFA",
-          padding: 4,
-          flexShrink: 0,
-          overflow: "hidden",
+          position: "absolute",
+          inset: 0,
+          filter: `blur(${bgBlur}px)`,
+          opacity: 0.5,
+          paddingTop: 60,
+          padding: "60px 16px 0",
         }}
       >
-        <div style={{ fontSize: 6, fontWeight: 800, color: "#1a1a1a" }}>WICKES</div>
-        <div style={{ fontSize: 5, color: "#666", marginTop: 1 }}>04/03/26</div>
-        <div style={{ fontSize: 5, lineHeight: 1.3, color: "#1a1a1a", marginTop: 2 }}>
-          Bath waste...
-          <br />
-          Basin trap...
-          <br />
-          Pipe fitting...
-        </div>
         <div
           style={{
-            fontSize: 6,
-            fontWeight: 800,
-            borderTop: "1px dashed #999",
-            paddingTop: 1,
-            marginTop: 2,
-            textAlign: "right",
-            color: "#1a1a1a",
+            background: COLOR.aiPurple,
+            borderRadius: 14,
+            height: 80,
+            marginBottom: 10,
+          }}
+        />
+        <div
+          style={{
+            background: COLOR.blue,
+            borderRadius: 14,
+            height: 80,
+            marginBottom: 10,
+          }}
+        />
+        <div
+          style={{
+            background: COLOR.surfaceDark,
+            borderRadius: 14,
+            height: 80,
+          }}
+        />
+      </div>
+
+      {/* "Tell Kiva what you need…" caption above mic */}
+      {frame < MIC_EXPAND_END && (
+        <div
+          style={{
+            position: "absolute",
+            top: "30%",
+            left: 0,
+            right: 0,
+            textAlign: "center",
+            fontSize: 14,
+            fontWeight: 600,
+            color: COLOR.navy,
+            opacity: interpolate(frame, [4, 12], [0, 1], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            }),
           }}
         >
-          £147.32
+          Tell Kiva what you need…
         </div>
-        {/* Scan line overlay (only during SCAN_SWEEP) */}
-        {frame >= SCAN_SWEEP && frame < FORM_FILL && (
-          <ScanLine frame={frame} />
-        )}
-      </div>
+      )}
 
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: COLOR.navy, marginBottom: 4 }}>
-          Receipt photo attached
-        </div>
-        <div style={{ fontSize: 9, color: COLOR.textSec, display: "flex", alignItems: "center", gap: 4 }}>
-          {frame >= SCAN_SWEEP && frame < FORM_FILL ? (
-            <>
-              <span style={{ color: COLOR.aiPurple, fontWeight: 700 }}>✦</span> Scanning…
-            </>
-          ) : frame >= FORM_FILL ? (
-            <>
-              <span style={{ color: COLOR.accepted, fontWeight: 700 }}>✓</span> Extracted
-            </>
-          ) : (
-            <>Tap to preview</>
-          )}
-        </div>
-      </div>
-
+      {/* Mic — center, expanded */}
       <div
         style={{
-          width: 24,
-          height: 24,
-          borderRadius: 12,
-          background: COLOR.surface,
-          border: `1px solid ${COLOR.border}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 11,
-          color: COLOR.textSec,
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: `translate(-50%, -50%) scale(${interpolate(frame, [0, MIC_EXPAND_END], [1.0, 1.4], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing: EASE.outCubic,
+          })})`,
         }}
       >
-        ×
+        <MicButton startFrame={0} recording={frame >= MIC_EXPAND_END} size="hero" />
       </div>
 
-      {/* OCR fragments floating off the receipt (positioned over the card) */}
-      {frame >= SCAN_SWEEP && frame < FORM_FILL + 4 && <OCRFragments frame={frame} />}
+      {/* Voice text streaming — appears below mic during VOICE_TEXT phase */}
+      {frame >= VOICE_TEXT_START && (
+        <VoiceTextStream frame={frame} />
+      )}
     </div>
   );
 };
 
-const ScanLine: React.FC<{ frame: number }> = ({ frame }) => {
-  const t = frame - SCAN_SWEEP;
-  const progress = interpolate(t, [0, 18], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+const VoiceTextStream: React.FC<{ frame: number }> = ({ frame }) => {
+  const t = frame - VOICE_TEXT_START;
+  const total = VOICE_TEXT_END - VOICE_TEXT_START;
+  const visible = Math.min(VOICE_LINE.length, Math.floor((t / total) * VOICE_LINE.length));
+  const text = VOICE_LINE.slice(0, visible);
+  // Highlight tokens — wrap in spans with pulse glow
+  const highlighted = (() => {
+    const targets = ["John Smith", "bathroom leak repair", "£280"];
+    let result: React.ReactNode[] = [];
+    let cursor = 0;
+    while (cursor < text.length) {
+      const found = targets
+        .map((t) => ({ t, idx: text.indexOf(t, cursor) }))
+        .filter((x) => x.idx >= 0)
+        .sort((a, b) => a.idx - b.idx)[0];
+      if (!found || found.idx >= text.length) {
+        result.push(text.slice(cursor));
+        break;
+      }
+      if (found.idx > cursor) result.push(text.slice(cursor, found.idx));
+      // Highlight token
+      const token = found.t.slice(0, Math.max(0, text.length - found.idx));
+      result.push(
+        <span
+          key={`${found.t}-${found.idx}`}
+          style={{
+            color: COLOR.blue,
+            fontWeight: 700,
+            textShadow: `0 0 12px ${COLOR.blue}88`,
+          }}
+        >
+          {token}
+        </span>
+      );
+      cursor = found.idx + found.t.length;
+    }
+    return result;
+  })();
   return (
     <div
       style={{
         position: "absolute",
-        top: progress * 56,
-        left: 0,
-        right: 0,
-        height: 2,
-        background: COLOR.blue,
-        boxShadow: `0 0 8px ${COLOR.blue}, 0 0 16px ${COLOR.blue}`,
-        opacity: progress < 0.95 ? 1 : 1 - (progress - 0.95) * 20,
+        bottom: 100,
+        left: 16,
+        right: 16,
       }}
-    />
-  );
-};
-
-const OCRFragments: React.FC<{ frame: number }> = ({ frame }) => {
-  const fragments = [
-    { text: "Wickes", x: 80, y: 0, appear: 4 },
-    { text: "£147.32", x: 200, y: -10, appear: 8 },
-    { text: "04/03/26", x: 130, y: 18, appear: 12 },
-  ];
-  return (
-    <>
-      {fragments.map((f, i) => {
-        const ft = frame - SCAN_SWEEP - f.appear;
-        if (ft < 0) return null;
-        const fragP = interpolate(ft, [0, 6, 14], [0, 1, 0], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        });
-        const drift = interpolate(ft, [0, 14], [0, -16]);
-        return (
-          <div
-            key={i}
+    >
+      <GlassPlate radius={14}>
+        <div
+          style={{
+            padding: "12px 14px",
+            fontFamily: "Inter, system-ui",
+            fontSize: 13,
+            fontWeight: 500,
+            color: "#fff",
+            lineHeight: 1.4,
+            minHeight: 60,
+          }}
+        >
+          {highlighted}
+          <span
             style={{
-              position: "absolute",
-              top: f.y,
-              left: f.x,
-              transform: `translateY(${drift}px)`,
-              fontFamily: "Inter, system-ui",
-              fontSize: 10,
-              fontWeight: 700,
-              color: COLOR.aiPurple,
-              background: COLOR.aiPurpleBg,
-              padding: "2px 6px",
-              borderRadius: 999,
-              opacity: fragP,
-              boxShadow: `0 0 12px rgba(109,40,217,0.4)`,
-              whiteSpace: "nowrap",
-              pointerEvents: "none",
-              zIndex: 10,
+              display: "inline-block",
+              width: 2,
+              height: 14,
+              background: COLOR.blue,
+              marginLeft: 2,
+              verticalAlign: "middle",
+              opacity: Math.floor(frame / 6) % 2 === 0 ? 1 : 0,
             }}
-          >
-            ✦ {f.text}
-          </div>
-        );
-      })}
-    </>
-  );
-};
-
-// =====================================================================
-// FORM FIELDS (Description, Amount, Date)
-// =====================================================================
-const FormFields: React.FC<{ frame: number }> = ({ frame }) => {
-  const fields = [
-    { label: "DESCRIPTION", value: "Wickes — bathroom fittings", appear: 0 },
-    { label: "AMOUNT", value: "£147.32", appear: 8 },
-    { label: "DATE", value: "04/03/2026", appear: 16 },
-  ];
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
-      {fields.map((f, i) => {
-        const t = frame - FORM_FILL - f.appear;
-        if (t < -2) return null;
-        const flashP = interpolate(t, [0, 3, 8], [1, 0.4, 0], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        });
-        const valOpacity = interpolate(t, [2, 6], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        });
-        return (
-          <div key={i}>
-            <div style={{ fontSize: 9, fontWeight: 600, color: COLOR.navy, marginBottom: 4 }}>
-              {f.label}
-            </div>
-            <div
-              style={{
-                position: "relative",
-                background: "#fff",
-                border: `1.5px solid ${COLOR.border}`,
-                borderRadius: 8,
-                padding: "9px 10px",
-                fontSize: 12,
-                color: COLOR.navy,
-                minHeight: 22,
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: COLOR.aiPurpleBg,
-                  opacity: flashP,
-                  borderRadius: 8,
-                }}
-              />
-              <span style={{ position: "relative", opacity: valOpacity, fontWeight: 500 }}>
-                {f.value}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+          />
+        </div>
+      </GlassPlate>
     </div>
   );
 };
 
 // =====================================================================
-// CATEGORY CHIPS — real Expenses chip styling, with bouncy "match" scale
+// QUOTE CARD (frames 69–105 local)
 // =====================================================================
-const CategoryChips: React.FC<{ frame: number; fps: number }> = ({ frame, fps }) => {
-  const cats = [
-    { label: "Construction Materials", id: "matched", color: "#0EA5E9", bg: "#E0F2FE" },
-    { label: "Parts", id: "parts", color: "#22C55E", bg: "#DCFCE7" },
-    { label: "Tools", id: "tools", color: "#F59E0B", bg: "#FEF3C7" },
-    { label: "Fuel", id: "fuel", color: "#EF4444", bg: "#FEE2E2" },
-    { label: "Other", id: "other", color: COLOR.textSec, bg: COLOR.divider },
+const QuoteCard: React.FC<{ frame: number; fps: number }> = ({ frame, fps }) => {
+  const t = frame - QUOTE_CARD_START;
+  // Total counts up over 0–18 frames
+  const totalP = interpolate(t, [4, 22], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE.outCubic,
+  });
+  const totalDisplay = Math.round(280 * totalP);
+  // Total stamp scale-pulse
+  const totalSp = spring({ frame: t - 18, fps, config: SPRING.bouncy });
+  const totalScale = totalSp >= 0 ? 1 + 0.1 * Math.max(0, 1 - Math.abs(totalSp - 1)) : 1;
+  // Field stagger
+  const fields: { label: string; value: string }[] = [
+    { label: "Customer", value: "John Smith" },
+    { label: "Job", value: "Bathroom Leak Repair" },
+    { label: "Labour", value: "£180" },
+    { label: "Materials", value: "£100" },
   ];
+
   return (
-    <div style={{ marginBottom: 14 }}>
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        background: COLOR.bg,
+        paddingTop: 60,
+        padding: "60px 14px 14px",
+        fontFamily: "Inter, system-ui",
+      }}
+    >
       <div
         style={{
-          fontSize: 9,
+          fontSize: 11,
           fontWeight: 600,
-          color: COLOR.textTer,
+          color: COLOR.aiPurple,
           textTransform: "uppercase",
-          letterSpacing: 0.5,
+          letterSpacing: 0.6,
           marginBottom: 6,
         }}
       >
-        Category
+        ✦ Quote — AI generated
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-        {cats.map((c, i) => {
-          const isMatched = c.id === "matched";
-          const t = frame - CATEGORY_LOCK;
-          const sp = isMatched ? popInProgress(frame, fps, CATEGORY_LOCK) : 0;
-          // Match chip pops with bouncy scale; turns navy
-          const scale = isMatched
-            ? 1 + 0.12 * Math.max(0, sp - 0) - 0.12 * Math.max(0, sp - 1) * 0.5
-            : 1;
-          const showMatched = isMatched && t >= 0;
+      <div
+        style={{
+          background: COLOR.surface,
+          border: `1px solid ${COLOR.border}`,
+          borderRadius: 14,
+          padding: 14,
+          boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+        }}
+      >
+        {fields.map((f, i) => {
+          const enter = interpolate(t, [2 + i * 2, 8 + i * 2], [0, 1], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+            easing: EASE.outCubic,
+          });
           return (
             <div
-              key={c.id}
+              key={f.label}
               style={{
                 display: "flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "6px 10px",
-                borderRadius: 14,
-                border: `1px solid ${showMatched ? COLOR.navy : COLOR.border}`,
-                background: showMatched ? COLOR.navy : COLOR.surface,
-                fontFamily: "Inter, system-ui",
-                fontSize: 9,
-                fontWeight: showMatched ? 700 : 500,
-                color: showMatched ? "#fff" : COLOR.textSec,
-                transform: `scale(${scale})`,
-                boxShadow: showMatched ? "0 6px 14px rgba(15,23,42,0.4)" : "none",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                paddingTop: 8,
+                paddingBottom: 8,
+                borderBottom:
+                  i < fields.length - 1 ? `1px solid ${COLOR.divider}` : "none",
+                opacity: enter,
+                transform: `translateX(${interpolate(enter, [0, 1], [12, 0])}px)`,
               }}
             >
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  background: c.color,
-                  border: showMatched ? "1px solid #fff" : "none",
-                }}
-              />
-              {c.label}
+              <span style={{ fontSize: 10, color: COLOR.textSec, fontWeight: 500 }}>
+                {f.label}
+              </span>
+              <span style={{ fontSize: 13, color: COLOR.navy, fontWeight: 600 }}>
+                {f.value}
+              </span>
             </div>
           );
         })}
-      </div>
-    </div>
-  );
-};
-
-// =====================================================================
-// SAVE BUTTON
-// =====================================================================
-const SaveButton: React.FC<{ frame: number }> = ({ frame }) => {
-  const t = frame - SAVE_TAP;
-  const press = interpolate(t, [0, 4, 10], [1, 0.96, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const pressed = t >= 4 && t < 10;
-  return (
-    <div
-      style={{
-        background: pressed ? "#fff" : COLOR.navy,
-        border: pressed ? `1.5px solid ${COLOR.navy}` : "1.5px solid transparent",
-        borderRadius: 10,
-        padding: "11px 10px",
-        textAlign: "center",
-        fontFamily: "Inter, system-ui",
-        fontSize: 11,
-        fontWeight: 600,
-        color: pressed ? COLOR.navy : "#fff",
-        transform: `scale(${press})`,
-        minHeight: 44,
-        boxSizing: "border-box",
-      }}
-    >
-      Save expense
-    </div>
-  );
-};
-
-// =====================================================================
-// EXPENSES LIST (after sheet dismiss) — new row drops in
-// =====================================================================
-const ExpensesList: React.FC<{ frame: number; fps: number }> = ({
-  frame,
-  fps,
-}) => {
-  const t = frame - (SAVE_TAP + 12);
-  const fadeIn = interpolate(t, [0, 6], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const newRowSp = popInProgress(frame, fps, SAVE_TAP + 16);
-  const newRowY = interpolate(newRowSp, [0, 1], [-22, 0]);
-  const newRowScale = interpolate(newRowSp, [0, 1], [0.92, 1]);
-  return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: COLOR.bg,
-        opacity: fadeIn,
-        fontFamily: "Inter, system-ui",
-      }}
-    >
-      <div
-        style={{
-          paddingTop: 56,
-          paddingLeft: 14,
-          paddingRight: 14,
-          paddingBottom: 12,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ fontSize: 22, fontWeight: 700, color: COLOR.navy }}>Expenses</div>
+        {/* Total row */}
         <div
           style={{
-            background: COLOR.divider,
-            borderRadius: 999,
-            padding: "4px 10px",
-            fontSize: 11,
-            fontWeight: 700,
-            color: COLOR.navy,
-          }}
-        >
-          £147.32
-        </div>
-      </div>
-      <div style={{ padding: "0 14px" }}>
-        <div
-          style={{
-            background: COLOR.surface,
-            border: `1px solid ${COLOR.border}`,
-            borderRadius: 10,
-            padding: 12,
-            transform: `translateY(${newRowY}px) scale(${newRowScale})`,
+            marginTop: 14,
+            paddingTop: 12,
+            borderTop: `1.5px solid ${COLOR.navy}`,
             display: "flex",
-            alignItems: "center",
-            gap: 10,
-            boxShadow: newRowSp < 0.6 ? "0 8px 16px rgba(109,40,217,0.18)" : "none",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            transform: `scale(${totalScale})`,
+            transformOrigin: "right center",
           }}
         >
-          <div
+          <span style={{ fontSize: 13, fontWeight: 700, color: COLOR.navy }}>
+            TOTAL
+          </span>
+          <span
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 8,
-              background: COLOR.aiPurpleBg,
-              color: COLOR.aiPurple,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 14,
+              fontSize: 28,
               fontWeight: 800,
+              color: COLOR.navy,
+              letterSpacing: -0.5,
+              textShadow:
+                t >= 22
+                  ? `0 0 18px rgba(59,130,246,0.5)`
+                  : "none",
             }}
           >
-            ✦
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: COLOR.navy }}>
-              Wickes — bathroom fittings
-            </div>
-            <div style={{ fontSize: 10, color: COLOR.textTer }}>
-              Construction Materials · 04/03/2026
-            </div>
-          </div>
-          <div style={{ fontSize: 13, fontWeight: 800, color: COLOR.navy }}>
-            £147.32
-          </div>
+            £{totalDisplay}
+          </span>
         </div>
       </div>
     </div>

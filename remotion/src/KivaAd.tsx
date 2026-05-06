@@ -7,61 +7,60 @@ import {
   useCurrentFrame,
 } from "remotion";
 import { Audio } from "@remotion/media";
-import { SCENES } from "./tokens";
+import { SCENES, TOTAL_FRAMES } from "./tokens";
 import { INTER } from "./fonts";
 import { CinematicWrapper } from "./components/CinematicWrapper";
 import { AIGlow } from "./components/AIGlow";
 import { Scene1Overwhelm } from "./scenes/Scene1_Overwhelm";
-import { Scene2VoiceCustomer } from "./scenes/Scene2_VoiceCustomer"; // v1.20: now Logo→iPhone hero reveal
-import { Scene3VoiceQuote } from "./scenes/Scene3_VoiceQuote"; // v1.20: HERO 1 (compressed to 120f, internals to be retimed in v1.21)
-import { Scene4Expense } from "./scenes/Scene4_Expense"; // v1.20: slot now Quote→Customer transformation (content stale until v1.21)
-import { Scene5Route } from "./scenes/Scene5_Route"; // v1.20: HERO 2 (compressed to 90f, internals to be retimed in v1.21)
-import { Scene6FollowUpAssistant } from "./scenes/Scene6_FollowUpAssistant"; // v1.20: HERO 3 (compressed to 90f)
-import { Scene7Lockup } from "./scenes/Scene7_Lockup"; // v1.20: slot now AI Business Assistant (content stale until v1.21)
-import { Scene8HeroShot } from "./scenes/Scene8_HeroShot"; // v1.20: NEW Final Device Hero Shot + new tagline
+// v1.21: filenames preserved for git diff continuity, but content fully replaced.
+// File-name → new-role mapping:
+//   Scene2_VoiceCustomer  → Reset transition + Logo→iPhone reveal
+//   Scene3_VoiceQuote     → Dashboard reveal + mic zoom
+//   Scene4_Expense        → Voice→Quote transformation (HERO with John Smith / £280)
+//   Scene5_Route          → Quote→Customer profile
+//   Scene6_FollowUpAssistant → Receipt→Expense (Plumbing Supplies / £46.20)
+//   Scene7_Lockup         → Map→Route (4 pins / 32 min saved)
+//   Scene8_HeroShot       → Pin→Follow-up
+// New files:
+//   Scene9_BusinessAssistant — AI Business Assistant
+//   Scene10_FinalHero       — Final hero shot
+import { Scene2VoiceCustomer } from "./scenes/Scene2_VoiceCustomer";
+import { Scene3VoiceQuote } from "./scenes/Scene3_VoiceQuote";
+import { Scene4Expense } from "./scenes/Scene4_Expense";
+import { Scene5Route } from "./scenes/Scene5_Route";
+import { Scene6FollowUpAssistant } from "./scenes/Scene6_FollowUpAssistant";
+import { Scene7Lockup } from "./scenes/Scene7_Lockup";
+import { Scene8HeroShot } from "./scenes/Scene8_HeroShot";
+import { Scene9BusinessAssistant } from "./scenes/Scene9_BusinessAssistant";
+import { Scene10FinalHero } from "./scenes/Scene10_FinalHero";
 
 // =====================================================================
-// KivaAd — top-level composition
-// v1.13: scenes are sequenced via overlapping <Sequence> blocks (8-frame
-// crossfade) so the cinematic shell + persistent phone create morph
-// transitions, not cuts. AIGlow halo state cycles per scene (idle/active).
+// KivaAd — top-level composition (v1.21: 32s, 10 scenes)
 // CinematicWrapper provides gradient bg, noise, vignette, perspective, drift.
-// Music-bed hook (C7) — wired but flagged off until user drops a file.
+// AIGlow halo cycles between idle/active per scene.
 // =====================================================================
 
-// Music bed gating (ad_plan §4.6).
-// v1.18: bed generated via ElevenLabs Music API + manually approved (45s).
-// v1.20: structure compressed to 27s (810f). The 45s bed's act peaks no longer
-// align with the new scene boundaries, so we keep it ON as ambient texture but
-// the user has approved a re-timed prompt for re-generation. When the new bed
-// lands, swap and adjust the volume callback.
-const HAS_MUSIC_BED = true;
-// White-flash hard-silence window — was Scene 3 white-flash at abs F582 in v1.14.
-// v1.20: Scene 3 retiming TBD in v1.21; window no longer maps to a flash. Kept
-// at 0,0 (no-op) until v1.21 deepens Scene 3.
-const WHITE_FLASH_MUTE_START = 0;
-const WHITE_FLASH_MUTE_END = 0;
-// Final-fade window — bed continues past the 27s composition end, but the
-// composition stops rendering at TOTAL_FRAMES so this is mostly belt-and-braces.
-const FINAL_FADE_START = 765; // 0.5s before end
-const FINAL_FADE_END = 810;
+const HAS_MUSIC_BED = true; // v1.18 bed at Sound/music/bed.mp3 (regenerate v1.21+ when prompt re-timed)
 
-// 12-frame crossfade overlap between scenes (ad_plan §5 v1.14 morph transition)
+// 12-frame crossfade overlap between scenes (morph transition per §3.7.4)
 const CROSSFADE = 12;
 
-// Per-scene AIGlow state (v1.20: 8 scenes — purple "active" during AI moments).
+// Per-scene AIGlow state (v1.21: 10 scenes).
+// Scenes 1, 2, 10 = idle blue (overwhelm + brand moments).
+// Scenes 3-9 = active purple (product world / AI features).
 const SCENE_GLOW = [
-  "idle", // Scene 1 — overwhelm, no AI yet
-  "idle", // Scene 2 — logo→iPhone hero reveal (brand moment, not AI)
-  "active", // Scene 3 — voice→quote HERO 1
-  "active", // Scene 4 — quote→customer transformation HERO 2
-  "active", // Scene 5 — route optimization HERO 3
-  "active", // Scene 6 — AI follow-up HERO 4
-  "active", // Scene 7 — AI Business Assistant
-  "idle", // Scene 8 — final hero shot, brand calm
+  "idle",   // Scene 1  — Overwhelm
+  "idle",   // Scene 2  — Reset + Logo→iPhone reveal (brand)
+  "active", // Scene 3  — Dashboard reveal + mic zoom
+  "active", // Scene 4  — Voice→Quote
+  "active", // Scene 5  — Quote→Customer profile
+  "active", // Scene 6  — Receipt→Expense
+  "active", // Scene 7  — Map→Route
+  "active", // Scene 8  — Pin→Follow-up
+  "active", // Scene 9  — AI Business Assistant
+  "idle",   // Scene 10 — Final hero shot (brand calm)
 ] as const;
 
-// Driver: returns AIGlow state + last-change frame based on absolute frame.
 function useAiGlowState(): { state: "idle" | "active"; changedAtFrame: number } {
   const frame = useCurrentFrame();
   const sceneStarts = [
@@ -73,8 +72,9 @@ function useAiGlowState(): { state: "idle" | "active"; changedAtFrame: number } 
     SCENES.scene6.from,
     SCENES.scene7.from,
     SCENES.scene8.from,
+    SCENES.scene9.from,
+    SCENES.scene10.from,
   ];
-  // Walk forward until we find the active scene
   let idx = 0;
   for (let i = sceneStarts.length - 1; i >= 0; i--) {
     if (frame >= sceneStarts[i]) {
@@ -82,7 +82,6 @@ function useAiGlowState(): { state: "idle" | "active"; changedAtFrame: number } 
       break;
     }
   }
-  // Find most recent state change by walking back to first scene with same state
   let changedAtFrame = sceneStarts[idx];
   for (let i = idx - 1; i >= 0; i--) {
     if (SCENE_GLOW[i] === SCENE_GLOW[idx]) {
@@ -94,17 +93,16 @@ function useAiGlowState(): { state: "idle" | "active"; changedAtFrame: number } 
   return { state: SCENE_GLOW[idx], changedAtFrame };
 }
 
+// Music final-fade — last 0.5s of composition
+const FINAL_FADE_START = TOTAL_FRAMES - 15;
+const FINAL_FADE_END = TOTAL_FRAMES;
+
 const SceneStack: React.FC = () => {
   const glow = useAiGlowState();
   return (
     <>
-      {/* AI glow halo behind the phone — switches state on scene boundaries */}
       <AIGlow state={glow.state} changedAtFrame={glow.changedAtFrame} />
 
-      {/* Scenes — overlapping Sequence with crossfade overlap so the phone
-          feels persistent across boundaries. Each scene already wraps its own
-          PhoneFrame; their shared resting position + drift makes the visual
-          handoff continuous within ~8 frames. */}
       <Sequence
         from={SCENES.scene1.from}
         durationInFrames={SCENES.scene1.duration + CROSSFADE}
@@ -168,28 +166,38 @@ const SceneStack: React.FC = () => {
       </Sequence>
       <Sequence
         from={SCENES.scene8.from - CROSSFADE}
-        durationInFrames={SCENES.scene8.duration + CROSSFADE}
+        durationInFrames={SCENES.scene8.duration + CROSSFADE * 2}
         layout="none"
       >
-        <SceneCrossfade duration={SCENES.scene8.duration + CROSSFADE}>
+        <SceneCrossfade duration={SCENES.scene8.duration + CROSSFADE * 2}>
           <Scene8HeroShot />
         </SceneCrossfade>
       </Sequence>
+      <Sequence
+        from={SCENES.scene9.from - CROSSFADE}
+        durationInFrames={SCENES.scene9.duration + CROSSFADE * 2}
+        layout="none"
+      >
+        <SceneCrossfade duration={SCENES.scene9.duration + CROSSFADE * 2}>
+          <Scene9BusinessAssistant />
+        </SceneCrossfade>
+      </Sequence>
+      <Sequence
+        from={SCENES.scene10.from - CROSSFADE}
+        durationInFrames={SCENES.scene10.duration + CROSSFADE}
+        layout="none"
+      >
+        <SceneCrossfade duration={SCENES.scene10.duration + CROSSFADE}>
+          <Scene10FinalHero />
+        </SceneCrossfade>
+      </Sequence>
 
-      {/* Music bed (v1.18 / v1.20) — 45s ambient instrumental, played under the
-          27s composition (excess clipped at end). Sits at -18 dBFS so SFX punch
-          through. Final 1.5s of the 27s composition fades the bed to silence.
-          v1.21 will swap in a re-timed 27s bed once Steve approves. */}
+      {/* Music bed (v1.18, 45s) — under 32s composition. Re-timed prompt
+          gated on user approval (only open 🚦 PENDING APPROVAL). */}
       {HAS_MUSIC_BED && (
         <Audio
           src={staticFile("sound/music/bed.mp3")}
           volume={(f) => {
-            if (
-              WHITE_FLASH_MUTE_END > WHITE_FLASH_MUTE_START &&
-              f >= WHITE_FLASH_MUTE_START &&
-              f < WHITE_FLASH_MUTE_END
-            )
-              return 0;
             if (f >= FINAL_FADE_START) {
               return interpolate(f, [FINAL_FADE_START, FINAL_FADE_END], [0.15, 0], {
                 extrapolateLeft: "clamp",
@@ -204,22 +212,15 @@ const SceneStack: React.FC = () => {
   );
 };
 
-// Cross-fades the scene wrapper at boundaries — old scene fades out, new fades in.
 const SceneCrossfade: React.FC<{
   duration: number;
   children: React.ReactNode;
 }> = ({ duration, children }) => {
   const frame = useCurrentFrame();
-  // First CROSSFADE frames: fade in 0→1
   const fadeIn = Math.min(1, frame / CROSSFADE);
-  // Last CROSSFADE frames: fade out 1→0
   const fadeOut = Math.min(1, (duration - frame) / CROSSFADE);
   const opacity = Math.max(0, Math.min(fadeIn, fadeOut));
-  return (
-    <AbsoluteFill style={{ opacity }}>
-      {children}
-    </AbsoluteFill>
-  );
+  return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
 };
 
 export const KivaAd: React.FC = () => {

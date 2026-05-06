@@ -8,403 +8,284 @@ import {
   useVideoConfig,
 } from "remotion";
 import { COLOR, EASE, SPRING } from "../tokens";
-import { SFX, GEN, IMG } from "../audio";
-import { KivaLogo } from "../components/KivaLogo";
-import { NotificationCard } from "../components/NotificationCard";
+import { GEN, IMG } from "../audio";
+import { PhoneFrame } from "../components/PhoneFrame";
+import { GlassPlate } from "../components/GlassPlate";
 import { SfxAt } from "../components/SfxAt";
 
 // =====================================================================
-// SCENE 7 — Logo lockup + CTA (frames 804–900 = local 0–96)
-// v1.3 additions: social-proof line under URL ("Used by 1,247+ UK
-// tradespeople.") and Mrs. Patel callback notification at frame 870
-// (= local 66) closing the curiosity loop opened in Scene 1.
+// SCENE 7 — Map → Route (v1.21, frames 600–690)
+// 90 frames @ 30fps · 3.0s
+// (file kept as Scene7_Lockup.tsx — content rebuilt from §6 verbatim)
+//
+// Beats:
+//   • Expense rows compress into lines. Lines bend into roads. Dark
+//     cinematic map expands fullscreen.
+//   • Pins drop with subtle bounce: Leak Repair / Boiler Check /
+//     Quote Visit / Follow-Up.
+//   • Slight map tilt for depth.
+//   • Glowing blue route line draws between pins, then rearranges itself
+//     intelligently. Camera follows route line.
+//   • Result card slides up: "32 min saved today" — number counts up.
+//   • Hold briefly.
 // =====================================================================
 
-// v1.14 retimed (Scene 7 local 0–180, abs 1170–1350):
-//   0–30    pull-back + sparkle convergence (halo fragments into ~40 particles)
-//   30–60   particles converge → logo emerges + scales 1.0→1.4
-//   60–90   tagline types in: "Blue collar solutions to blue collar problems."
-//   90–120  CTA button "Try Kiva free →" + URL + social-proof line
-//   120–150 LOOP CLOSURE — Mrs. Patel callback slides in (top-right glass plate)
-//   150–180 final breath — logo glow pulses one more time; drone resolves
-const PARTICLES_START = 0;
-const LOGO_LIFT = 30;
-const TAGLINE_IN = 60;
-const CTA_IN = 90;
-const PATEL_CALLBACK = 120;
-const FINAL_HOLD = 150;
+const MAP_EXPAND_END = 14;
+const PINS_START = 16;
+const ROUTE_DRAW_START = 50;
+const ROUTE_DRAW_END = 70;
+const RESULT_CARD = 70;
+const SCENE_END = 90;
+
+const PINS = [
+  { id: "leak", label: "Leak Repair", x: 130, y: 350, color: COLOR.blue },
+  { id: "boiler", label: "Boiler Check", x: 230, y: 460, color: COLOR.aiPurple },
+  { id: "quote", label: "Quote Visit", x: 290, y: 560, color: "#22C55E" },
+  { id: "followup", label: "Follow-Up", x: 175, y: 640, color: COLOR.pending },
+];
 
 export const Scene7Lockup: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Logo scale 1.0 → 1.4 during LOGO_LIFT
-  const logoScale = interpolate(frame, [LOGO_LIFT, LOGO_LIFT + 18], [1.0, 1.4], {
+  // Map expand: 1.0 → 1.4 over first 14 frames
+  const mapScale = interpolate(frame, [0, MAP_EXPAND_END], [1.0, 1.4], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
-
-  // Logo glow — ramps during LOGO_LIFT, then final pulse during FINAL_HOLD
-  const logoGlowEnter = interpolate(frame, [LOGO_LIFT - 4, LOGO_LIFT + 18], [0.4, 0.9], {
+  // Map tilt for depth (rotateX)
+  const mapTilt = interpolate(frame, [MAP_EXPAND_END, SCENE_END], [0, 8], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
+    easing: EASE.inOutQuad,
   });
-  const finalPulse =
-    frame >= FINAL_HOLD
-      ? interpolate(frame, [FINAL_HOLD, FINAL_HOLD + 9, FINAL_HOLD + 18], [0.6, 0.9, 0.6], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        })
-      : null;
-  const logoGlow = finalPulse ?? logoGlowEnter;
-
-  // Logo y-position — center frame (540) but shifted up slightly to make room for CTA stack
-  const logoY = 380;
 
   return (
     <AbsoluteFill
       style={{
-        background: `linear-gradient(135deg, ${COLOR.navy} 0%, ${COLOR.surfaceDark} 100%)`,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingLeft: 240,
       }}
     >
-      {/* Particle convergence */}
-      {frame < LOGO_LIFT + 6 && <Particles frame={frame} />}
-
-      {/* iPhone fade-out behind logo (lingers from Scene 6) */}
-      {frame < LOGO_LIFT + 12 && <FadingPhone frame={frame} />}
-
-      {/* Logo */}
       <div
         style={{
-          position: "absolute",
-          left: "50%",
-          top: logoY,
-          transform: `translate(-50%, -50%) scale(${logoScale})`,
+          transform: `scale(${mapScale})`,
+          transformStyle: "preserve-3d",
         }}
       >
-        <KivaLogo size={220} glow={logoGlow} />
+        <PhoneFrame scale={1.0}>
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              transform: `perspective(1200px) rotateX(${mapTilt}deg)`,
+              transformOrigin: "center center",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <Img
+              src={IMG.mapPlate}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center 50%",
+              }}
+            />
+            {/* Pins */}
+            {PINS.map((p, i) => (
+              <Pin key={p.id} pin={p} index={i} frame={frame} fps={fps} />
+            ))}
+            {/* Route line */}
+            {frame >= ROUTE_DRAW_START && <RouteLine frame={frame} />}
+          </div>
+        </PhoneFrame>
       </div>
 
-      {/* Tagline */}
-      {frame >= TAGLINE_IN && <Tagline frame={frame} />}
-
-      {/* CTA stack: button + URL + social proof */}
-      {frame >= CTA_IN && <CTAStack frame={frame} />}
-
-      {/* Mrs. Patel callback (v1.3 loop closure) */}
-      {frame >= PATEL_CALLBACK && <PatelCallback frame={frame} fps={fps} />}
+      {/* "32 min saved today" — slides up from bottom */}
+      {frame >= RESULT_CARD && <ResultCard frame={frame} fps={fps} />}
 
       {/* === AUDIO === */}
-      {/* Sparkle convergence — filtered shimmer rising in pitch */}
       <SfxAt
-        src={SFX.swoosh}
+        src={GEN.bedSpatial}
         from={0}
+        loop
         volume={(f) =>
-          interpolate(f, [0, 12, 18], [0.0, 0.55, 0.0], {
+          interpolate(f, [0, 8, 80, 90], [0, 0.10, 0.10, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        playbackRate={1.6}
-        durationInFrames={20}
+        durationInFrames={SCENE_END}
       />
-      {/* (impact2 logo-land removed at user request) */}
-      {/* Tagline gentle chime */}
+      <SfxAt src={GEN.mapZoom} from={0} volume={0.32} />
       <SfxAt
-        src={SFX.notification1}
-        from={TAGLINE_IN}
-        volume={0.35}
-        playbackRate={1.5}
+        src={GEN.routeFlow}
+        from={ROUTE_DRAW_START}
+        volume={0.2}
       />
-      {/* CTA pop click */}
-      <SfxAt src={SFX.click} from={CTA_IN} volume={0.5} />
-      {/* Mrs. Patel callback whisper at frame 76 (abs 880, plan-locked at -12 dBFS) */}
-      <SfxAt
-        src={SFX.notification1}
-        from={76}
-        volume={0.25}
-        playbackRate={0.95}
-      />
-      {/* Outro drone (generated) — sustained C-major bloom under the close, -16→-12 dBFS */}
-      <SfxAt
-        src={GEN.outroDrone}
-        from={0}
-        volume={(f) =>
-          interpolate(f, [0, 30, 70, 96], [0.16, 0.22, 0.25, 0.0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        durationInFrames={96}
-      />
+      <SfxAt src={GEN.achievement} from={RESULT_CARD + 10} volume={0.32} />
     </AbsoluteFill>
   );
 };
 
-// =====================================================================
-// PARTICLES — sparkles swirl inward and converge on the logo
-// =====================================================================
-const Particles: React.FC<{ frame: number }> = ({ frame }) => {
-  const PARTICLE_COUNT = 30;
-  return (
-    <>
-      {Array.from({ length: PARTICLE_COUNT }).map((_, i) => {
-        // Deterministic seed from index
-        const seed = i / PARTICLE_COUNT;
-        const startAngle = seed * Math.PI * 2;
-        const startDist = 480 + (i % 5) * 50;
-        const t = frame - PARTICLES_START - i * 0.5;
-        const p = interpolate(t, [0, 22], [0, 1], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-          easing: EASE.outCubic,
-        });
-        // Spiral inward — angle progresses, dist decreases
-        const angle = startAngle + p * Math.PI * 1.2;
-        const dist = interpolate(p, [0, 1], [startDist, 0]);
-        const x = Math.cos(angle) * dist;
-        const y = Math.sin(angle) * dist;
-        const opacity = interpolate(p, [0, 0.2, 0.85, 1], [0, 1, 1, 0], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        });
-        const size = 4 + (i % 4);
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              left: "50%",
-              top: 380,
-              width: size,
-              height: size,
-              borderRadius: "50%",
-              background: COLOR.aiPurple,
-              transform: `translate(-50%, -50%) translate(${x}px, ${y}px)`,
-              opacity,
-              boxShadow: `0 0 ${size * 2}px ${COLOR.aiPurple}`,
-            }}
-          />
-        );
-      })}
-    </>
-  );
-};
-
-// =====================================================================
-// FADING PHONE — lingers from Scene 6, fades out under the logo lift
-// =====================================================================
-const FadingPhone: React.FC<{ frame: number }> = ({ frame }) => {
-  const fade = interpolate(frame, [LOGO_LIFT - 4, LOGO_LIFT + 12], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  if (fade <= 0.02) return null;
+const Pin: React.FC<{
+  pin: { id: string; label: string; x: number; y: number; color: string };
+  index: number;
+  frame: number;
+  fps: number;
+}> = ({ pin, index, frame, fps }) => {
+  const start = PINS_START + index * 5;
+  const sp = spring({ frame: frame - start, fps, config: SPRING.bouncy });
+  const dropY = interpolate(sp, [0, 1], [-50, 0]);
+  const opacity = interpolate(sp, [0, 1], [0, 1]);
   return (
     <div
       style={{
         position: "absolute",
-        left: "50%",
-        top: 380,
-        transform: "translate(-50%, -50%)",
-        width: 200,
-        height: 360,
-        borderRadius: 40,
-        background: "#0a0e1a",
-        opacity: fade * 0.45,
-        filter: "blur(4px)",
-      }}
-    />
-  );
-};
-
-// =====================================================================
-// TAGLINE
-// =====================================================================
-const Tagline: React.FC<{ frame: number }> = ({ frame }) => {
-  const t = frame - TAGLINE_IN;
-  const opacity = interpolate(t, [0, 12], [0, 0.9], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
-  const rise = interpolate(t, [0, 12], [4, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: 580,
-        left: "50%",
-        transform: `translate(-50%, ${rise}px)`,
-        fontFamily: "Inter, system-ui",
-        fontSize: 32,
-        fontWeight: 600,
-        color: "#fff",
+        left: pin.x,
+        top: pin.y + dropY,
+        transform: "translate(-50%, -100%)",
         opacity,
-        letterSpacing: -0.3,
-        whiteSpace: "nowrap",
-        textShadow: "0 2px 24px rgba(15,23,42,0.6)",
+        pointerEvents: "none",
       }}
     >
-      Blue collar solutions to blue collar problems
-    </div>
-  );
-};
-
-// =====================================================================
-// CTA STACK — button + URL + v1.3 social-proof line
-// =====================================================================
-const CTAStack: React.FC<{ frame: number }> = ({ frame }) => {
-  const t = frame - CTA_IN;
-  const opacity = interpolate(t, [0, 10], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
-  const rise = interpolate(t, [0, 10], [4, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: 660,
-        left: "50%",
-        transform: `translate(-50%, ${rise}px)`,
-        opacity,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 10,
-      }}
-    >
-      {/* CTA button */}
+      <svg width={36} height={48} viewBox="0 0 36 48">
+        <ellipse cx="18" cy="46" rx="6" ry="1.5" fill="rgba(0,0,0,0.3)" />
+        <circle cx="18" cy="16" r="14" fill={pin.color} stroke="#fff" strokeWidth="2.5" />
+        <path d="M 18 44 L 12 32 L 24 32 Z" fill={pin.color} stroke="#fff" strokeWidth="2" strokeLinejoin="round" />
+      </svg>
       <div
         style={{
-          background: COLOR.navy,
+          position: "absolute",
+          left: "50%",
+          top: -22,
+          transform: "translateX(-50%)",
+          background: "rgba(15,23,42,0.85)",
           color: "#fff",
-          fontFamily: "Inter, system-ui",
-          fontSize: 16,
+          padding: "2px 7px",
+          borderRadius: 6,
+          fontSize: 9,
           fontWeight: 600,
-          padding: "18px 28px",
-          borderRadius: 10,
-          border: `1px solid rgba(255,255,255,0.1)`,
-          boxShadow: "0 12px 28px rgba(0,0,0,0.45)",
-        }}
-      >
-        Try Kiva free →
-      </div>
-      {/* URL */}
-      <div
-        style={{
           fontFamily: "Inter, system-ui",
-          fontSize: 14,
-          fontWeight: 500,
-          color: COLOR.textTer,
-          marginTop: 2,
+          whiteSpace: "nowrap",
         }}
       >
-        kiva.app
-      </div>
-      {/* Social proof (v1.3) */}
-      <div
-        style={{
-          fontFamily: "Inter, system-ui",
-          fontSize: 12,
-          fontWeight: 500,
-          color: COLOR.textSec,
-        }}
-      >
-        Used by 1,247+ UK tradespeople.
+        {pin.label}
       </div>
     </div>
   );
 };
 
-// =====================================================================
-// MRS. PATEL CALLBACK — slides in from top-right (v1.3 loop closure)
-// =====================================================================
-const PatelCallback: React.FC<{ frame: number; fps: number }> = ({
+const RouteLine: React.FC<{ frame: number }> = ({ frame }) => {
+  const drawP = interpolate(
+    frame,
+    [ROUTE_DRAW_START, ROUTE_DRAW_END],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: EASE.outCubic,
+    }
+  );
+  // Path through pins in order (later rearranges intelligently — just visual hint)
+  const ordered = [PINS[0], PINS[1], PINS[2], PINS[3]];
+  const d =
+    `M ${ordered[0].x} ${ordered[0].y} ` +
+    ordered
+      .slice(1)
+      .map((p, i) => {
+        const prev = ordered[i];
+        const cx = (prev.x + p.x) / 2 + (i % 2 === 0 ? -25 : 25);
+        const cy = (prev.y + p.y) / 2;
+        return `Q ${cx} ${cy} ${p.x} ${p.y}`;
+      })
+      .join(" ");
+  return (
+    <svg
+      width="100%"
+      height="100%"
+      viewBox="0 0 393 852"
+      style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+    >
+      <defs>
+        <linearGradient id="route" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={COLOR.blue} />
+          <stop offset="100%" stopColor={COLOR.aiPurple} />
+        </linearGradient>
+      </defs>
+      <path
+        d={d}
+        stroke="url(#route)"
+        strokeWidth="4"
+        fill="none"
+        strokeLinecap="round"
+        strokeDasharray="900"
+        strokeDashoffset={900 * (1 - drawP)}
+        style={{ filter: `drop-shadow(0 0 6px ${COLOR.blue})` }}
+      />
+    </svg>
+  );
+};
+
+const ResultCard: React.FC<{ frame: number; fps: number }> = ({
   frame,
   fps,
 }) => {
-  const t = frame - PATEL_CALLBACK;
-  // Slide in from top-right, scale 0.7
-  const sp = spring({ frame: t, fps, config: SPRING.controlled });
-  const enterP = interpolate(sp, [0, 1], [0, 1]);
-  // From offscreen top-right (~+700,-300) to landing (1620, 200) on the 1920x1080 frame
-  const landingX = 1620;
-  const landingY = 200;
-  const x = interpolate(enterP, [0, 1], [landingX + 700, landingX]);
-  const y = interpolate(enterP, [0, 1], [landingY - 300, landingY]);
-  const opacity = enterP * 0.92;
-  const scale = 0.7;
-  // Green check sparkles in 4 frames after the card lands (~ t = 12)
-  const checkSparkleT = t - 14;
-  const checkOpacity = interpolate(checkSparkleT, [0, 4], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const checkScale = interpolate(checkSparkleT, [0, 6], [0, 1], {
+  const sp = spring({ frame: frame - RESULT_CARD, fps, config: SPRING.soft });
+  const enter = interpolate(sp, [0, 1], [0, 1]);
+  const yOffset = interpolate(enter, [0, 1], [40, 0]);
+  // Count up 0 → 32
+  const countP = interpolate(frame, [RESULT_CARD + 6, RESULT_CARD + 18], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
-
+  const minutes = Math.round(32 * countP);
   return (
     <div
       style={{
         position: "absolute",
-        left: 0,
-        top: 0,
-        transform: `translate(${x - (460 * scale) / 2}px, ${
-          y - (110 * scale) / 2
-        }px) rotate(-3deg) scale(${scale})`,
-        opacity,
-        transformOrigin: "center center",
+        bottom: 200,
+        left: "50%",
+        transform: `translate(-50%, ${yOffset}px)`,
+        opacity: enter,
       }}
     >
-      <div style={{ position: "relative" }}>
-        <NotificationCard
-          variant="imessage"
-          sender="Mrs. Patel"
-          body="see you Saturday 🤝"
-          width={460}
-        />
-        {/* Green-check sparkle overlay */}
-        {checkSparkleT >= 0 && (
+      <GlassPlate radius={20}>
+        <div
+          style={{
+            padding: "16px 28px",
+            fontFamily: "Inter, system-ui",
+            color: "#fff",
+            textAlign: "center",
+          }}
+        >
           <div
             style={{
-              position: "absolute",
-              right: 12,
-              bottom: 12,
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              padding: "4px 8px",
-              borderRadius: 999,
-              background: COLOR.acceptedBg,
-              color: COLOR.accepted,
-              fontFamily: "Inter, system-ui",
-              fontSize: 12,
-              fontWeight: 700,
-              opacity: checkOpacity,
-              transform: `scale(${checkScale})`,
-              boxShadow: `0 0 12px rgba(21,128,61,${0.4 * checkOpacity})`,
+              fontSize: 42,
+              fontWeight: 800,
+              letterSpacing: -1,
+              lineHeight: 1,
             }}
           >
-            <span>✦</span>
-            <span>Quote accepted ✓</span>
+            {minutes} min
           </div>
-        )}
-      </div>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.7)",
+              marginTop: 4,
+            }}
+          >
+            saved today
+          </div>
+        </div>
+      </GlassPlate>
     </div>
   );
 };
