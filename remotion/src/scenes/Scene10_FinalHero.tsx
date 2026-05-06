@@ -78,10 +78,9 @@ export const Scene10FinalHero: React.FC = () => {
           justifyContent: "center",
           alignItems: "flex-start",
           paddingLeft: 380,
-          transform: `scale(${cameraScale})`,
         }}
       >
-        <PhoneFrame scale={0.75} rotateY={orbitRotY} rotateX={3}>
+        <PhoneFrame scale={0.75 * cameraScale} rotateY={orbitRotY} rotateX={3}>
           <DashboardCollapse />
         </PhoneFrame>
       </AbsoluteFill>

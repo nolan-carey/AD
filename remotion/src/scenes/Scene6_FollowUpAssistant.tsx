@@ -61,16 +61,9 @@ export const Scene6FollowUpAssistant: React.FC = () => {
         paddingLeft: 240,
       }}
     >
-      <div
-        style={{
-          transform: `scale(${camScale})`,
-          transformStyle: "preserve-3d",
-        }}
-      >
-        <PhoneFrame scale={1.0}>
-          <ReceiptToExpense frame={frame} fps={fps} />
-        </PhoneFrame>
-      </div>
+      <PhoneFrame scale={camScale}>
+        <ReceiptToExpense frame={frame} fps={fps} />
+      </PhoneFrame>
 
       {/* === AUDIO === */}
       <SfxAt

@@ -81,20 +81,13 @@ export const Scene4Expense: React.FC = () => {
         paddingLeft: 240,
       }}
     >
-      <div
-        style={{
-          transform: `scale(${cameraScale})`,
-          transformStyle: "preserve-3d",
-        }}
-      >
-        <PhoneFrame scale={1.0}>
-          {frame < QUOTE_CARD_START ? (
-            <MicAndVoice frame={frame} fps={fps} bgBlur={bgBlur} />
-          ) : (
-            <QuoteCard frame={frame} fps={fps} />
-          )}
-        </PhoneFrame>
-      </div>
+      <PhoneFrame scale={cameraScale}>
+        {frame < QUOTE_CARD_START ? (
+          <MicAndVoice frame={frame} fps={fps} bgBlur={bgBlur} />
+        ) : (
+          <QuoteCard frame={frame} fps={fps} />
+        )}
+      </PhoneFrame>
 
       {/* === AUDIO === */}
       <SfxAt

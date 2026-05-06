@@ -64,16 +64,9 @@ export const Scene8HeroShot: React.FC = () => {
         paddingLeft: 240,
       }}
     >
-      <div
-        style={{
-          transform: `scale(${cameraScale})`,
-          transformStyle: "preserve-3d",
-        }}
-      >
-        <PhoneFrame scale={1.0}>
-          <FollowUpFlow frame={frame} fps={fps} />
-        </PhoneFrame>
-      </div>
+      <PhoneFrame scale={cameraScale}>
+        <FollowUpFlow frame={frame} fps={fps} />
+      </PhoneFrame>
 
       {/* === AUDIO === */}
       <SfxAt

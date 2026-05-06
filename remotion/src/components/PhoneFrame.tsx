@@ -18,6 +18,9 @@ interface PhoneFrameProps {
   rotateZ?: number;
   // Z-axis translation for parallax control between scenes.
   translateZ?: number;
+  // X/Y translation for camera pans (drift added on top of Y).
+  translateX?: number;
+  translateY?: number;
   // Disable the constant drift for stills or rendering tests.
   disableDrift?: boolean;
 }
@@ -40,6 +43,8 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
   rotateX = 3,
   rotateZ = 0,
   translateZ = 0,
+  translateX = 0,
+  translateY = 0,
   disableDrift = false,
 }) => {
   const frame = useCurrentFrame();
@@ -51,7 +56,8 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
   const driftY = disableDrift ? 0 : Math.sin(frame / 30) * 3;
 
   const composedTransform = `
-    translateY(${driftY}px)
+    translateX(${translateX}px)
+    translateY(${translateY + driftY}px)
     translateZ(${translateZ}px)
     rotateY(${rotateY + driftRotY}deg)
     rotateX(${rotateX + driftRotX}deg)

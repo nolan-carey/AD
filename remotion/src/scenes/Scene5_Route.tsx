@@ -61,16 +61,9 @@ export const Scene5Route: React.FC = () => {
         paddingLeft: 240,
       }}
     >
-      <div
-        style={{
-          transform: `translateY(${camPanY}px) scale(${camScale})`,
-          transformStyle: "preserve-3d",
-        }}
-      >
-        <PhoneFrame scale={1.0}>
-          <CustomerProfile frame={frame} fps={fps} />
-        </PhoneFrame>
-      </div>
+      <PhoneFrame scale={camScale} translateY={camPanY}>
+        <CustomerProfile frame={frame} fps={fps} />
+      </PhoneFrame>
 
       {/* Success badge — floats outside the phone, top-right */}
       {frame >= SUCCESS_BADGE && <SuccessBadge frame={frame} fps={fps} />}

@@ -59,16 +59,9 @@ export const Scene9BusinessAssistant: React.FC = () => {
         paddingLeft: 240,
       }}
     >
-      <div
-        style={{
-          transform: `scale(${cameraScale})`,
-          transformStyle: "preserve-3d",
-        }}
-      >
-        <PhoneFrame scale={1.0}>
-          <AssistantFlow frame={frame} fps={fps} />
-        </PhoneFrame>
-      </div>
+      <PhoneFrame scale={cameraScale}>
+        <AssistantFlow frame={frame} fps={fps} />
+      </PhoneFrame>
 
       {/* === AUDIO === */}
       <SfxAt

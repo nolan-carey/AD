@@ -48,17 +48,9 @@ export const Scene3VoiceQuote: React.FC = () => {
         paddingLeft: 240,
       }}
     >
-      <div
-        style={{
-          transform: `scale(${cameraScale})`,
-          transformOrigin: `50% ${originY}%`,
-          transformStyle: "preserve-3d",
-        }}
-      >
-        <PhoneFrame scale={1.0}>
-          <DashboardSimple frame={frame} fps={fps} />
-        </PhoneFrame>
-      </div>
+      <PhoneFrame scale={cameraScale}>
+        <DashboardSimple frame={frame} fps={fps} />
+      </PhoneFrame>
 
       {/* === AUDIO === */}
       <SfxAt

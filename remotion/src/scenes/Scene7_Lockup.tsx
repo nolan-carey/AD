@@ -69,41 +69,32 @@ export const Scene7Lockup: React.FC = () => {
         paddingLeft: 240,
       }}
     >
-      <div
-        style={{
-          transform: `scale(${mapScale})`,
-          transformStyle: "preserve-3d",
-        }}
-      >
-        <PhoneFrame scale={1.0}>
-          <div
+      <PhoneFrame scale={mapScale}>
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            transform: `perspective(1200px) rotateX(${mapTilt}deg)`,
+            transformOrigin: "center center",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <Img
+            src={IMG.mapPlate}
             style={{
               width: "100%",
               height: "100%",
-              transform: `perspective(1200px) rotateX(${mapTilt}deg)`,
-              transformOrigin: "center center",
-              position: "relative",
-              overflow: "hidden",
+              objectFit: "cover",
+              objectPosition: "center 50%",
             }}
-          >
-            <Img
-              src={IMG.mapPlate}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: "center 50%",
-              }}
-            />
-            {/* Pins */}
-            {PINS.map((p, i) => (
-              <Pin key={p.id} pin={p} index={i} frame={frame} fps={fps} />
-            ))}
-            {/* Route line */}
-            {frame >= ROUTE_DRAW_START && <RouteLine frame={frame} />}
-          </div>
-        </PhoneFrame>
-      </div>
+          />
+          {PINS.map((p, i) => (
+            <Pin key={p.id} pin={p} index={i} frame={frame} fps={fps} />
+          ))}
+          {frame >= ROUTE_DRAW_START && <RouteLine frame={frame} />}
+        </div>
+      </PhoneFrame>
 
       {/* "32 min saved today" — slides up from bottom */}
       {frame >= RESULT_CARD && <ResultCard frame={frame} fps={fps} />}

@@ -203,14 +203,8 @@ export const Scene2VoiceCustomer: React.FC = () => {
 
         {/* iPhone (post-morph) */}
         {morphP > 0.5 && (
-          <div
-            style={{
-              opacity: phoneOpacity,
-              transform: `scale(${phoneScale})`,
-              transformStyle: "preserve-3d",
-            }}
-          >
-            <PhoneFrame scale={0.7}>
+          <div style={{ opacity: phoneOpacity }}>
+            <PhoneFrame scale={0.7 * phoneScale}>
               <DashboardEntry frame={frame} sweepP={sweepP} />
             </PhoneFrame>
           </div>
