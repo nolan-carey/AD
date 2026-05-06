@@ -121,18 +121,21 @@ export const Scene3VoiceQuote: React.FC = () => {
         volume={muteDuringFlash(frame, 0.55)}
         playbackRate={1.4}
       />
-      {/* AI hum ambient (generated) — underbed during Transcribe + Generate, -22 dBFS */}
+      {/* PRECISE bed (v1.11 P2) — full-scene underbed, ramps slightly into money shot */}
       <SfxAt
-        src={GEN.aiHum}
-        from={TRANSCRIBE}
-        volume={(f) =>
-          interpolate(f, [0, 6, 30, 36], [0, 0.08, 0.08, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
+        src={GEN.bedPrecise}
+        from={0}
         loop
-        durationInFrames={REVIEW_START - TRANSCRIBE}
+        volume={(f) =>
+          // Mute during white-flash window (F162–F168 local) per v1.3 audio-cut rule
+          f >= WHITE_FLASH && f < TOTAL_STAMP
+            ? 0
+            : interpolate(f, [0, 8, 150, 168, 220, 240], [0, 0.08, 0.10, 0.0, 0.08, 0], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+              })
+        }
+        durationInFrames={240}
       />
       {LINE_ITEMS.map((_, i) => (
         <SfxAt

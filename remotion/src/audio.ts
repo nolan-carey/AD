@@ -17,15 +17,29 @@ export const SFX = {
 // Per §4.5.5 fallback rule, Scene 4's category-lock cue uses notification1 pitched +5
 // instead — until Steve revises the SFX_QUEUE entry.
 export const GEN = {
+  // P0 — atmospheric foundation
   phoneVibration: staticFile("sound/generated/phone_vibration_loop.mp3"),
   counterRoll: staticFile("sound/generated/counter_roll_money.mp3"),
   achievement: staticFile("sound/generated/achievement_chime.mp3"),
   aiHum: staticFile("sound/generated/ai_hum_ambient.mp3"),
   outroDrone: staticFile("sound/generated/outro_drone.mp3"),
+  // P1 — bespoke UI moments
   morphWhirr: staticFile("sound/generated/iphone_morph_whirr.mp3"),
   scanSweep: staticFile("sound/generated/scan_sweep.mp3"),
   mapZoom: staticFile("sound/generated/map_zoom_whoosh.mp3"),
   routeFlow: staticFile("sound/generated/route_line_flow.mp3"),
+  // P2 (v1.11) — per-scene atmospheric beds (replace shared aiHum underbed)
+  bedIntimate: staticFile("sound/generated/bed_intimate_warm.mp3"),
+  bedPrecise: staticFile("sound/generated/bed_precise_tense.mp3"),
+  bedTactile: staticFile("sound/generated/bed_tactile_clinical.mp3"),
+  bedSpatial: staticFile("sound/generated/bed_spatial_cinematic.mp3"),
+  bedConversational: staticFile("sound/generated/bed_conversational_warm.mp3"),
+  // P3 (v1.11) — transition stings (only 2 of 4 generated; 2 failed at 0.5s API floor)
+  transWhoosh: staticFile("sound/generated/transition_warm_whoosh.mp3"), // 2→3
+  transSoftFade: staticFile("sound/generated/transition_soft_fade.mp3"), // 5→6
+  // ⏸ MISSING (Steve to revise durations, locked at 0.4s and 0.3s respectively):
+  //  transition_sharp_impact (3→4)  — falls back to existing swoosh
+  //  transition_glitch_cut (4→5)    — falls back to existing swoosh
 } as const;
 
 // Per ad_plan.md §3.5, reference PNGs from /ReferenceImages/ MUST NOT be placed

@@ -103,9 +103,9 @@ export const Scene2VoiceCustomer: React.FC = () => {
       <Thumb x={1080} y={780} tapAtFrame={TAP_FRAME} rippleColor={COLOR.aiPurple} />
 
       {/* === AUDIO === */}
-      {/* Underbed — bed_intimate_warm.mp3 not generated yet, fall back to ai_hum_ambient */}
+      {/* INTIMATE bed (v1.11 P2) — replaces ai_hum_ambient fallback, -22 dBFS */}
       <SfxAt
-        src={GEN.aiHum}
+        src={GEN.bedIntimate}
         from={0}
         loop
         volume={(f) =>
@@ -116,6 +116,8 @@ export const Scene2VoiceCustomer: React.FC = () => {
         }
         durationInFrames={180}
       />
+      {/* Transition_warm_whoosh into Scene 3 at local F175 (= abs F415) */}
+      <SfxAt src={GEN.transWhoosh} from={175} volume={0.32} />
       {/* Mic tap click */}
       <SfxAt src={SFX.click} from={TAP_FRAME} volume={0.85} />
       {/* Mic activate blip */}

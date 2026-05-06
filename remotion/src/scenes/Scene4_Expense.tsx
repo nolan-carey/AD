@@ -79,18 +79,18 @@ export const Scene4Expense: React.FC = () => {
       {/* === AUDIO === */}
       {/* Scan sweep (generated) during the OCR scan — -12 dBFS */}
       <SfxAt src={GEN.scanSweep} from={SCAN_SWEEP} volume={0.25} />
-      {/* AI hum ambient underbed during scan + form-fill — -22 dBFS */}
+      {/* TACTILE bed (v1.11 P2) — full-scene underbed, -22 dBFS */}
       <SfxAt
-        src={GEN.aiHum}
-        from={SCAN_SWEEP}
+        src={GEN.bedTactile}
+        from={0}
+        loop
         volume={(f) =>
-          interpolate(f, [0, 6, 36, 42], [0, 0.08, 0.08, 0], {
+          interpolate(f, [0, 8, 132, 150], [0, 0.08, 0.08, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        loop
-        durationInFrames={CATEGORY_LOCK - SCAN_SWEEP}
+        durationInFrames={150}
       />
       {[0, 8, 16].map((offset, i) => (
         <SfxAt

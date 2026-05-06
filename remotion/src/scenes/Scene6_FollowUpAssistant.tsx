@@ -66,8 +66,9 @@ export const Scene6FollowUpAssistant: React.FC = () => {
       {frame >= CAPTION_START && <TripleBeatCaption frame={frame} />}
 
       {/* === AUDIO === */}
+      {/* CONVERSATIONAL bed (v1.11 P2) — full-scene underbed, -22 dBFS */}
       <SfxAt
-        src={GEN.aiHum}
+        src={GEN.bedConversational}
         from={0}
         loop
         volume={(f) =>

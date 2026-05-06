@@ -106,6 +106,23 @@ SFX_QUEUE = [
     {"id": "sparkle_match", "prompt": "Quick bright sparkle chime, two cascading notes, like a magical UI element snapping into the correct slot. Light, satisfying, AI-coded, glassy texture, no reverb tail.", "duration": 0.4, "priority": "P1"},
     {"id": "map_zoom_whoosh", "prompt": "Cinematic camera zoom whoosh from wide to close, low filtered noise sweep with a subtle Doppler shift. Used in modern map applications. No music, no clicks, smooth tail.", "duration": 0.8, "priority": "P1"},
     {"id": "route_line_flow", "prompt": "Subtle flowing electronic energy travelling along a path, like data moving through a network line. Soft synthetic stream, faint UI texture, no harsh elements, no melody.", "duration": 1.0, "priority": "P1"},
+
+    # ── P2: Per-scene atmospheric beds (v1.11) — replace shared ai_hum_ambient as Scene 2–6 underbeds ──
+    {"id": "bed_intimate_warm", "prompt": "Warm intimate ambient bed with soft purple-tinted texture and barely audible synth pad. Personal, close, no melody, no rhythm. Designed to loop seamlessly under voiceover or close-up UI moments. Suggests a quiet moment of focus.", "duration": 6.0, "priority": "P2"},
+    {"id": "bed_precise_tense", "prompt": "Tense ambient bed with subtle rising pulse and clean digital texture. Building anticipation. Suggests precision work or AI calculation. Loops seamlessly. No melody, no music, mid-range warmth.", "duration": 8.0, "priority": "P2"},
+    {"id": "bed_tactile_clinical", "prompt": "Clean clinical ambient bed with subtle electronic scanning texture and gentle warmth, like a modern receipt scanner or a methodical app process. Loops seamlessly. No melody.", "duration": 6.0, "priority": "P2"},
+    {"id": "bed_spatial_cinematic", "prompt": "Spacious cinematic ambient bed with airy reverb and subtle distant pulse. Suggests open geography and movement, like driving through a city. Loops seamlessly. No melody, just texture.", "duration": 6.0, "priority": "P2"},
+    {"id": "bed_conversational_warm", "prompt": "Friendly warm ambient bed with subtle communicative texture, like soft connectivity between people. Suggests messages flowing back and forth. Loops seamlessly. No melody, no rhythm.", "duration": 6.0, "priority": "P2"},
+
+    # ── P3: Transition stings between scenes (v1.11) ──
+    # ⚠️ NOTE: ElevenLabs Sound Generation API minimum duration is 0.5s. Two of the
+    # locked durations below (0.4 and 0.3) are below that floor — those entries
+    # WILL FAIL with HTTP 400 the same way `sparkle_match` does. They are kept
+    # verbatim from §4.5.3 as the locked source of truth — Steve revises if needed.
+    {"id": "transition_warm_whoosh", "prompt": "Warm filtered whoosh with subtle low-end thump, transitioning from intimate close-up to precise focus. No high frequencies, no harsh elements. Half a second total.", "duration": 0.5, "priority": "P3"},
+    {"id": "transition_sharp_impact", "prompt": "Sharp clean impact with brief reverb tail, used as a scene transition between a precise quote moment and a tactile receipt-scanning scene. Premium, deliberate.", "duration": 0.4, "priority": "P3"},
+    {"id": "transition_glitch_cut", "prompt": "Brief electronic glitch-cut transition with subtle digital texture, suggesting a switch in modality from list to map view. Modern, restrained, not chaotic. Under half a second.", "duration": 0.3, "priority": "P3"},
+    {"id": "transition_soft_fade", "prompt": "Soft warm fade transition with gentle high-frequency shimmer, suggesting connection and conversation, used between a map scene and a follow-up message scene. Warm.", "duration": 0.6, "priority": "P3"},
 ]
 
 

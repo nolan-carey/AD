@@ -123,23 +123,25 @@ export const Scene5Route: React.FC = () => {
         }
         durationInFrames={24}
       />
-      {/* AI hum ambient underbed during pin pulses + route draw — -22 dBFS */}
+      {/* SPATIAL/CINEMATIC bed (v1.11 P2) — full-scene underbed, -20 dBFS (more present) */}
       <SfxAt
-        src={GEN.aiHum}
-        from={PIN_PULSE_START - 6}
+        src={GEN.bedSpatial}
+        from={0}
+        loop
         volume={(f) =>
-          interpolate(f, [0, 12, 36, 50], [0, 0.08, 0.08, 0], {
+          interpolate(f, [0, 12, 145, 165], [0, 0.10, 0.10, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
-        loop
-        durationInFrames={56}
+        durationInFrames={165}
       />
-      {/* Route line flow (generated) — energy flowing along the path — -14 dBFS */}
+      {/* Route line flow — energy flowing along the path */}
       <SfxAt src={GEN.routeFlow} from={ROUTE_DRAW} volume={0.2} />
-      {/* Achievement chime on "47 min" stat landing — -10 dBFS */}
+      {/* Achievement chime on "47 min" stat landing */}
       <SfxAt src={GEN.achievement} from={STAT_OVERLAY + 12} volume={0.32} />
+      {/* Transition_soft_fade into Scene 6 at local F155 (= abs F965) */}
+      <SfxAt src={GEN.transSoftFade} from={155} volume={0.25} />
     </AbsoluteFill>
   );
 };
