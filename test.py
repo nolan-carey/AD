@@ -126,6 +126,107 @@ SFX_QUEUE = [
 ]
 
 
+# ====================================================================
+# Music bed generation (ad_plan §4.6 v1.18)
+# Endpoint: POST /v1/music — confirmed against ElevenLabs docs.
+# Schema differs from §4.6.1 template (which used SFX-style keys):
+#   real API → prompt / music_length_ms / force_instrumental / model_id
+# ====================================================================
+
+MUSIC_PROMPT = """
+A 45-second cinematic ambient instrumental for a premium SaaS product launch ad targeting UK tradespeople. NO VOCALS. NO LYRICS. NO AGGRESSIVE DRUMS. NO MELODY-DRIVEN HOOKS. Restrained, intelligent, emotional. Style: cinematic ambient, modern electronic, sub-bass + soft synth pads + subtle high-frequency shimmer. Inspired by Apple keynote launch films and Linear product launch soundtracks.
+
+Three-act structure with these exact timing markers:
+
+ACT 1 — SUFFERING (0:00 to 0:08):
+- 0:00 to 0:02: enters with low sub-bass rumble and barely-audible filtered noise, evoking phone vibration on a truck dashboard. Tension only.
+- 0:02 to 0:04.6: tension slowly builds. Layered synth pads creep in. A subtle riser builds underneath everything.
+- 0:04.6: PEAK 1 — riser hits maximum compression and pressure. Most tense moment in the entire track.
+- 0:05.2 to 0:05.6: HARD SILENCE. All sound cuts to brief silence, sustained 0.4 seconds.
+- 0:05.6 to 0:08: emerges from silence with a single warm pad in C major, gently glowing.
+
+ACT 2 — RESOLUTION (0:08 to 0:32.5):
+- 0:08 to 0:14: sparse, intelligent ambient. Soft electronic textures, subtle high-frequency shimmer. Implied tempo around 80 BPM but no drums. Warm, calm, AI-coded.
+- 0:14 to 0:19.6: gradually adds layers — a second pad, a soft sub-bass pulse. Builds toward a brief peak.
+- 0:19.6: PEAK 2 — a brief warm bass swell + bright synth peak punches through for one beat (the £2,454.60 money shot moment in the ad). Returns immediately to spacious flow.
+- 0:19.6 to 0:27: returns to ambient flow, gradually opening up the mix.
+- 0:27 to 0:32.5: texture opens further — more reverb, airy quality, subtle distant pulse suggesting movement and geography. Spacious, cinematic.
+
+ACT 3 — TRIUMPH (0:32.5 to 0:45):
+- 0:32.5 to 0:36: warmer chord progression begins. The track turns hopeful.
+- 0:36: PEAK 3 — emotional peak. Fuller string-pad swell, the moment when "everything just worked."
+- 0:36 to 0:40.6: sustained warmth with subtle build.
+- 0:40.6: PEAK 4 — THE BIGGEST MOMENT of the entire track. Bright major-chord lift, hopeful and resolved, the brand reveal.
+- 0:40.6 to 0:42: the peak sustains.
+- 0:42 to 0:44.5: holds a hopeful C-major or F-major chord.
+- 0:44.5 to 0:45: gentle fade-out. Ends in silence at exactly 0:45.0.
+
+Total duration: exactly 45 seconds. Plays once (not designed to loop).
+"""
+
+
+def _ascii_normalize(s: str) -> str:
+    """Replace unicode dashes/quotes with ASCII equivalents.
+
+    Discovered the hard way: the ElevenLabs Music API returned 500
+    service_unavailable on prompts containing em-dashes. Normalizing to
+    plain ASCII fixes it without changing creative content.
+    """
+    return (s
+        .replace("—", "-")  # em-dash
+        .replace("–", "-")  # en-dash
+        .replace("‘", "'").replace("’", "'")
+        .replace("“", '"').replace("”", '"')
+    )
+
+
+def music_generation(prompt: str, length_ms: int, output_path: str) -> requests.Response:
+    """Generate a music track via ElevenLabs Music API.
+
+    Args:
+        prompt: full structured prompt (auto-normalized to ASCII before send;
+                em-dashes were tripping the API with 500 service_unavailable)
+        length_ms: total length in milliseconds (3000-600000). 45000 for our ad.
+        output_path: destination .mp3 path
+    """
+    url = f"{BASE_URL}/music"
+    payload = {
+        "prompt": _ascii_normalize(prompt),
+        "music_length_ms": length_ms,
+        "force_instrumental": True,
+        "model_id": "music_v1",
+    }
+    # Output format goes as a query param per ElevenLabs docs.
+    response = requests.post(
+        url,
+        headers=HEADERS,
+        json=payload,
+        params={"output_format": "mp3_44100_128"},
+    )
+    print(f"[{output_path}] music status: {response.status_code}")
+    if response.ok:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        with open(output_path, "wb") as f:
+            f.write(response.content)
+        print(f"  ✓ saved {len(response.content)} bytes")
+    else:
+        print(f"  ✗ {response.text}")
+    return response
+
+
+def generate_music_bed():
+    """One-shot music bed generation. Idempotent — skips if file exists.
+
+    ⚠️ HIGH COST: ~11,250 credits per call (~11% of Creator monthly).
+    Per ad_plan §4.6.4: max 2 retries before falling back to Uppbeat/Epidemic.
+    """
+    output_path = "Sound/music/bed.mp3"
+    if os.path.exists(output_path):
+        print("Music bed already exists at", output_path, "— skipping.")
+        return
+    music_generation(MUSIC_PROMPT, length_ms=45000, output_path=output_path)
+
+
 def generate_all(priority_filter: str | None = None,
                  output_dir: str = "Sound/generated",
                  force: bool = False) -> None:

@@ -9,7 +9,7 @@
 
 > Anything that needs the **user's explicit go-ahead** lives here. Always shown at the very top of the doc. When this section reads "(none — all clear)", Norm can proceed with everything in ACTIVE DIRECTIVES without further user input. When this section has items, **Norm pauses on those specific items** until the user marks them ✅.
 
-1. **🎼 Music bed — file still needed (creative direction ✅ approved 2026-05-06).** Steve's recommendation: **license one 30s instrumental from Uppbeat** (free tier, requires attribution credit at the end). Search "tense to uplifting tech corporate ambient" — pick something with subtle synth pads and a gentle build. Drop the file at `Sound/music/bed.mp3` and Norm will wire it. **If you'd rather pay for premium quality**, Epidemic Sound (~$15/mo) is the upgrade — better mastering, no attribution required. Either works. Norm leaves a hook for this and continues without it for now (see Phase C7 directive).
+**(none — all clear)**
 
 ---
 
@@ -17,6 +17,10 @@
 
 > Every revision logged here. Most recent on top. Norm — read this first to see what changed since your last build.
 
+- **v1.19 · 2026-05-06** · **🎯 Music prompt strengthened for timing accuracy.** User flagged: "did you make it compose to peak at the correct times?" Steve answered: yes (5 explicit markers in the prompt) but honestly noted that AI music generators don't guarantee exact-second timing (typically ±1–2s drift). Strengthened the music prompt in §4.6.2: lifted timing language from "Three-act structure with these timing markers" → "**CRITICAL TIMING REQUIREMENTS — TREAT AS HARD CONSTRAINTS, NOT SUGGESTIONS**". Restructured to put the 5 markers at the TOP of the prompt as primary instructions, with the narrative wrapping them as secondary context. Each marker now numbered (MARKER 1–5) with explicit duration and character. Approval still ✅ (the strengthened prompt is a refinement, not a new direction). **Fallback plan if music drifts:** Steve will shift ad timing to match the music's actual peaks (Option B — "the music drives the ad's timing, not vice versa," like film scoring). This gets queued as v1.20 if needed after Norm sends the music for review.
+- **v1.18 · 2026-05-06** · **✅ Music bed prompt APPROVED.** §4.6.4 gate flipped to ✅. Norm is unblocked to extend `test.py` with `music_generation()` helper and run `generate_music_bed()` (single 45s generation, ~11,250 credits). After generation completes, Norm sends `bed.mp3` to user for listen against the §4.6.3 success checklist. If passes, drops at `Sound/music/bed.mp3` and flips `HAS_MUSIC_BED` in `KivaAd.tsx:21`. If fails (e.g. silence at 0:05.2 ignored, peaks not present, vocals leaked), user pings Steve — Steve revises prompt — Norm re-runs (max 2 retries before falling back to licensing). 🚦 PENDING APPROVALS cleared. **Every approval gate in the project is now ✅.**
+- **v1.17 · 2026-05-06** · **🎼 Music bed pivot — generating via ElevenLabs Music API.** Replaces the Uppbeat/Epidemic licensing recommendation from v1.16. New **§4.6** added with locked music prompt structured as a 3-act narrative with explicit peak-second references (the user's instruction: *"tell it what second to peak etc"*). Cost: ~11,250 credits one-time. Music gate ⏸ AWAITING REVIEW — user listens to the prompt set in §4.6, then approves a single generation run. Norm extends `test.py` with `music_generation()` helper (template in §4.6.1). Once approved + generated, drops at `Sound/music/bed.mp3` and flag flips in `KivaAd.tsx:21`.
+- **v1.16 · 2026-05-06** · **🎬 Pacing pass: more cuts, more text, simpler sound, music-bed locked.** User feedback: needed more transitions/cuts/refocusing, more on-screen text, simpler sound effects, and direct opinion on music bed. (1) **Cut/morph rule rewritten in §3.7.4** — morph for continuity within features, **hard-cut for emphasis** between distinct ideas. Norm gets editorial discretion to add cuts where they earn impact (white-flash, scene-title flashes, wake-the-eye moments). Pure morph was too purist. (2) **NEW feature-title flashes** on each Scene 2–6 opener — 2-word, hard-cut overlay (e.g. *"Voice → Customer"*, *"Voice → Quote"*, *"Snap → Categorised"*, *"Routes → Optimised"*, *"Follow-up → Sent"*). Helps muted viewers (most paid social views) read the feature. ~12 frames per flash; overlays scene-establish beat, no runtime added. Each scene spec updated with the flash. (3) **NEW sound mix density rule in §4** — max 2 simultaneous audio layers at any frame; per-character typing clicks DROPPED (replaced with single sustained "AI writing" texture per text block); per-line-item ticks DROPPED (replaced with one cascade whoosh); per-pin thuds DROPPED (one pulse synth per section). Hero hits preserved. Scene 1 audio table revised. Scenes 2/3/4/5/6 sound timelines simplified. (4) **Music bed opinion locked**: yes, get one. Uppbeat free tier acceptable for first cut, Epidemic Sound ($15/mo) recommended for paid distribution. PENDING APPROVALS music-bed entry now includes a specific Uppbeat search URL.
 - **v1.15 · 2026-05-06** · **🔁 Three SFX durations bumped (0.3–0.4s → 0.5s) — Norm unblocked.** Norm reported P3 + P1 audio mix mostly complete. Three specific IDs blocked because their durations were below ElevenLabs' practical floor (~0.5s minimum for the model to produce a coherent waveform). Steve's fault for under-specifying. Bumped: `sparkle_match` 0.4 → 0.5s, `transition_sharp_impact` 0.4 → 0.5s, `transition_glitch_cut` 0.3 → 0.5s. Per the §4.5.4 cost-discipline rule, these are single-ID re-runs Norm executes immediately (~75 credits total — still within budget). Updated SFX_QUEUE in §4.5.1 and prompt-set table in §4.5.3 accordingly. Total project ElevenLabs spend after retries: ~6,035 credits (~6% of Creator monthly).
 - **v1.14 · 2026-05-06** · **🎬 45s runtime + simplification rule + Scene 2 rewrite.** User decision: extend ad to 45s (1350 frames @ 30fps) and apply the **scene simplification rule** — open every scene already at the feature moment, skip the navigation. New master timeline (§5) reflects 45s with rebalanced per-scene durations. Scene 1 extended by 24 frames (8s total) for cinematic breathing room around morph. Scene 2 fully rewritten — opens on New Customer screen pre-opened, thumb taps record, words type beside mic in a `<GlassPlate>` ("Annie Yang" → "07700 900123" → "Notting Hill"), brief loading, form auto-fills. No FAB tap, no AI Assistant sheet, no nav. **Scenes 3–7 surgically rewritten** with the same rule: every scene opens at the feature moment, no app navigation. Audio reference tables retimed for new frame ranges. v1.11 visual identity + focus captions preserved with updated frame anchors. v1.13 cinematic system inheritance applies throughout.
 - **v1.13 · 2026-05-06** · **🎥 CINEMATIC SYSTEM — major addition.** User flagged that the plan captured mechanics but missed the soul: **emotional arc, premium visual style, cinematic camera, motion philosophy.** New mega-section **§3.7 Cinematic system** locks four interlocking systems: (a) **3-act emotional arc** (Suffering → Resolution → Triumph) explicitly named, (b) **Visual style** — dark navy-to-black cinematic gradient backdrop, 3D floating iPhone (not flat), high-contrast lighting, soft AI blue/purple glow halo, glassmorphism on overlays, layered Z-depth, premium startup launch aesthetic, (c) **Camera language** — constant subtle drift, slow cinematic push-ins, perspective shifts, occasional orbit around device, shallow DoF, macro lens feel with subtle chromatic aberration, vignette/soft focus falloff at frame edges, (d) **Motion philosophy** — magnetic motion via custom cubic-bezier, **morph transitions instead of hard cuts** between scenes, liquid UI transformations, continuity-driven animation, breathing room rule (≤3 simultaneous moving things). Each scene now inherits this system. **Significant Norm impact:** existing `<Series>` scene structure shifts to overlapping `<Sequence>` so the iPhone stays continuous across scene boundaries; new `<GlassPlate>` and `<AIGlow>` components needed; KivaAd.tsx top-level wrapper now hosts the gradient, drift, and lighting. Existing atoms/molecules are unaffected — this layer wraps them.
@@ -310,6 +314,38 @@ Don't:
 - Use sales language ("Save time!", "Boost productivity!") — that's not Jobber voice
 - Animate captions into existence with anything other than the typing pattern (visual consistency with §6 Scene 1)
 
+### 3.6.4 Feature-title flashes (locked v1.16)
+
+> **Why this exists:** ~80% of paid social views are MUTED. Without text labeling each feature, muted viewers can't quickly read what's happening. Title flashes solve this without adding runtime — they overlay the existing scene-establish beat.
+
+Each Scene 2–6 opens with a 12-frame **hard-cut overlay** displaying a short feature-name title flash. Hard-cut entry, fast type-in, brief hold, dissolve as scene content takes over.
+
+**Locked title text (one per scene, 2–3 words each — no jargon, no SaaS-bro):**
+
+| Scene | Title flash | Frame range (within scene) |
+|---|---|---|
+| 2 — Voice-to-Customer | **Voice → Customer** | F240–F252 (12f at scene open) |
+| 3 — Voice-to-Quote | **Voice → Quote** | F420–F432 |
+| 4 — Expense | **Snap → Categorised** | F660–F672 |
+| 5 — Route | **Routes → Optimised** | F810–F822 |
+| 6 — Follow-up | **Follow-up → Sent** | F975–F987 |
+
+**Flash specifications:**
+- **Entry:** hard cut from previous scene end (overrides the morph crossfade for these 12 frames specifically)
+- **Position:** centered horizontally, ~30% from top of frame
+- **Style:** Inter_700Bold ~52px, white at 95% opacity. Subtle navy `rgba(15,23,42,0.4)` rectangular plate behind the text (not full glassmorphism — solid plate for max readability), padding 16px, radius 6px
+- **Animation:**
+  - F0–F3 (3f): plate slides in from right, scale 1.05 → 1.0
+  - F3–F8 (5f): text types in fast (1 char per frame, no per-char audio)
+  - F8–F10 (2f): brief hold
+  - F10–F12 (2f): dissolve out (opacity 1.0 → 0; plate scales 1.0 → 0.95)
+- **Audio:** soft `swoosh.mp3` at 30% vol on entry (F0). No per-character ticks (per the v1.16 sound mix density rule). One discrete hit, that's it.
+- **No persistent presence** — once the flash dissolves at F12, the scene continues normally with the cinematic environment fully restored.
+
+**Why this works:** muted viewer reads the feature in 0.4 seconds before any animation begins. Sound viewer hears a quick swoosh and barely registers the overlay because the scene immediately takes over. Both audiences served.
+
+**Anti-pattern:** do NOT add subtitle text under the title (e.g. *"Speak it. Save it."*) — that's clutter. Two-word title only. The viewer has the focus caption coming later for reinforcement.
+
 ---
 
 ## 3.7 Cinematic system (locked v1.13)
@@ -387,7 +423,7 @@ In addition to the 6 motion presets in `kiva_components_for_norm.md` §3, these 
 
 1. **Magnetic motion.** Replace standard `easeOutCubic` with cubic-bezier `(0.2, 0.0, 0.0, 1.0)` — elements approaching their target *accelerate slightly* near the end (like magnetism pulling them in). Use for any element moving to a target position.
 
-2. **Morph transitions, not cuts.** Between scenes, the iPhone stays continuous. The screen *content* cross-fades over 8–12 frames while the phone itself maintains its position (with its drift continuing). **No hard cuts at scene boundaries.** Implementation: shift from `<Series>` to overlapping `<Sequence>` with crossfade on the screen-content layer only.
+2. **Morph for continuity, cut for emphasis (v1.16 revised — replaces "no hard cuts").** Between scenes inside a flow, the iPhone stays continuous and the screen *content* morphs (crossfade over 8–12 frames). **BUT** hard cuts are explicitly allowed and encouraged for emphasis moments — the white-flash in Scene 3, scene-title flashes (§3.6.4), wake-the-eye pattern interrupts. Norm gets editorial discretion: **morph if the moment is a continuous narrative beat; cut if it's a distinct idea pivot.** Pure morph was too purist — Apple/Linear ads mix morphs with cuts deliberately.
 
 3. **Liquid UI transformations.** When one UI element becomes another (button → toast, sheet rises into form revealing fields), don't swap. Source element scales `1.0 → 0.95 → 1.0` while target element scales `1.05 → 1.0`, overlapping by 6 frames. Feels elastic, alive.
 
@@ -425,7 +461,22 @@ In addition to the 6 motion presets in `kiva_components_for_norm.md` §3, these 
 | `Sound/riser.mp3` | Tension build (Scene 1 0:03 → 0:05.2) |
 | `Sound/impact2.mp3` | Big punctuation moments (logo land, total stamp) |
 
-**Master mix:** Bus all SFX through a soft compressor — peaks at -6 dBFS, average around -14 dBFS. We will likely add a music bed in post; structure the SFX so they sit cleanly under any track.
+**Master mix:** Bus all SFX through a soft compressor — peaks at -6 dBFS, average around -14 dBFS. Music bed is being generated via ElevenLabs (see §4.6). Structure the SFX so they sit cleanly under the music bed once it lands.
+
+**Sound mix density rule (locked v1.16):**
+
+> **The problem v1.16 fixes:** the original Scene 1–6 specs had per-character typing clicks, per-line-item ticks, per-pin thuds, per-field-fill ticks. Stacked together they read as noise, not texture. **Cleaner mix = bigger impact on the hero hits.**
+
+| Rule | What it means |
+|---|---|
+| **Max 2 simultaneous audio layers at any frame** | One bed (music or atmospheric) + one hit/texture. Three or more = mud. |
+| **DROP per-character typing clicks** | Replace with **one** soft sustained "AI writing" texture per text block (a single low-volume filtered noise loop, ~6 frames, fades in/out with the typing). Applies to: Scene 1 "Feeling overwhelmed?" typing, all Focus Captions in Scenes 2–6, the Scene 7 tagline typing. |
+| **DROP per-line-item ticks** | Replace with **one** cascading whoosh per cascade. Scene 3's 6 line-item rows = one filtered swoosh during F518–F555, not 6 individual clicks. |
+| **DROP per-pin thuds** | Replace with **one** pulse synth per pin section. Scene 5's 3 pins = one synth swell across F855–F870, not 3 individual thuds. |
+| **DROP per-field-fill ticks** | Replace with **one** soft chime cluster covering the field-fill phase. Scene 2's 4 field fills = one chime at the END (after all fields land), not 4 individual ticks. |
+| **KEEP hero hits unchanged** | F588 `impact2.mp3` money shot, F1218 logo land, F1093 status flip celebration, the F0 vibration loop, the F75 riser, the F156 swoosh + silence. These are the punctuation. |
+
+**Norm:** when wiring scene audio, default to fewer layers. If you find yourself queueing 4+ `<Audio>` elements at the same frame, you're violating this rule — restructure. The music bed (§4.6) will replace ~70% of atmospheric layering once it lands.
 
 ---
 
@@ -632,6 +683,111 @@ To keep the SFX count tight, the following originally-considered atmospheric lay
 - Run `generate_all(priority_filter="P1")` after sending P0 mp3s to user for listen and getting explicit "P1 approved" reply.
 - **Do NOT run P2 or P3 generation yet.** User reviews the prompt set in §4.5.3 v1.11 additions; when they reply "approve P2" or "approve P3" or "approve both", Steve flips the corresponding gate to ✅ and Norm runs.
 - Per the cost-discipline rule in §4.5.4: if any single prompt produces unusable output, flag the specific `id` to the user — Steve revises that one prompt — re-run that single ID. Do not re-run the whole batch.
+
+---
+
+## 4.6 Music bed generation (ElevenLabs Music API · v1.17)
+
+> **Status:** Prompt drafted, **awaiting Steve approval gate flip after user review** (§4.6.4 below). Norm runs ONE generation when approved. **Cost: ~11,250 credits (~11% of Creator monthly) for a single 45s track.**
+
+### 4.6.1 Python helper extension for `test.py`
+
+> **Norm:** add this alongside the `sound_effects()` helper. Endpoint is ElevenLabs' Music Generation API (`/v1/music`). The single generation run produces the full 45-second track in one call.
+
+```python
+def music_generation(prompt: str, duration_seconds: float, output_path: str,
+                     prompt_influence: float = 0.6) -> requests.Response:
+    """Generate a music track via ElevenLabs Music API.
+
+    Args:
+        prompt: full structured prompt (see SFX_QUEUE for the locked music entry)
+        duration_seconds: total length (45.0 for our ad)
+        output_path: destination .mp3 path
+        prompt_influence: 0.0–1.0. We default higher (0.6) than SFX (0.45) because
+            the music prompt has structural timing markers we want the model to honor.
+    """
+    url = f"{BASE_URL}/music"  # endpoint name confirmed at runtime; check ElevenLabs docs
+    payload = {
+        "text": prompt,
+        "duration_seconds": duration_seconds,
+        "prompt_influence": prompt_influence,
+    }
+    response = requests.post(url, headers=HEADERS, json=payload)
+    print(f"[{output_path}] music status: {response.status_code}")
+    if response.ok:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        with open(output_path, "wb") as f:
+            f.write(response.content)
+        print(f"  ✓ saved {len(response.content)} bytes")
+    else:
+        print(f"  ✗ {response.text}")
+    return response
+
+
+def generate_music_bed():
+    """One-shot music bed generation. Idempotent — skips if file exists."""
+    output_path = "Sound/music/bed.mp3"
+    if os.path.exists(output_path):
+        print("Music bed already exists — skipping.")
+        return
+    music_generation(MUSIC_PROMPT, duration_seconds=45.0, output_path=output_path)
+```
+
+> **Norm:** confirm the exact ElevenLabs Music API endpoint path (`/v1/music`, `/v1/music-generation`, etc.) against current docs at https://elevenlabs.io/docs before running. Adjust the helper accordingly. If the API doesn't accept structured time-stamp references in the prompt verbatim, the model still composes around the prose narrative — check the result against §4.6.3 expectations.
+
+### 4.6.2 Locked music prompt (`MUSIC_PROMPT` constant)
+
+> **The prompt below is a 3-act narrative with explicit per-second peak markers. Do not paraphrase — these timings are calibrated to specific frames in the ad.**
+
+```python
+MUSIC_PROMPT = """
+A 45-second cinematic ambient instrumental for a premium SaaS product launch ad targeting UK tradespeople.
+
+CRITICAL TIMING REQUIREMENTS — TREAT AS HARD CONSTRAINTS, NOT SUGGESTIONS:
+The track has FIVE specific structural markers that must land at the times specified below. The musical composition must be reverse-engineered from these markers — the track exists to deliver these moments at these exact seconds.
+
+MARKER 1 — TENSION PEAK at 0:04.6 (must be the most compressed, pressurised moment in the first 8 seconds)
+MARKER 2 — HARD SILENCE from 0:05.2 to 0:05.6 (0.4 seconds of complete silence — non-negotiable structural break)
+MARKER 3 — BASS SWELL + SYNTH PEAK at 0:19.6 (single brief moment punching through ambient flow, lasts ~0.5 seconds)
+MARKER 4 — EMOTIONAL CHORD SWELL at 0:36 (warm string-pad swell, the "everything just worked" feeling)
+MARKER 5 — BIGGEST MOMENT at 0:40.6 (bright major-chord lift, brand-reveal climax — the loudest, brightest, most resolved point in the entire track)
+
+CONSTRAINTS:
+NO VOCALS. NO LYRICS. NO AGGRESSIVE DRUMS. NO MELODY-DRIVEN HOOKS. NO TRACK-ENDING DRUM HITS.
+Style: cinematic ambient, modern electronic, sub-bass + soft synth pads + subtle high-frequency shimmer. Restrained, intelligent, emotional. Inspired by Apple keynote launch film scores and Linear product launch soundtracks.
+
+NARRATIVE WRAPPING THE FIVE MARKERS:
+
+ACT 1 — SUFFERING (0:00 to 0:08): low sub-bass rumble enters at 0:00, barely-audible filtered noise evokes phone vibration on a truck dashboard. Tension slowly builds 0:00→0:04.6 with a riser climbing underneath. The riser hits MARKER 1 at 0:04.6 (peak compression). Then MARKER 2 — hard silence 0:05.2 to 0:05.6. Out of silence at 0:05.6, a single warm pad in C major emerges, glowing gently, sustaining through 0:08.
+
+ACT 2 — RESOLUTION (0:08 to 0:32.5): sparse, intelligent ambient. Soft electronic textures, subtle high-frequency shimmer. Implied tempo ~80 BPM but no drums. Calm, warm, AI-coded. From 0:14 to 0:19.6 the mix gradually adds a second pad and soft sub-bass pulse, building toward MARKER 3 at 0:19.6 (the brief bass-swell + synth peak). After MARKER 3, returns to spacious ambient flow, gradually opening up. From 0:27 to 0:32.5 the texture opens further with more reverb, airy quality, and a subtle distant pulse suggesting geographic movement.
+
+ACT 3 — TRIUMPH (0:32.5 to 0:45): warmer chord progression begins. Hopeful tone. MARKER 4 at 0:36 is the emotional swell. Sustained warmth with subtle build 0:36→0:40.6. MARKER 5 at 0:40.6 is THE BIGGEST MOMENT — bright major-chord lift, hopeful, resolved, the loudest and brightest point in the whole track. Sustains 0:40.6 to 0:42. Holds a hopeful C-major or F-major chord 0:42 to 0:44.5. Gentle fade-out 0:44.5 to 0:45. Track ends in complete silence at exactly 0:45.0.
+
+DURATION: exactly 45 seconds. The track plays once and is not designed to loop.
+"""
+```
+
+### 4.6.3 What success looks like
+
+When listening to the generated track, verify:
+
+- [ ] **Total duration is 44.5–45.0 seconds.** Anything shorter clips the ad; longer requires Norm to fade out manually.
+- [ ] **Hard silence at 0:05.2–0:05.6.** This is the most distinctive structural marker — if the track ignores this, the prompt didn't take and we re-run with a stronger time emphasis.
+- [ ] **Identifiable peaks at 0:04.6, 0:19.6, 0:36, 0:40.6.** Don't have to be perfect, but should be audibly distinct moments — a swell, a chord shift, a brightening.
+- [ ] **No vocals, no melody hooks, no aggressive drums.** The model should compose entirely from pads, sub-bass, and ambient texture.
+- [ ] **Emotional reading matches the act labels:** suffering at start, resolution in middle, triumphant at end.
+- [ ] **Final 1.5 seconds fade to silence.** No abrupt cutoff.
+
+### 4.6.4 Music approval gate
+
+| Status | Approved by | Date |
+|---|---|---|
+| **✅ APPROVED** | User (relayed by Steve) | 2026-05-06 |
+
+User reviews the prompt in §4.6.2 + the success criteria in §4.6.3. When ready, replies "approve music" — Steve flips this gate to ✅, Norm runs `generate_music_bed()` (single generation, ~11,250 credits). Norm sends the resulting `bed.mp3` back through the user for listen. If it passes the §4.6.3 checklist, drop it at `Sound/music/bed.mp3` and flip `HAS_MUSIC_BED` in `KivaAd.tsx:21`. If it fails, user pings Steve — Steve revises the prompt — Norm re-runs (single ID, no batch concept here — this is one track).
+
+**Cost discipline note:** music generation is the most expensive single op in this project (~11,250 credits per try). **Maximum 2 retries** before pausing and re-thinking the prompt. If after 2 retries the track is still wrong, switch back to Uppbeat/Epidemic licensing as a fallback.
 
 ---
 
