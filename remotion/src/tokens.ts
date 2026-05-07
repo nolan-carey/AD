@@ -98,22 +98,43 @@ export const TYPE = {
   ctaLabel: { size: 22, weight: 600 },
 } as const;
 
-// Master timeline anchor (ad_plan.md §5 v1.22 — 33s/990 frames, 10 scenes).
-// v1.22: Scene 2 extended 60→90f for iPhone + Kiva app opening reveal;
-// Scenes 3-10 shifted +30 frames as a temporary placement until the user
-// picks a/b/c on the runtime ripple decision (PENDING APPROVALS).
+// Master timeline anchor (36.4s/1092 frames, 10 scenes).
+// v1.24 2026-05-07: Scene 2 fully rewritten as swipe-up wipe → centered brand
+// lockup → logo glides top-right (persists rest of ad) → AI Sparkle Director
+// flashing 4 features → vortex → iPhone materializes → dashboard. Duration
+// 90→132 frames (3.0s→4.4s). Scenes 3-10 shift +42 frames.
+// Per v1.23 user-waiver, master-timeline reconciliation is deferred — these
+// frame ranges may not match §5/§6 in ad_plan.md.
 export const FPS = 30;
-export const TOTAL_FRAMES = 990; // 33s @ 30fps
+export const TOTAL_FRAMES = 1092; // 36.4s @ 30fps
 
 export const SCENES = {
-  scene1: { from: 0, duration: 180 }, //    0:00.0 – 0:06.0  (6.0s · Overwhelm)
-  scene2: { from: 180, duration: 90 }, //   0:06.0 – 0:09.0  (3.0s · iPhone + Kiva app opening — v1.22)
-  scene3: { from: 270, duration: 105 }, //  0:09.0 – 0:12.5  (3.5s · Dashboard reveal + mic zoom · +30 v1.22)
-  scene4: { from: 375, duration: 105 }, //  0:12.5 – 0:16.0  (3.5s · Voice→Quote · +30 v1.22)
-  scene5: { from: 480, duration: 60 }, //   0:16.0 – 0:18.0  (2.0s · Quote→Customer profile · +30 v1.22)
-  scene6: { from: 540, duration: 90 }, //   0:18.0 – 0:21.0  (3.0s · Receipt→Expense · +30 v1.22)
-  scene7: { from: 630, duration: 90 }, //   0:21.0 – 0:24.0  (3.0s · Map→Route · +30 v1.22)
-  scene8: { from: 720, duration: 90 }, //   0:24.0 – 0:27.0  (3.0s · Pin→Follow-up · +30 v1.22)
-  scene9: { from: 810, duration: 120 }, //  0:27.0 – 0:31.0  (4.0s · AI Business Assistant · +30 v1.22)
-  scene10: { from: 930, duration: 60 }, //  0:31.0 – 0:33.0  (2.0s · Final hero shot · +30 v1.22)
+  scene1: { from: 0, duration: 240 }, //    0:00.0 – 0:08.0  (8.0s · Overwhelm — 18 cards, slower)
+  scene2: { from: 240, duration: 132 }, //  0:08.0 – 0:12.4  (4.4s · v1.24 swipe-up + brand lockup + 4-feature flash)
+  scene3: { from: 372, duration: 105 }, //  0:12.4 – 0:15.9  (3.5s · Dashboard reveal + mic zoom)
+  scene4: { from: 477, duration: 105 }, //  0:15.9 – 0:19.4  (3.5s · Voice→Quote)
+  scene5: { from: 582, duration: 60 }, //   0:19.4 – 0:21.4  (2.0s · Quote→Customer profile)
+  scene6: { from: 642, duration: 90 }, //   0:21.4 – 0:24.4  (3.0s · Receipt→Expense)
+  scene7: { from: 732, duration: 90 }, //   0:24.4 – 0:27.4  (3.0s · Map→Route)
+  scene8: { from: 822, duration: 90 }, //   0:27.4 – 0:30.4  (3.0s · Pin→Follow-up)
+  scene9: { from: 912, duration: 120 }, //  0:30.4 – 0:34.4  (4.0s · AI Business Assistant)
+  scene10: { from: 1032, duration: 60 }, // 0:34.4 – 0:36.4  (2.0s · Final hero shot)
 } as const;
+
+// v1.24: persistent chevron top-right that begins gliding from center at
+// local F48 of Scene 2 (= absolute F288) and parks at local F66 (= F306),
+// remaining for the rest of the ad as a quiet brand presence.
+// Scene 2 local-frame map (Scene 2 starts at absolute F240; v1.24 spec quoted
+// absolute F180–F312, so we subtract 180 to get local frames):
+//   F0–F12   swipe-up wipe
+//   F12–F18  silence
+//   F18–F36  brand lockup fades up centered
+//   F36–F48  brand lockup holds
+//   F48–F66  logo glides to top-right; wordmark + tagline fade
+//   F66–F72  AI sparkle enters center
+//   F72–F104 4-feature flash (Speak quotes / Save customers / Drive less / Win more jobs)
+//   F104–F110 sparkle vortex
+//   F110–F122 iPhone materializes
+//   F122–F132 dashboard appears
+export const PERSISTENT_LOGO_GLIDE_FROM = 288; // absolute frame glide begins
+export const PERSISTENT_LOGO_PARKED_FROM = 306; // absolute frame chevron is parked top-right

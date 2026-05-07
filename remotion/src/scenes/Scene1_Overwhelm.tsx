@@ -47,8 +47,11 @@ interface CardSpec {
   driftFactor: number;
 }
 
+// User override 2026-05-07: 18 cards total (was 12), uniform 8-frame cadence
+// after the hero hold (was 10f stack + 6f density). Last card lands at F178.
+// Each card travels 10 frames; lands 8 frames after the previous one.
 const CARDS: CardSpec[] = [
-  // 1) Mrs. Patel — iMessage bubble — bottom-left → (900,540)
+  // 1) Mrs. Patel — iMessage bubble — bottom-left → (900,540) | land 24
   {
     id: "patel",
     variant: "imessage",
@@ -65,15 +68,15 @@ const CARDS: CardSpec[] = [
     fromDy: 700,
     driftFactor: 1.0,
   },
-  // === Stack — 4 cards, 10-frame intervals starting at frame 42, 10-frame travel ===
-  // 2) Missed call banner — top-right → (1180,400) | start 42, land 52
+  // === HERO HOLD F24–F42, then uniform 8-frame cadence (cards 2–18) ===
+  // 2) Missed call banner | start 40, land 50
   {
     id: "john-call",
     variant: "call",
     sender: "John",
     body: "Missed call (3) — John (boiler)",
-    start: 42,
-    land: 52,
+    start: 40,
+    land: 50,
     x: 1180,
     y: 400,
     rotation: -2,
@@ -83,14 +86,14 @@ const CARDS: CardSpec[] = [
     fromDy: -700,
     driftFactor: 1.05,
   },
-  // 3) WhatsApp boiler — left → (740,600) | start 52, land 62
+  // 3) WhatsApp boiler | start 48, land 58
   {
     id: "wa-leaking",
     variant: "whatsapp",
     sender: "Dave (boiler job)",
     body: "boiler still leaking mate",
-    start: 52,
-    land: 62,
+    start: 48,
+    land: 58,
     x: 740,
     y: 600,
     rotation: 3,
@@ -100,14 +103,14 @@ const CARDS: CardSpec[] = [
     fromDy: 0,
     driftFactor: 0.95,
   },
-  // 4) HMRC email — bottom-right → (1100,720) | start 62, land 72
+  // 4) HMRC email | start 56, land 66
   {
     id: "hmrc",
     variant: "email",
     sender: "HMRC",
     body: "VAT return due in 3 days. File now to avoid penalty.",
-    start: 62,
-    land: 72,
+    start: 56,
+    land: 66,
     x: 1100,
     y: 720,
     rotation: -1,
@@ -117,14 +120,14 @@ const CARDS: CardSpec[] = [
     fromDy: 700,
     driftFactor: 1.08,
   },
-  // 5) Calendar pop — top → (920,380) | start 72, land 82
+  // 5) Calendar pop | start 64, land 74
   {
     id: "calendar",
     variant: "calendar",
     sender: "Calendar",
     body: "Job at 8AM — Hammersmith",
-    start: 72,
-    land: 82,
+    start: 64,
+    land: 74,
     x: 920,
     y: 380,
     rotation: 2,
@@ -134,15 +137,14 @@ const CARDS: CardSpec[] = [
     fromDy: -1100,
     driftFactor: 1.1,
   },
-  // === Density build — 7 cards, 6-frame intervals (82–124), 8-frame travel ===
-  // 6) Stripe overdue — from top → (1020,480) | start 82, land 90
+  // 6) Stripe overdue | start 72, land 82
   {
     id: "stripe",
     variant: "stripe",
     sender: "Stripe",
     body: "Invoice #0421 overdue — 47 days",
-    start: 82,
-    land: 90,
+    start: 72,
+    land: 82,
     x: 1020,
     y: 480,
     rotation: 1,
@@ -152,14 +154,14 @@ const CARDS: CardSpec[] = [
     fromDy: -1000,
     driftFactor: 0.9,
   },
-  // 7) Google review — from right → (1180,540) | start 88, land 96
+  // 7) Google review | start 80, land 90
   {
     id: "google",
     variant: "google",
     sender: "Google Business",
     body: "New 1-star review — respond?",
-    start: 88,
-    land: 96,
+    start: 80,
+    land: 90,
     x: 1180,
     y: 540,
     rotation: -2,
@@ -169,14 +171,14 @@ const CARDS: CardSpec[] = [
     fromDy: 100,
     driftFactor: 1.02,
   },
-  // 8) iMessage cheaper — from bottom → (820,700) | start 94, land 102
+  // 8) iMessage cheaper | start 88, land 98
   {
     id: "imessage-cheaper",
     variant: "imessage",
     sender: "Tom",
     body: "can u do it cheaper?",
-    start: 94,
-    land: 102,
+    start: 88,
+    land: 98,
     x: 820,
     y: 700,
     rotation: 3,
@@ -186,14 +188,14 @@ const CARDS: CardSpec[] = [
     fromDy: 1000,
     driftFactor: 0.97,
   },
-  // 9) Screwfix email — from top-right → (980,360) | start 100, land 108
+  // 9) Screwfix email | start 96, land 106
   {
     id: "screwfix",
     variant: "screwfix",
     sender: "Screwfix",
     body: "Your parts order has shipped",
-    start: 100,
-    land: 108,
+    start: 96,
+    land: 106,
     x: 980,
     y: 360,
     rotation: -1,
@@ -203,13 +205,13 @@ const CARDS: CardSpec[] = [
     fromDy: -900,
     driftFactor: 1.06,
   },
-  // 10) Voicemail — from left → (760,480) | start 106, land 114
+  // 10) Voicemail | start 104, land 114
   {
     id: "voicemail",
     variant: "voicemail",
     sender: "Voicemail",
     body: "You have 4 new messages",
-    start: 106,
+    start: 104,
     land: 114,
     x: 760,
     y: 480,
@@ -220,14 +222,14 @@ const CARDS: CardSpec[] = [
     fromDy: -100,
     driftFactor: 0.93,
   },
-  // 11) Banking alert — from right → (1140,660) | start 112, land 120
+  // 11) Banking alert | start 112, land 122
   {
     id: "banking",
     variant: "banking",
     sender: "Lloyds Bank",
     body: "Direct debit failed",
     start: 112,
-    land: 120,
+    land: 122,
     x: 1140,
     y: 660,
     rotation: -3,
@@ -237,14 +239,14 @@ const CARDS: CardSpec[] = [
     fromDy: 200,
     driftFactor: 1.04,
   },
-  // 12) Quote follow-up — from bottom → (940,580) | start 118, land 124
+  // 12) Quote follow-up | start 120, land 130
   {
     id: "followup",
     variant: "generic",
     sender: "Reminder",
     body: "Quote follow-up?",
-    start: 118,
-    land: 124,
+    start: 120,
+    land: 130,
     x: 940,
     y: 580,
     rotation: 1,
@@ -253,6 +255,109 @@ const CARDS: CardSpec[] = [
     fromDx: 0,
     fromDy: 1000,
     driftFactor: 0.99,
+  },
+  // === 6 new cards (user override 2026-05-07) ===
+  // 13) Insurance renewal | start 128, land 138
+  {
+    id: "insurance",
+    variant: "banking",
+    sender: "Hiscox",
+    body: "Public liability — renew today",
+    start: 128,
+    land: 138,
+    x: 700,
+    y: 380,
+    rotation: -2,
+    width: 480,
+    height: 120,
+    fromDx: -1400,
+    fromDy: -700,
+    driftFactor: 1.07,
+  },
+  // 14) HMRC tax penalty | start 136, land 146
+  {
+    id: "hmrc-tax",
+    variant: "hmrc",
+    sender: "HMRC",
+    body: "Self-assessment penalty in 14 days",
+    start: 136,
+    land: 146,
+    x: 1240,
+    y: 640,
+    rotation: 2,
+    width: 540,
+    height: 130,
+    fromDx: 1500,
+    fromDy: 600,
+    driftFactor: 0.94,
+  },
+  // 15) Supplier delay | start 144, land 154
+  {
+    id: "supplier-delay",
+    variant: "screwfix",
+    sender: "Toolstation",
+    body: "Order delayed — out of stock",
+    start: 144,
+    land: 154,
+    x: 820,
+    y: 420,
+    rotation: 3,
+    width: 480,
+    height: 120,
+    fromDx: -1300,
+    fromDy: -800,
+    driftFactor: 1.03,
+  },
+  // 16) URGENT customer | start 152, land 162
+  {
+    id: "urgent-sms",
+    variant: "imessage",
+    sender: "Sara K.",
+    body: "URGENT — water everywhere!!",
+    start: 152,
+    land: 162,
+    x: 1080,
+    y: 760,
+    rotation: -3,
+    width: 460,
+    height: 110,
+    fromDx: 1300,
+    fromDy: 900,
+    driftFactor: 1.05,
+  },
+  // 17) Bank fraud alert | start 160, land 170
+  {
+    id: "bank-fraud",
+    variant: "banking",
+    sender: "Lloyds Bank",
+    body: "Suspicious payment £680 — blocked",
+    start: 160,
+    land: 170,
+    x: 700,
+    y: 700,
+    rotation: 1,
+    width: 480,
+    height: 120,
+    fromDx: -1300,
+    fromDy: 800,
+    driftFactor: 0.98,
+  },
+  // 18) Job site WhatsApp | start 168, land 178
+  {
+    id: "jobsite-wa",
+    variant: "whatsapp",
+    sender: "Mike (apprentice)",
+    body: "We're here mate. Where r u?",
+    start: 168,
+    land: 178,
+    x: 1080,
+    y: 460,
+    rotation: -1,
+    width: 460,
+    height: 110,
+    fromDx: 1400,
+    fromDy: -300,
+    driftFactor: 1.0,
   },
 ];
 
@@ -278,37 +383,44 @@ const DINGS: DingSpec[] = [
   { cardIdx: 10, file: SFX.notification2, pitch: 1 },
   { cardIdx: 11, file: SFX.notification1, pitch: -1 },
   { cardIdx: 12, file: SFX.notification2, pitch: 2 },
+  // === 6 new cards (user override 2026-05-07) ===
+  { cardIdx: 13, file: SFX.notification1, pitch: -3 },
+  { cardIdx: 14, file: SFX.notification2, pitch: 3 },
+  { cardIdx: 15, file: SFX.notification1, pitch: -2 },
+  { cardIdx: 16, file: SFX.notification2, pitch: 1 },
+  { cardIdx: 17, file: SFX.notification1, pitch: -1 },
+  { cardIdx: 18, file: SFX.notification2, pitch: 0 },
 ];
 
-// === scene phase frames (v1.22) ===
-// Typing slowed for deliberate pacing per user request:
-//   • Cursor onset extended: 4f → 8f (CURSOR_APPEAR=120, TYPE_START=128)
-//   • "Feeling" — 7 chars at 2 fpc: F128–F140
-//   • Pause: 6 frames F142–F148 (was 2f)
-//   • " overwhelmed?" — 13 chars at ~1.67 fpc: F148–F168
-//   • "?" scale-pulse: F168–F172
-//   • Held silence: F172–F180 (cursor blinking; cards frozen mid-drift)
-//   • Swoosh REMOVED from Scene 1 — it's now Scene 2's frame F0 territory
+// === scene phase frames (v1.22 + user override 2026-05-07) ===
+// Scene extended 180 → 240 (8.0s) to fit 18 cards on slower 8-frame cadence.
+// Last card lands F178; drift+freeze begins F180; typing follows after.
+//   • Cursor onset: F184 (8f onset)
+//   • "Feeling" — 7 chars at 2 fpc: F192–F204
+//   • Pause: 6 frames F204–F210
+//   • " overwhelmed?" — 13 chars at ~1.67 fpc: F210–F230
+//   • "?" scale-pulse: F230–F234
+//   • Held silence: F234–F240 (cursor blinking; cards frozen mid-drift)
 const HERO_HOLD_START = 24;
 const HERO_HOLD_END = 42;
-const CURSOR_APPEAR = 120;
-const TYPE_START = 128;
-const HOOK_START = 124; // last density card lands (cluster freeze-in begins)
-const HOOK_END = 168; // typing complete (full text visible)
-const FREEZE_START = 168; // sediment freeze + held-silence begins
-const QUESTION_MARK_FRAME = 168; // "?" lands; pulse F168–F172
+const CURSOR_APPEAR = 184;
+const TYPE_START = 192;
+const HOOK_START = 180; // last card lands at F178; drift starts F180
+const HOOK_END = 230; // typing complete (full text visible)
+const FREEZE_START = 234; // sediment freeze + held-silence begins
+const QUESTION_MARK_FRAME = 230; // "?" lands; pulse F230–F234
 const TYPING_TEXT = "Feeling overwhelmed?";
-const SCENE_END = 180;
+const SCENE_END = 240;
 
-// Per-character land frame for the v1.22 schedule.
-// chars 0–6  ("Feeling")     → F128 + i*2  →  F128, 130, 132, 134, 136, 138, 140
-// pause F140–F148 (6f hold)
-// chars 7–19 (" overwhelmed?") → F148 + (i-7)*(20/12) rounded
+// Per-character land frame for the override schedule.
+// chars 0–6  ("Feeling")        → F192 + i*2  →  192, 194, 196, 198, 200, 202, 204
+// pause F204–F210 (6f hold)
+// chars 7–19 (" overwhelmed?")  → F210 + (i-7)*(20/12) rounded → ends F230
 function charLandFrame(i: number): number {
   if (i < 0) return -1;
   if (i <= 6) return TYPE_START + i * 2;
   if (i >= TYPING_TEXT.length) return -1;
-  return Math.round(148 + (i - 7) * (20 / 12));
+  return Math.round(210 + (i - 7) * (20 / 12));
 }
 
 export const Scene1Overwhelm: React.FC = () => {
@@ -519,10 +631,10 @@ const Card: React.FC<{
 };
 
 // =====================================================================
-// HOOK TEXT — v1.22 slowed typed reveal
-// Cursor appears at F120 (8f onset), typing starts F128, 6-frame pause after
-// "Feeling" at F142–F148, "?" lands F168, scale-pulse F168–F172, cursor blinks
-// through held silence F172–F180.
+// HOOK TEXT — slowed typed reveal (user override 2026-05-07)
+// Cursor appears at F184 (8f onset), typing starts F192, 6-frame pause after
+// "Feeling" at F204–F210, "?" lands F230, scale-pulse F230–F234, cursor blinks
+// through held silence F234–F240.
 // =====================================================================
 
 // Visible char count at a given absolute frame (uses charLandFrame defined at top).

@@ -7,125 +7,172 @@ import {
   useVideoConfig,
 } from "remotion";
 import { COLOR, EASE, SPRING } from "../tokens";
-import { SFX, GEN } from "../audio";
+import { SFX } from "../audio";
 import { KivaLogo } from "../components/KivaLogo";
 import { PhoneFrame } from "../components/PhoneFrame";
 import { SfxAt } from "../components/SfxAt";
 
 // =====================================================================
-// SCENE 2 — iPhone + Kiva app opening (v1.22, frames 180–270)
-// 90 frames @ 30fps · 3.0s
+// SCENE 2 — v1.24 (Sequence from absolute F228, total local F0–F156, 5.2s)
+// Nominal scene window F240–F372 absolute; +12f crossfade pad on each end.
 // (file kept as Scene2_VoiceCustomer.tsx for git diff continuity)
 //
-// Replaces v1.21's logo→iPhone morph storyboard. Per user direction
-// "iphone with the kiva app opening" — the phone exists already; the
-// viewer watches the Kiva app launch like a real iOS app open.
+// Replaces v1.22's "iPhone + Kiva app opening" spec. User direction:
+// after "Feeling overwhelmed?" types in Scene 1, swipe-up wipe → centered
+// brand lockup → logo glides to top-right (persists rest of ad) → AI
+// sparkle as the Director, darting to 4 quadrants and bursting feature
+// text → vortex → iPhone materializes → dashboard.
 //
-// Beat-by-beat (local frames):
-//   0–12  : SWOOSH WIPE drags the Scene 1 cluster off + EXTENDED SILENCE
-//           (swoosh F0→F6, silence sustains F6→F12)
-//   12–30 : iPhone fades in from black, AI glow halo idle blue
-//   30–45 : iOS home screen reveals (Kiva app icon prominent, others dimmed,
-//           Kiva pulses softly; camera pushes 1.0×→1.08× toward icon)
-//   45–54 : Cursor enters from right, taps Kiva icon at local 50 (=F230);
-//           icon compresses 1→0.92→1, blue ripple expands; halo flips purple
-//   54–72 : iOS app-launch expand — Kiva icon scales fullscreen with
-//           easeOutCubic, surrounding icons fade out, navy splash fills screen
-//   72–84 : Splash brand lockup — chevron + "Kiva." wordmark + tagline
-//   84–90 : Splash dissolves into dashboard with "All your admin. One place."
+// Local-frame map (Sequence start = absolute F228; add 228 to get abs):
+//   F0–F12    crossfade-IN from Scene 1 (SceneCrossfade dims content; we
+//             render only dark-navy background here)
+//   F12–F24   SWIPE-UP WIPE — vertical sweep upward, dark veil rising
+//   F24–F30   HARD SILENCE — pure dark navy, nothing on screen
+//   F30–F48   BRAND LOCKUP fades up centered:
+//              F30–F38  chevron logo
+//              F36–F44  "Kiva." wordmark
+//              F42–F48  tagline "Blue collar solutions for blue collar problems"
+//   F48–F60   HOLD with gentle glow pulse (viewer reads tagline)
+//   F60–F78   LOGO GLIDES top-right (scale 1→0.5); wordmark + tagline fade
+//   F78–F84   AI SPARKLE enters center stage
+//   F84–F116  4-FEATURE FLASH — sparkle as Director (8f each):
+//              F84–F92   upper-left  "Speak quotes."
+//              F92–F100  upper-right "Save customers."
+//              F100–F108 lower-left  "Drive less."
+//              F108–F116 lower-right "Win more jobs."
+//   F116–F122 VORTEX — particles spiral inward
+//   F122–F134 iPhone materializes from vortex flare
+//   F134–F144 Dashboard appears, "All your admin. One place." caption
+//   F144–F156 crossfade-OUT into Scene 3
+//
+// Kinetic typography: verb small (Inter_400Regular ~32px), outcome word
+// HUGE (Inter_700Bold ~84px) with scale-punch 1.0→1.08→1.0 + soft purple
+// underline.
+//
+// PERSISTENT chevron top-right is wired in KivaAd.tsx — appears at
+// absolute F306 (= local F78 of Scene 2) and remains the rest of the ad.
 // =====================================================================
 
-const SWOOSH_END = 12;
-const PHONE_FADE_END = 30;
-const HOME_REVEAL_END = 45;
-const CURSOR_ENTER = 45;
-const CURSOR_TAP = 50;
-const APP_EXPAND_START = 54;
-const APP_EXPAND_END = 72;
-const SPLASH_END = 84;
-const SCENE_END = 90;
+const SWIPE_START = 12;
+const SWIPE_END = 24;
+const SILENCE_END = 30;
+const LOCKUP_LOGO_IN = 30;
+const LOCKUP_WORD_IN = 36;
+const LOCKUP_TAG_IN = 42;
+const LOCKUP_HOLD_END = 60;
+const GLIDE_START = 60;
+const GLIDE_END = 78;
+const SPARKLE_IN = 78;
+const FEATURE1 = 84;
+const FEATURE2 = 92;
+const FEATURE3 = 100;
+const FEATURE4 = 108;
+const FEATURES_END = 116;
+const VORTEX_START = 116;
+const VORTEX_END = 122;
+const PHONE_MATERIALIZE = 122;
+const DASHBOARD_IN = 134;
+const SCENE_END = 144;
 
-const TAGLINE = "Blue collar solutions to blue collar problems";
+// Quadrant landing positions (1920×1080 frame)
+const QUADRANTS = [
+  { x: 480, y: 380 },
+  { x: 1440, y: 380 },
+  { x: 480, y: 700 },
+  { x: 1440, y: 700 },
+];
+
+const FEATURES = [
+  { verb: "Speak", outcome: "quotes" },
+  { verb: "Save", outcome: "customers" },
+  { verb: "Drive", outcome: "less" },
+  { verb: "Win more", outcome: "jobs" },
+];
+
+const SPARKLE_CENTER = { x: 960, y: 540 };
 
 export const Scene2VoiceCustomer: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Slow camera push toward the Kiva icon during home-screen reveal
-  const cameraScale = interpolate(
-    frame,
-    [PHONE_FADE_END, HOME_REVEAL_END, CURSOR_TAP, APP_EXPAND_END],
-    [1.0, 1.08, 1.10, 1.0],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: EASE.inOutQuad,
-    }
-  );
-
-  // Phone fade-in opacity 0→1 over PHONE_FADE phase
-  const phoneOpacity = interpolate(
-    frame,
-    [SWOOSH_END, PHONE_FADE_END],
-    [0, 1],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE.outCubic }
-  );
-
   return (
-    <AbsoluteFill style={{ background: "rgba(0,0,0,0.4)" }}>
-      {/* Swoosh wipe — visual streak across the screen F0–F6 */}
-      {frame < SWOOSH_END + 4 && <SwooshWipe frame={frame} />}
-
-      {/* iPhone — fades in pre-formed at PHONE_FADE_END */}
-      {frame >= SWOOSH_END - 2 && (
-        <AbsoluteFill
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            opacity: phoneOpacity,
-          }}
-        >
-          <PhoneFrame scale={cameraScale}>
-            <PhoneScreen frame={frame} fps={fps} />
-          </PhoneFrame>
-        </AbsoluteFill>
+    <AbsoluteFill
+      style={{
+        background: `linear-gradient(180deg, ${COLOR.navy} 0%, #050810 100%)`,
+        overflow: "hidden",
+      }}
+    >
+      {/* Swipe-up wipe veil — F12-F24, dark band sweeps upward */}
+      {frame >= SWIPE_START - 2 && frame < SWIPE_END + 4 && (
+        <SwipeUpVeil frame={frame} />
       )}
 
-      {/* === AUDIO === */}
-      {/* user-stripped: only the cursor-click on the Kiva icon remains */}
-      <SfxAt src={SFX.click} from={CURSOR_TAP} volume={0.85} />
+      {/* Brand lockup (centered) — visible F18 → F66 (fades during glide) */}
+      {frame >= LOCKUP_LOGO_IN - 2 && frame < SPARKLE_IN && (
+        <BrandLockupCentered frame={frame} fps={fps} />
+      )}
+
+      {/* AI Sparkle Director — F66 → F110 */}
+      {frame >= SPARKLE_IN - 2 && frame < VORTEX_END + 2 && (
+        <SparkleDirector frame={frame} />
+      )}
+
+      {/* 4 feature texts */}
+      {frame >= FEATURE1 - 2 && frame < FEATURES_END + 2 && (
+        <FeatureTexts frame={frame} />
+      )}
+
+      {/* Vortex particles */}
+      {frame >= VORTEX_START - 2 && frame < PHONE_MATERIALIZE + 4 && (
+        <VortexParticles frame={frame} />
+      )}
+
+      {/* iPhone materializes from vortex flare */}
+      {frame >= PHONE_MATERIALIZE - 2 && (
+        <PhoneMaterialize frame={frame} fps={fps} />
+      )}
+
+      {/* === AUDIO === user-stripped: only the cursor-click on the Kiva icon.
+          v1.24 sound timeline notes per ad_plan §6 retained in comment for the
+          eventual audio pass; right now only the 4 sparkle-feature chimes are
+          wired (using notification1 pitched up — sparkle_match SFX wasn't
+          generated). */}
+      {[FEATURE1, FEATURE2, FEATURE3, FEATURE4].map((f, i) => (
+        <SfxAt
+          key={`feat-${i}`}
+          src={SFX.notification1}
+          from={f + 2}
+          volume={0.32}
+          playbackRate={Math.pow(2, (5 + i) / 12)} // +5, +6, +7, +8 semitones
+        />
+      ))}
     </AbsoluteFill>
   );
 };
 
 // =====================================================================
-// SWOOSH WIPE — visual streak L→R across the frame
+// SWIPE-UP VEIL — full-frame dark band sweeps upward, drags content off
 // =====================================================================
-const SwooshWipe: React.FC<{ frame: number }> = ({ frame }) => {
-  const p = interpolate(frame, [0, 6], [0, 1], {
+const SwipeUpVeil: React.FC<{ frame: number }> = ({ frame }) => {
+  const p = interpolate(frame, [SWIPE_START, SWIPE_END], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.inOutQuad,
   });
-  const x = interpolate(p, [0, 1], [-600, 2400]);
-  const opacity = interpolate(p, [0, 0.4, 1], [0, 1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  // Veil rises from below the frame, sweeps up past the top
+  const yOffset = interpolate(p, [0, 1], [0, -1080]);
   return (
     <div
       style={{
         position: "absolute",
-        top: 0,
-        bottom: 0,
-        left: x,
-        width: 700,
+        left: 0,
+        right: 0,
+        top: 1080,
+        height: 1500,
+        transform: `translateY(${yOffset}px)`,
         background:
-          "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(180,200,255,0.25) 50%, rgba(255,255,255,0) 100%)",
-        transform: "skewX(-22deg)",
-        filter: "blur(8px)",
-        mixBlendMode: "screen",
-        opacity,
+          `linear-gradient(180deg, ${COLOR.navy} 0%, #050810 60%, rgba(0,0,0,0.0) 100%)`,
+        boxShadow: "0 -40px 120px rgba(0,0,0,0.85)",
         pointerEvents: "none",
       }}
     />
@@ -133,291 +180,475 @@ const SwooshWipe: React.FC<{ frame: number }> = ({ frame }) => {
 };
 
 // =====================================================================
-// PHONE SCREEN — switches between iOS home, app-expand, splash, dashboard
+// BRAND LOCKUP CENTERED — chevron + "Kiva." + tagline
 // =====================================================================
-const PhoneScreen: React.FC<{ frame: number; fps: number }> = ({
+const BrandLockupCentered: React.FC<{ frame: number; fps: number }> = ({
   frame,
   fps,
 }) => {
-  // Base: black screen until home reveal begins
-  // Home: visible PHONE_FADE_END..APP_EXPAND_END (icon expands during last portion)
-  // Splash: APP_EXPAND_END..SPLASH_END
-  // Dashboard: SPLASH_END+
-
-  // Splash opacity: fades in as splash expand completes, fades out at SPLASH_END
-  const splashIn = interpolate(frame, [APP_EXPAND_END - 4, APP_EXPAND_END], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+  // Logo enter (F18-F26 spring) + persistent until glide starts
+  const logoSp = spring({
+    frame: frame - LOCKUP_LOGO_IN,
+    fps,
+    config: SPRING.soft,
   });
-  const splashOut = interpolate(frame, [SPLASH_END, SCENE_END], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const splashOpacity = Math.max(0, splashIn - splashOut);
+  const logoEnter = interpolate(logoSp, [0, 1], [0, 1]);
 
-  // Dashboard opacity: starts at SPLASH_END
-  const dashOpacity = interpolate(frame, [SPLASH_END, SCENE_END], [0, 1], {
+  // Wordmark (F24-F32)
+  const wordP = interpolate(frame, [LOCKUP_WORD_IN, LOCKUP_WORD_IN + 8], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
+  const wordY = interpolate(wordP, [0, 1], [4, 0]);
+
+  // Tagline (F30-F36)
+  const tagP = interpolate(frame, [LOCKUP_TAG_IN, LOCKUP_TAG_IN + 6], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE.outCubic,
+  });
+  const tagY = interpolate(tagP, [0, 1], [4, 0]);
+
+  // During HOLD (F48-F60), gentle glow pulse 0.8→1.0→0.8 over 12f
+  const pulseT = Math.max(0, frame - 48);
+  const glowPulse = 0.8 + 0.2 * Math.sin((pulseT / 12) * Math.PI * 2);
+
+  // Glide F48-F66: logo translates center → top-right (1700, 100), scale 1→0.5
+  const glideP = interpolate(frame, [GLIDE_START, GLIDE_END], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE.inOutQuad,
+  });
+  // Center of frame is (960, 540); target top-right (1700, 100).
+  const logoTargetX = 1700;
+  const logoTargetY = 100;
+  const logoX = interpolate(glideP, [0, 1], [960, logoTargetX]);
+  const logoY = interpolate(glideP, [0, 1], [540, logoTargetY]);
+  const logoScale = interpolate(glideP, [0, 1], [1, 0.5]);
+
+  // Wordmark + tagline fade out F48-F60
+  const fadeOut = interpolate(frame, [GLIDE_START, GLIDE_START + 12], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  // While not gliding, lockup uses the centered flex layout.
+  // While gliding, the chevron is positioned absolutely.
+  const isGliding = frame >= GLIDE_START;
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        background: "#000",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Home screen layer — visible during reveal phase, hidden during expand */}
-      {frame < APP_EXPAND_END && (
-        <IOSHomeScreen frame={frame} fps={fps} />
-      )}
+    <AbsoluteFill style={{ pointerEvents: "none" }}>
+      {/* Soft radial glow behind the lockup — fades as glide ends */}
+      <AbsoluteFill
+        style={{
+          background:
+            "radial-gradient(circle at 50% 50%, rgba(59,130,246,0.30) 0%, rgba(59,130,246,0) 45%)",
+          filter: "blur(40px)",
+          opacity: (logoEnter * (isGliding ? Math.max(0, 1 - glideP * 1.2) : 1)) * glowPulse,
+        }}
+      />
 
-      {/* App-launch expand — Kiva icon scales fullscreen */}
-      {frame >= APP_EXPAND_START && frame < APP_EXPAND_END + 2 && (
-        <AppLaunchExpand frame={frame} />
-      )}
+      {/* Chevron — center then glides */}
+      <div
+        style={{
+          position: "absolute",
+          left: logoX,
+          top: logoY,
+          transform: `translate(-50%, -50%) scale(${logoScale * interpolate(logoEnter, [0, 1], [0.9, 1])})`,
+          opacity: logoEnter,
+        }}
+      >
+        <KivaLogo size={160} glow={isGliding ? 0.3 : 0.6 * glowPulse} />
+      </div>
 
-      {/* Splash layer */}
-      {splashOpacity > 0 && (
-        <div style={{ position: "absolute", inset: 0, opacity: splashOpacity }}>
-          <KivaSplash />
+      {/* Wordmark — stays centered, fades out during glide */}
+      <AbsoluteFill
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          paddingTop: 80, // sit just below logo
+        }}
+      >
+        <div
+          style={{
+            opacity: wordP * fadeOut,
+            transform: `translateY(${wordY}px)`,
+            fontFamily: "Inter, system-ui",
+            fontSize: 64,
+            fontWeight: 600,
+            color: "#fff",
+            letterSpacing: -1.6,
+            marginTop: 200,
+          }}
+        >
+          Kiva
+          <span style={{ color: COLOR.blue }}>.</span>
         </div>
-      )}
 
-      {/* Dashboard layer */}
-      {dashOpacity > 0 && (
-        <div style={{ position: "absolute", inset: 0, opacity: dashOpacity }}>
-          <DashboardEntry frame={frame} />
+        <div
+          style={{
+            opacity: tagP * fadeOut,
+            transform: `translateY(${tagY}px)`,
+            fontFamily: "Inter, system-ui",
+            fontSize: 28,
+            fontWeight: 400,
+            color: "rgba(255,255,255,0.80)",
+            letterSpacing: -0.3,
+            marginTop: 24,
+          }}
+        >
+          Blue collar solutions for blue collar problems
         </div>
-      )}
-    </div>
+      </AbsoluteFill>
+    </AbsoluteFill>
   );
 };
 
 // =====================================================================
-// iOS HOME SCREEN — generic dark wallpaper, app grid, Kiva highlighted
+// SPARKLE DIRECTOR — purple 8-petal sparkle that darts between quadrants
 // =====================================================================
-const IOSHomeScreen: React.FC<{ frame: number; fps: number }> = ({
-  frame,
-  fps,
-}) => {
-  // Home reveal fade — phone display goes black → iOS home over PHONE_FADE_END..HOME_REVEAL_END
-  const reveal = interpolate(frame, [PHONE_FADE_END, HOME_REVEAL_END], [0, 1], {
+const SparkleDirector: React.FC<{ frame: number }> = ({ frame }) => {
+  // Entry fade F66-F72
+  const enter = interpolate(frame, [SPARKLE_IN, SPARKLE_IN + 6], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
-  if (reveal <= 0) return null;
 
-  // Kiva icon pulse — scale 1→1.04→1 every 30f
-  const kivaPulse = 1 + 0.04 * Math.sin((frame / 30) * Math.PI * 2);
+  // Determine sparkle position based on phase
+  let cx = SPARKLE_CENTER.x;
+  let cy = SPARKLE_CENTER.y;
+  let pulseScale = 1;
 
-  // Cursor enter → tap on Kiva icon
-  const cursorP = interpolate(frame, [CURSOR_ENTER, CURSOR_TAP], [0, 1], {
+  if (frame < FEATURE1) {
+    // Center hold
+    cx = SPARKLE_CENTER.x;
+    cy = SPARKLE_CENTER.y;
+  } else if (frame < FEATURES_END) {
+    // Determine which feature segment
+    const segs = [FEATURE1, FEATURE2, FEATURE3, FEATURE4];
+    let i = 0;
+    for (let k = 0; k < 4; k++) if (frame >= segs[k]) i = k;
+    const segStart = segs[i];
+    const t = frame - segStart; // 0..8
+    const prev =
+      i === 0 ? SPARKLE_CENTER : QUADRANTS[i - 1];
+    const target = QUADRANTS[i];
+    // F0-F2: dart from prev → target (motion blur in render-side via shadow)
+    const dartP = interpolate(t, [0, 2], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: EASE.inOutQuad,
+    });
+    cx = interpolate(dartP, [0, 1], [prev.x, target.x]);
+    cy = interpolate(dartP, [0, 1], [prev.y, target.y]);
+    // F2: pulse bright (scale 1→1.4→1 over t=2..5)
+    pulseScale = interpolate(t, [2, 3.5, 5], [1, 1.4, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
+  } else {
+    // After features, retreat to center for vortex
+    const retreatT = frame - FEATURES_END;
+    const last = QUADRANTS[3];
+    const p = interpolate(retreatT, [0, 4], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: EASE.inOutQuad,
+    });
+    cx = interpolate(p, [0, 1], [last.x, SPARKLE_CENTER.x]);
+    cy = interpolate(p, [0, 1], [last.y, SPARKLE_CENTER.y]);
+  }
+
+  // Vortex shrink F104-F110
+  const vortexP = interpolate(frame, [VORTEX_START, VORTEX_END], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
-  const cursorX = interpolate(cursorP, [0, 1], [240, 0]);
-  const showCursor = frame >= CURSOR_ENTER && frame < APP_EXPAND_START + 4;
+  const vortexScale = interpolate(vortexP, [0, 1], [1, 0]);
+  const vortexOpacity = interpolate(vortexP, [0, 1], [1, 0]);
 
-  // Click compress on Kiva icon
-  const tapT = frame - CURSOR_TAP;
-  const tapCompress =
-    tapT >= 0 && tapT < 6
-      ? interpolate(tapT, [0, 2, 4, 6], [1, 0.92, 1, 1])
-      : 1;
+  // Continuous rotation
+  const rotation = (frame - SPARKLE_IN) * 4;
 
-  // Click ripple
-  const rippleP = interpolate(frame, [CURSOR_TAP, CURSOR_TAP + 10], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outExpo,
-  });
-  const rippleOpacity = interpolate(
-    frame,
-    [CURSOR_TAP, CURSOR_TAP + 10],
-    [0.6, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-
-  // Generic app icons — colored rounded squares, dimmed to 50% during reveal
-  const otherIcons: { color: string; label: string }[] = [
-    { color: "#34C759", label: "Phn" },
-    { color: "#0A84FF", label: "Msg" },
-    { color: "#FF3B30", label: "Cam" },
-    { color: "#FF9500", label: "Cal" },
-    { color: "#AF52DE", label: "Ph" },
-    { color: "#5856D6", label: "Mp" },
-    { color: "#FF2D55", label: "Mu" },
-    { color: "#FFCC00", label: "Nt" },
-    { color: "#5AC8FA", label: "Sf" },
-    { color: "#FF6482", label: "Bk" },
-    { color: "#A2845E", label: "Wt" },
-  ];
+  const finalScale = enter * pulseScale * vortexScale;
 
   return (
     <div
       style={{
         position: "absolute",
-        inset: 0,
-        opacity: reveal,
-        background:
-          "linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%)",
-        paddingTop: 56,
-        paddingLeft: 18,
-        paddingRight: 18,
-        fontFamily: "Inter, system-ui",
+        left: cx,
+        top: cy,
+        transform: `translate(-50%, -50%) scale(${finalScale}) rotate(${rotation}deg)`,
+        opacity: enter * vortexOpacity,
+        pointerEvents: "none",
       }}
     >
-      {/* App grid — 4 cols × 4 rows, Kiva at row 1 col 0 (prominent position) */}
+      {/* Purple glow halo */}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 22,
-          marginTop: 30,
+          position: "absolute",
+          inset: -40,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(109,40,217,0.55) 0%, rgba(109,40,217,0) 70%)",
+          filter: "blur(20px)",
+          width: 160,
+          height: 160,
+          left: -40,
+          top: -40,
         }}
-      >
-        {/* Kiva app icon — full bright, pulsing */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 4,
-            transform: `scale(${kivaPulse * tapCompress})`,
-            position: "relative",
-          }}
-        >
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 14,
-              background: COLOR.navy,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: `0 0 ${10 + 6 * Math.sin((frame / 30) * Math.PI * 2)}px rgba(59,130,246,0.6)`,
-            }}
-          >
-            <svg width="36" height="36" viewBox="0 0 200 200">
-              <path
-                d="M62 100 L85 68 L95 78 L76 100 L95 122 L85 132 Z"
-                fill="#F8FAFC"
-              />
-              <path
-                d="M95 78 L118 68 L143 100 L118 132 L95 122 L114 100 Z"
-                fill={COLOR.blue}
-              />
-            </svg>
-          </div>
-          <div
-            style={{
-              fontSize: 9,
-              fontWeight: 600,
-              color: "#fff",
-              textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-            }}
-          >
-            Kiva
-          </div>
-          {/* Click ripple over Kiva icon */}
-          {frame >= CURSOR_TAP && (
-            <div
-              style={{
-                position: "absolute",
-                top: 28,
-                left: "50%",
-                transform: `translate(-50%, -50%) scale(${1 + rippleP * 1.8})`,
-                width: 56,
-                height: 56,
-                borderRadius: "50%",
-                border: `3px solid ${COLOR.blue}`,
-                opacity: rippleOpacity,
-                pointerEvents: "none",
-              }}
-            />
-          )}
-        </div>
-
-        {/* Other icons — dimmed 50% */}
-        {otherIcons.map((icon, i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 4,
-              opacity: 0.5,
-            }}
-          >
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 14,
-                background: icon.color,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 12,
-                fontWeight: 700,
-                color: "#fff",
-              }}
-            >
-              {icon.label}
-            </div>
-            <div
-              style={{
-                fontSize: 9,
-                fontWeight: 500,
-                color: "rgba(255,255,255,0.7)",
-              }}
-            >
-              App
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Cursor (rendered above app grid) */}
-      {showCursor && (
-        <div
-          style={{
-            position: "absolute",
-            top: 110,
-            left: 28,
-            transform: `translateX(${cursorX}px)`,
-            width: 32,
-            height: 32,
-            fontSize: 32,
-            color: "#fff",
-            pointerEvents: "none",
-            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
-          }}
-        >
-          ▲
-        </div>
-      )}
+      />
+      <Sparkle size={90} color={COLOR.aiPurple} />
+      {/* Burst particles when pulsing (pulseScale > 1.1) */}
+      {pulseScale > 1.05 && <BurstParticles count={12} />}
     </div>
   );
 };
 
+const Sparkle: React.FC<{ size: number; color: string }> = ({ size, color }) => {
+  // 8-petal sparkle: 4-pointed star + smaller diagonal
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      style={{ filter: `drop-shadow(0 0 8px ${color})` }}
+    >
+      <path
+        d="M50 8 L56 44 L92 50 L56 56 L50 92 L44 56 L8 50 L44 44 Z"
+        fill={color}
+      />
+      <path
+        d="M50 22 L52 48 L78 50 L52 52 L50 78 L48 52 L22 50 L48 48 Z"
+        fill="#fff"
+        opacity={0.55}
+      />
+    </svg>
+  );
+};
+
+const BurstParticles: React.FC<{ count: number }> = ({ count }) => {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => {
+        const ang = (i / count) * Math.PI * 2;
+        const r = 60;
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: 50 + Math.cos(ang) * r,
+              top: 50 + Math.sin(ang) * r,
+              width: 4,
+              height: 4,
+              borderRadius: "50%",
+              background: COLOR.aiPurple,
+              boxShadow: `0 0 6px ${COLOR.aiPurple}`,
+              opacity: 0.9,
+            }}
+          />
+        );
+      })}
+    </>
+  );
+};
+
 // =====================================================================
-// APP-LAUNCH EXPAND — Kiva icon scales fullscreen with easeOutCubic
+// FEATURE TEXTS — 4 kinetic-typography cards, one per feature
 // =====================================================================
-const AppLaunchExpand: React.FC<{ frame: number }> = ({ frame }) => {
-  const p = interpolate(
+const FeatureTexts: React.FC<{ frame: number }> = ({ frame }) => {
+  const segs = [FEATURE1, FEATURE2, FEATURE3, FEATURE4];
+  return (
+    <>
+      {FEATURES.map((feat, i) => {
+        const start = segs[i];
+        // Visible window: F(start+2) to F(start+8); particles dissolve F7-F8
+        const t = frame - start;
+        if (t < 2 || t > 9) return null;
+
+        // Text appears F2-F5 (kinetic punch)
+        const textP = interpolate(t, [2, 5], [0, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+          easing: EASE.outCubic,
+        });
+        // Hold F5-F7
+        // Dissolve F7-F8
+        const dissolve = interpolate(t, [7, 8.5], [1, 0], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        });
+        const opacity = textP * dissolve;
+        // Scale punch on the OUTCOME word: 1.0 → 1.08 → 1.0 over t=2..5
+        const punch = interpolate(t, [2, 3.5, 5], [1, 1.08, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        });
+        // Underline width grows 0 → 100% during text-in, fades on dissolve
+        const underlineW = interpolate(t, [2.5, 5], [0, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+          easing: EASE.outCubic,
+        });
+
+        const pos = QUADRANTS[i];
+        // Anchor: align verb-then-outcome on a single baseline; center at pos.
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: pos.x,
+              top: pos.y,
+              transform: "translate(-50%, -50%)",
+              opacity,
+              fontFamily: "Inter, system-ui",
+              color: "#fff",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 4,
+              pointerEvents: "none",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                gap: 16,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 32,
+                  fontWeight: 400,
+                  color: "rgba(255,255,255,0.80)",
+                  letterSpacing: -0.5,
+                }}
+              >
+                {feat.verb}
+              </span>
+              <span
+                style={{
+                  fontSize: 84,
+                  fontWeight: 700,
+                  color: "#fff",
+                  letterSpacing: -2,
+                  transform: `scale(${punch})`,
+                  display: "inline-block",
+                  textShadow:
+                    "0 4px 24px rgba(15,23,42,0.6), 0 0 32px rgba(109,40,217,0.4)",
+                }}
+              >
+                {feat.outcome}
+                <span style={{ color: COLOR.aiPurple }}>.</span>
+              </span>
+            </div>
+            {/* Soft purple underline beneath the bold word */}
+            <div
+              style={{
+                width: 240 * underlineW,
+                height: 3,
+                marginTop: 4,
+                marginLeft: 80, // shift right to underline outcome word, not verb
+                background: `linear-gradient(90deg, rgba(109,40,217,0) 0%, ${COLOR.aiPurple} 50%, rgba(109,40,217,0) 100%)`,
+                boxShadow: `0 0 8px ${COLOR.aiPurple}`,
+                opacity: dissolve,
+              }}
+            />
+          </div>
+        );
+      })}
+    </>
+  );
+};
+
+// =====================================================================
+// VORTEX PARTICLES — ~30 particles spiraling toward center F104-F110
+// =====================================================================
+const VortexParticles: React.FC<{ frame: number }> = ({ frame }) => {
+  const t = frame - VORTEX_START;
+  const dur = VORTEX_END - VORTEX_START;
+  const p = interpolate(t, [0, dur], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE.inOutQuad,
+  });
+  const fade = interpolate(t, [dur, dur + 4], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none" }}>
+      {Array.from({ length: 30 }).map((_, i) => {
+        const seed = i / 30;
+        const startAng = seed * Math.PI * 2 + (i % 2 ? 0.3 : -0.3);
+        const startR = 320 + (i % 5) * 30;
+        // Particles spiral inward — radius shrinks, angle increases
+        const r = interpolate(p, [0, 1], [startR, 0]);
+        const ang = startAng + p * Math.PI * 1.6;
+        const x = SPARKLE_CENTER.x + Math.cos(ang) * r;
+        const y = SPARKLE_CENTER.y + Math.sin(ang) * r;
+        const size = 4 + (i % 3) * 2;
+        const isPurple = i % 2 === 0;
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: x,
+              top: y,
+              width: size,
+              height: size,
+              borderRadius: "50%",
+              background: isPurple ? COLOR.aiPurple : COLOR.blue,
+              boxShadow: `0 0 ${size * 2}px ${
+                isPurple ? COLOR.aiPurple : COLOR.blue
+              }`,
+              opacity: fade,
+            }}
+          />
+        );
+      })}
+      {/* Center flare grows as p approaches 1 */}
+      <div
+        style={{
+          position: "absolute",
+          left: SPARKLE_CENTER.x,
+          top: SPARKLE_CENTER.y,
+          width: 200,
+          height: 200,
+          marginLeft: -100,
+          marginTop: -100,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(109,40,217,0.5) 30%, rgba(0,0,0,0) 70%)",
+          filter: "blur(12px)",
+          opacity: p * fade,
+          transform: `scale(${0.4 + p * 1.6})`,
+        }}
+      />
+    </AbsoluteFill>
+  );
+};
+
+// =====================================================================
+// PHONE MATERIALIZE — iPhone fades up from vortex flare, dashboard inside
+// =====================================================================
+const PhoneMaterialize: React.FC<{ frame: number; fps: number }> = ({
+  frame,
+  fps,
+}) => {
+  // Phone fade-in F110-F122
+  const phoneP = interpolate(
     frame,
-    [APP_EXPAND_START, APP_EXPAND_END],
+    [PHONE_MATERIALIZE, DASHBOARD_IN],
     [0, 1],
     {
       extrapolateLeft: "clamp",
@@ -425,119 +656,39 @@ const AppLaunchExpand: React.FC<{ frame: number }> = ({ frame }) => {
       easing: EASE.outCubic,
     }
   );
-  // Icon starts at home position (~row 1, col 0 of 4-col grid)
-  // From scale 1 to ~9 (filling 393-wide phone screen from a 56-wide icon)
-  const iconScale = interpolate(p, [0, 1], [1, 9]);
-  const iconOpacity = interpolate(p, [0, 0.7, 1], [1, 1, 0.5], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  // Approx home grid position for Kiva icon (top-left of grid)
-  const startX = 46;
-  const startY = 116;
-  // Move to phone center as it expands
-  const targetX = 196.5; // PHONE.width / 2
-  const targetY = 426; // PHONE.height / 2
-  const x = interpolate(p, [0, 1], [startX, targetX]);
-  const y = interpolate(p, [0, 1], [startY, targetY]);
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: x,
-        top: y,
-        transform: `translate(-50%, -50%) scale(${iconScale})`,
-        transformOrigin: "center center",
-        width: 56,
-        height: 56,
-        borderRadius: 14 * (1 - p * 0.5), // radius shrinks proportionally
-        background: COLOR.navy,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        opacity: iconOpacity,
-        boxShadow: `0 0 ${20 + 60 * p}px rgba(59,130,246,${0.5 + 0.4 * p})`,
-        pointerEvents: "none",
-      }}
-    >
-      <svg width="36" height="36" viewBox="0 0 200 200">
-        <path d="M62 100 L85 68 L95 78 L76 100 L95 122 L85 132 Z" fill="#F8FAFC" />
-        <path d="M95 78 L118 68 L143 100 L118 132 L95 122 L114 100 Z" fill={COLOR.blue} />
-      </svg>
-    </div>
-  );
-};
+  // Phone scale 0.9 → 1.0 over the materialize
+  const phoneScale = interpolate(phoneP, [0, 1], [0.9, 1]);
+  // Phone resting tilt rotateY -6, rotateX +3 (per §3.7.2 — handled by PhoneFrame defaults)
 
-// =====================================================================
-// KIVA SPLASH — chevron logo + "Kiva." wordmark + tagline
-// =====================================================================
-const KivaSplash: React.FC = () => {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: COLOR.navy,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 18,
-        fontFamily: "Inter, system-ui",
-      }}
-    >
-      {/* Soft radial glow behind lockup */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(circle at center, rgba(59,130,246,0.3) 0%, rgba(0,0,0,0) 60%)",
-          pointerEvents: "none",
-        }}
-      />
-      {/* Chevron */}
-      <KivaLogo size={80} glow={0.5} />
-      {/* Wordmark — "Kiva." with blue period */}
-      <div
-        style={{
-          fontSize: 22,
-          fontWeight: 600,
-          color: "#fff",
-          letterSpacing: -0.4,
-          position: "relative",
-        }}
-      >
-        Kiva<span style={{ color: COLOR.blue }}>.</span>
-      </div>
-      {/* Tagline */}
-      <div
-        style={{
-          fontSize: 12,
-          fontWeight: 400,
-          color: "rgba(255,255,255,0.8)",
-          textAlign: "center",
-          maxWidth: 280,
-          lineHeight: 1.3,
-          position: "relative",
-        }}
-      >
-        {TAGLINE}
-      </div>
-    </div>
-  );
-};
-
-// =====================================================================
-// DASHBOARD ENTRY — minimal Kiva dashboard preview + "All your admin. One place."
-// =====================================================================
-const DashboardEntry: React.FC<{ frame: number }> = ({ frame }) => {
-  // Caption fades in slightly after dashboard
-  const captionOpacity = interpolate(frame, [SPLASH_END + 4, SCENE_END], [0, 1], {
+  // Dashboard caption fades in F126-F132
+  const captionP = interpolate(frame, [DASHBOARD_IN + 4, SCENE_END], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
+
+  return (
+    <AbsoluteFill
+      style={{
+        justifyContent: "center",
+        alignItems: "center",
+        opacity: phoneP,
+      }}
+    >
+      <PhoneFrame scale={phoneScale}>
+        <DashboardEntry frame={frame} captionOpacity={captionP} />
+      </PhoneFrame>
+    </AbsoluteFill>
+  );
+};
+
+// =====================================================================
+// DASHBOARD ENTRY — minimal Kiva dashboard preview + caption
+// =====================================================================
+const DashboardEntry: React.FC<{ frame: number; captionOpacity: number }> = ({
+  frame,
+  captionOpacity,
+}) => {
   return (
     <div
       style={{
@@ -569,13 +720,22 @@ const DashboardEntry: React.FC<{ frame: number }> = ({ frame }) => {
           borderRadius: 14,
         }}
       >
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>
+        <div
+          style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}
+        >
           Today
         </div>
         <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>£0</div>
       </div>
       {/* Recent activity rows */}
-      <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
+      <div
+        style={{
+          padding: "12px 14px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+        }}
+      >
         <div
           style={{
             background: COLOR.surface,
