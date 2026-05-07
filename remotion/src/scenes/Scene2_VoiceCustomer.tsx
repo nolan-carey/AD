@@ -13,48 +13,52 @@ import { PhoneFrame } from "../components/PhoneFrame";
 import { SfxAt } from "../components/SfxAt";
 
 // =====================================================================
-// SCENE 2 — v1.40 (Sequence from absolute F228, local F0–F315, 10.5s)
-// Nominal scene window F240–F531 absolute; +12f crossfade pad on each end.
+// SCENE 2 — v1.41 (Sequence from absolute F228, local F0–F375, 12.5s)
+// Nominal scene window F240–F591 absolute; +12f crossfade pad on each end.
 //
-// v1.40 (2026-05-07): typing slowed 1 fpc → 2.5 fpc. Per-feature window
-// 28f → 43f. Per-char clicks dropped; ONE "poof" SFX per outcome word
-// landing (4 total). Post-features extended (vortex 10→16, logo→iPhone
-// 16→22, dashboard 15→24). 90%-overlap cadence preserved with new 25f
-// typing window — features stagger 28f apart (N+1 starts when N's typing
-// reaches ~90% of its 25f window).
+// v1.41 (2026-05-07): per user addendum, typing slowed further +
+// Scene 2 extended +2s. Per-feature window 43→60f. Verb 10→16f, breath
+// 2→3f, outcome 13→19f. Stagger 28→35f. Pill hold 24→36f. Dashboard
+// 24→34f. Scene 2: 291f → 351f. Plus v1.41 spec: F2 position
+// (1175,525)→(1255,510) for symmetric breathing; new kinetic text float
+// from each feature's poof until vortex.
 //
-// Local-frame map (Sequence starts at abs F228; spec frames F180–F471 map
-// to local F12–F303):
+// Local-frame map (Sequence starts at abs F228):
 //   F0–F12     crossfade-IN from Scene 1
 //   F12–F24    SWIPE-UP WIPE
 //   F24–F30    HARD SILENCE
 //   F30–F48    CENTERED BRAND LOCKUP fades up
 //   F48–F60    🫧 PILL inflates
-//   F60–F84    PILL holds with bubble texture
-//   F84–F90    PILL pops out + WORDMARK collapses
-//   F90–F102   LOGO ENLARGES alone center-stage
-//   F102–F114  AI SPARKLE emerges from enlarged logo
-//   F114–F241  🌀 4-FEATURE FLASH (each 43f, 90% overlap, 28f stagger):
-//                F114  F1 starts → poof at outcome final (F145)
-//                F142  F2 starts → poof (F173)
-//                F170  F3 starts → poof (F201)
-//                F198  F4 starts → poof (F229)
-//                F241  F4 ends; constellation collapse begins
-//   F241–F257  VORTEX (16f, was 10f)
-//   F257–F279  LOGO fades + iPhone materializes (22f, was 16f)
-//   F279–F303  Dashboard + caption (24f, was 15f)
-//   F303–F315  crossfade-OUT into Scene 3
+//   F60–F96    PILL holds (36f, was 24f — more reading time)
+//   F96–F102   PILL pops out + WORDMARK collapses
+//   F102–F114  LOGO ENLARGES alone center-stage
+//   F114–F126  AI SPARKLE emerges from enlarged logo
+//   F126–F291  🌀 4-FEATURE FLASH (each 60f, 35f stagger):
+//                F126  F1 starts → poof at outcome final (F169)
+//                F161  F2 starts → poof (F204)
+//                F196  F3 starts → poof (F239)
+//                F231  F4 starts → poof (F274)
+//                F291  F4 ends; constellation collapse begins
+//   F291–F307  VORTEX (16f)
+//   F307–F329  LOGO fades + iPhone materializes (22f cross-fade)
+//   F329–F363  Dashboard + caption (34f, was 24f)
+//   F363–F375  crossfade-OUT into Scene 3
 //
-// Per-feature 43-frame window timing (v1.40):
+// Per-feature 60-frame window timing (v1.41):
 //   t 0–2   sparkle dart
 //   t 2–6   icon line-draws (4f)
-//   t 6–16  verb types (10f, was 4f)
-//   t 16–18 1f→2f breath
-//   t 18–31 outcome types (13f, was 5f); poof SFX at outcome final char
-//   t 30    period appears (1f before outcome end)
-//   t 31–34 underline draws (3f)
-//   t 31–37 icon transforms to ACTIVE state (6f)
-//   t 37–43 drift content cycle (6f onset, then continuous loop)
+//   t 6–22  verb types (16f, was 10f — slowed)
+//   t 22–25 3f breath (was 2f)
+//   t 25–44 outcome types (19f, was 13f — slowed); poof at final char
+//   t 43    period appears (1f before outcome end)
+//   t 44–47 underline draws (3f)
+//   t 44–50 icon transforms to ACTIVE state (6f)
+//   t 50–60 drift content cycle (10f onset, then continuous loop)
+//
+// Kinetic text float (v1.41): from poof frame until VORTEX_START, the
+// text-block (verb+outcome+underline only, NOT the icon) drifts in a
+// subtle xy sine — translateX ±2 px over 90f, translateY ±1.5 px over
+// 75f, per-feature phase offsets 0°/90°/180°/270°.
 // =====================================================================
 
 const SWIPE_START = 12;
@@ -65,37 +69,36 @@ const LOCKUP_WORD_IN = 38;
 const LOCKUP_END = 48;
 const PILL_IN = 48;
 const PILL_HOLD_START = 60;
-const PILL_OUT_START = 84;
-const PILL_OUT_END = 90;
-const SPARKLE_IN = 102;
-// v1.40: features stagger 28f apart with new 43f windows (90% overlap)
-const FEATURE1 = 114;
-const FEATURE2 = 142; // +28
-const FEATURE3 = 170;
-const FEATURE4 = 198;
-const FEATURES_END = 241; // F4 + 43
-const VORTEX_START = 241;
-const VORTEX_END = 257; // 16f vortex (was 10f)
-const PHONE_MATERIALIZE = 257;
-const LOGO_FADE_END = 273; // 16f logo fade (was 12f)
-const DASHBOARD_IN = 279; // 22f phone fade-in (was 16f)
-const SCENE_END = 303; // 24f dashboard (was 15f)
-const FEATURE_DURATION = 43;
+const PILL_OUT_START = 96; // was 84; +12 for longer hold
+const PILL_OUT_END = 102; // was 90; popout still 6f
+const SPARKLE_IN = 114; // was 102; logo enlarge 12f preserved
+// v1.41: features stagger 35f apart (was 28f) with new 60f windows
+const FEATURE1 = 126; // was 114; sparkle entrance 12f preserved
+const FEATURE2 = 161; // was 142; +35 stagger (was +28)
+const FEATURE3 = 196;
+const FEATURE4 = 231;
+const FEATURES_END = 291; // F4 + 60
+const VORTEX_START = 291;
+const VORTEX_END = 307; // 16f vortex
+const PHONE_MATERIALIZE = 307;
+const LOGO_FADE_END = 323; // 16f logo fade
+const DASHBOARD_IN = 329; // 22f phone fade-in
+const SCENE_END = 363; // was 303; 34f dashboard (+10)
+const FEATURE_DURATION = 60;
 
 // Centered logo focal point (1920×1080 frame)
 const CENTER = { x: 960, y: 540 };
 
-// v1.34 organic positions, with v1.37 F2 fix — F2 pulled LEFT 70 px so
-// the big "profile." outcome word doesn't clip the right frame edge.
-// Position = LEFT edge of icon; whole composition extends rightward.
+// v1.34/v1.41 organic positions — v1.41 pushes F2 outward to match F4
+// distance for symmetric constellation breathing.
 //   F1 (975, 290) distance ~252 px
-//   F2 (1175, 525) distance ~225 px (was 1245 in v1.34/v1.36, -70 px)
+//   F2 (1255, 510) distance ~296 px (was 1175,525 in v1.37; v1.41 pushed right)
 //   F3 (945, 805) distance ~265 px
 //   F4 (665, 570) distance ~296 px
-const ORBIT_BASE_RADIUS = 275;
+const ORBIT_BASE_RADIUS = 280;
 const ORGANIC_POSITIONS = [
   { x: 975, y: 290 }, // 🎙 F1
-  { x: 1175, y: 525 }, // 👤 F2 — v1.37: pulled LEFT 70 px (was 1245)
+  { x: 1255, y: 510 }, // 👤 F2 — v1.41: matches F4 distance for symmetry
   { x: 945, y: 805 }, // 🗺 F3
   { x: 665, y: 570 }, // 🤝 F4
 ];
@@ -936,23 +939,23 @@ const BurstParticles: React.FC<{ count: number }> = ({ count }) => {
 //   t 16+   drift content emits (handled inside FeatureIcon)
 // =====================================================================
 
-// v1.40 per-feature pacing breakdown (within the 43-frame window):
+// v1.41 per-feature pacing (within the 60-frame window) — slowed typing:
 //   t 0–2   sparkle dart (2f)
 //   t 2–6   icon line-draws (4f)
-//   t 6–16  VERB types (10f at 2.5 fpc — was 4f)
-//   t 16–18 2f breath (was 1f)
-//   t 18–31 OUTCOME types (13f at 2.5 fpc — was 5f); poof SFX at final char
-//   t 30    period appears (1f before outcome end)
-//   t 31–34 underline draws (3f, overlaps morph)
-//   t 31–37 icon transforms to ACTIVE state (6f)
-//   t 37–43 drift onset (6f) + continuous loop while feature persists
+//   t 6–22  VERB types (16f, was 10f — slowed further per user direction)
+//   t 22–25 3f breath (was 2f)
+//   t 25–44 OUTCOME types (19f, was 13f — slowed); poof SFX at final char
+//   t 43    period appears (1f before outcome end)
+//   t 44–47 underline draws (3f, overlaps morph)
+//   t 44–50 icon transforms to ACTIVE state (6f)
+//   t 50–60 drift onset (10f) + continuous loop while feature persists
 const VERB_TYPE_START = 6;
-const VERB_TYPE_END = 16;
-const OUTCOME_TYPE_START = 18;
-const OUTCOME_TYPE_END = 31;
-const PERIOD_FRAME = 30;
-const UNDERLINE_DRAW_START = 31;
-const UNDERLINE_DRAW_END = 34;
+const VERB_TYPE_END = 22;
+const OUTCOME_TYPE_START = 25;
+const OUTCOME_TYPE_END = 44;
+const PERIOD_FRAME = 43;
+const UNDERLINE_DRAW_START = 44;
+const UNDERLINE_DRAW_END = 47;
 
 function visibleChars(text: string, t: number, startFrame: number, endFrame: number): string {
   if (t < startFrame) return "";
@@ -1066,13 +1069,27 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
           >
             {/* v1.33 layout: ICON on LEFT, text on RIGHT */}
             <FeatureIcon index={i} localTime={t} />
-            {/* TEXT BLOCK (right) — verb stacked above outcome, underline below */}
+            {/* TEXT BLOCK (right) — verb stacked above outcome, underline below
+                v1.41: kinetic xy-sine float once typing completes (poof) */}
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "flex-start",
                 gap: 0,
+                transform: (() => {
+                  // Float runs from poof frame until VORTEX_START
+                  const floatStartT = OUTCOME_TYPE_END - 1;
+                  if (t < floatStartT || frame >= VORTEX_START) {
+                    return undefined;
+                  }
+                  const phaseDeg = i * 90; // 0/90/180/270 per feature
+                  const phaseRad = (phaseDeg * Math.PI) / 180;
+                  const ft = t - floatStartT;
+                  const fx = 2 * Math.sin((ft / 90) * 2 * Math.PI + phaseRad);
+                  const fy = 1.5 * Math.sin((ft / 75) * 2 * Math.PI + phaseRad);
+                  return `translate(${fx}px, ${fy}px)`;
+                })(),
               }}
             >
               <div
@@ -1404,12 +1421,12 @@ const ICON_SIZE = 104; // v1.34: ~12% larger; balances the 72-px outcome word
 const ICON_GLOW_FILTER =
   "drop-shadow(0 0 8px rgba(59,130,246,0.55)) drop-shadow(0 0 4px rgba(59,130,246,0.4))";
 
-// Phase transition frames (relative to feature start) — v1.40 pacing
+// Phase transition frames (relative to feature start) — v1.41 pacing
 const ICON_DRAW_START = 2;
 const ICON_DRAW_END = 6; // 4f line-draw
-const ICON_MORPH_START = 31; // was 16; shifts because typing is now 25f
-const ICON_MORPH_END = 37; // 6f morph
-const DRIFT_START = 37; // was 22; shifts to after morph
+const ICON_MORPH_START = 44; // shifts because typing is now 38f total
+const ICON_MORPH_END = 50; // 6f morph
+const DRIFT_START = 50; // 10f drift onset (longer because window grew)
 
 const FeatureIcon: React.FC<{ index: number; localTime: number }> = ({
   index,
