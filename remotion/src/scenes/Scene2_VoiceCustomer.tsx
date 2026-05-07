@@ -79,16 +79,18 @@ const FEATURE_DURATION = 19;
 // Centered logo focal point (1920×1080 frame)
 const CENTER = { x: 960, y: 540 };
 
-// v1.29 organic positions — deliberately NOT a perfect 12/3/6/9 clock face.
-// Distances vary 310–346 px (not uniform 280). Angles offset 5–15° from
-// exact compass points. Deterministic — these are fixed values, not random
-// per render.
-const ORBIT_BASE_RADIUS = 310; // visual reference for the orbit ring
+// v1.34 organic positions — pulled IN closer to centered logo (reverses
+// v1.33's outward push). Tighter constellation, more visual punch.
+//   F1 (975, 290) distance ~252 px
+//   F2 (1245, 525) distance ~286 px
+//   F3 (945, 805) distance ~265 px
+//   F4 (665, 570) distance ~296 px
+const ORBIT_BASE_RADIUS = 275;
 const ORGANIC_POSITIONS = [
-  { x: 985, y: 235 }, // 🎙 F1 — ~12 o'clock-ish, slightly right (+25, -305)
-  { x: 1305, y: 510 }, // 👤 F2 — ~3 o'clock-ish, slightly higher
-  { x: 940, y: 880 }, // 🗺 F3 — ~6 o'clock-ish, slightly left
-  { x: 620, y: 570 }, // 🤝 F4 — ~9 o'clock-ish, slightly lower
+  { x: 975, y: 290 }, // 🎙 F1
+  { x: 1245, y: 525 }, // 👤 F2
+  { x: 945, y: 805 }, // 🗺 F3
+  { x: 665, y: 570 }, // 🤝 F4
 ];
 // Per-feature angle (radians) computed from the organic position above
 const ORGANIC_ANGLES = ORGANIC_POSITIONS.map((p) =>
@@ -244,9 +246,21 @@ const SwipeUpVeil: React.FC<{ frame: number }> = ({ frame }) => {
 };
 
 // =====================================================================
-// CENTERED LOCKUP — chevron logo + "Kiva." wordmark, stays put forever
-// (until F122-F130 cross-fade with iPhone)
+// CENTERED LOCKUP (v1.34) — chevron + "Kiva." wordmark, with wordmark
+// collapse + logo enlarge transition at the pill pop-out beat:
+//   F72–F75 (3f): wordmark collapses INTO ITSELF (scaleX 1→0.6,
+//                  scaleY 1→0.4, opacity 1→0). Pill pops out in parallel.
+//   F75–F78 (3f): chevron LOGO ENLARGES to take freed space (scale
+//                  1.0→1.4 easeOutCubic) + blue glow halo intensifies.
+//   F78+:        sparkle emerges from the now-enlarged logo.
+//   F122–F130:   logo fades as iPhone materializes (cross-fade).
 // =====================================================================
+const WORDMARK_COLLAPSE_START = PILL_OUT_START; // F72
+const WORDMARK_COLLAPSE_END = PILL_OUT_START + 3; // F75 — fully gone
+const LOGO_ENLARGE_START = WORDMARK_COLLAPSE_END; // F75
+const LOGO_ENLARGE_END = LOGO_ENLARGE_START + 3; // F78
+const LOGO_ENLARGED_SCALE = 1.4;
+
 const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
   frame,
   fps,
@@ -268,6 +282,39 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
   });
   const wordY = interpolate(wordP, [0, 1], [6, 0]);
 
+  // v1.34: wordmark collapses into itself at PILL_OUT_START (F72-F75)
+  const collapseP = interpolate(
+    frame,
+    [WORDMARK_COLLAPSE_START, WORDMARK_COLLAPSE_END],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: EASE.inCubic,
+    }
+  );
+  const wordScaleX = interpolate(collapseP, [0, 1], [1, 0.6]);
+  const wordScaleY = interpolate(collapseP, [0, 1], [1, 0.4]);
+  const wordOpacity = (1 - collapseP) * wordP;
+
+  // v1.34: logo enlarges F75-F78 (after wordmark collapses)
+  const enlargeP = interpolate(
+    frame,
+    [LOGO_ENLARGE_START, LOGO_ENLARGE_END],
+    [0, 1],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: EASE.outCubic,
+    }
+  );
+  // After enlarging, logo stays at LOGO_ENLARGED_SCALE
+  const liveLogoScale =
+    frame < LOGO_ENLARGE_START
+      ? 1
+      : interpolate(enlargeP, [0, 1], [1, LOGO_ENLARGED_SCALE]);
+  const finalLogoScale = logoEnterScale * liveLogoScale;
+
   // Logo fades F122-F130 as iPhone materializes
   const fadeOut = interpolate(frame, [PHONE_MATERIALIZE, LOGO_FADE_END], [1, 0], {
     extrapolateLeft: "clamp",
@@ -275,10 +322,17 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
   });
 
   // Pulse glow during pill hold (F57-F72) — gentle breathing
-  const glowPulse =
+  const holdGlow =
     frame >= PILL_HOLD_START && frame < PILL_OUT_START
       ? 0.5 + 0.15 * Math.sin(((frame - PILL_HOLD_START) / 12) * Math.PI * 2)
       : 0.55;
+  // Logo glow intensifies during enlarge (v1.34)
+  const enlargedGlow = 0.55 + enlargeP * 0.4;
+  const finalGlow = frame >= LOGO_ENLARGE_START ? enlargedGlow : holdGlow;
+  // Background radial glow brightens with enlarge
+  const bgGlowOpacity =
+    logoEnter *
+    (frame >= LOGO_ENLARGE_START ? Math.min(1, 1 + enlargeP * 0.6) : holdGlow);
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none", opacity: fadeOut }}>
@@ -286,33 +340,34 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
       <AbsoluteFill
         style={{
           background:
-            "radial-gradient(circle at 50% 50%, rgba(59,130,246,0.32) 0%, rgba(59,130,246,0) 45%)",
+            "radial-gradient(circle at 50% 50%, rgba(59,130,246,0.34) 0%, rgba(59,130,246,0) 45%)",
           filter: "blur(40px)",
-          opacity: logoEnter * glowPulse,
+          opacity: bgGlowOpacity,
         }}
       />
 
-      {/* Centered chevron */}
+      {/* Centered chevron — enlarges at v1.34 transition */}
       <div
         style={{
           position: "absolute",
           left: CENTER.x,
           top: CENTER.y - 40,
-          transform: `translate(-50%, -50%) scale(${logoEnterScale})`,
+          transform: `translate(-50%, -50%) scale(${finalLogoScale})`,
           opacity: logoEnter,
         }}
       >
-        <KivaLogo size={170} glow={0.55 * glowPulse} />
+        <KivaLogo size={170} glow={finalGlow} />
       </div>
 
-      {/* "Kiva." wordmark — sits below chevron */}
+      {/* "Kiva." wordmark — collapses into its period at PILL_OUT_START */}
       <div
         style={{
           position: "absolute",
           left: CENTER.x,
           top: CENTER.y + 100,
-          transform: `translate(-50%, -50%) translateY(${wordY}px)`,
-          opacity: wordP,
+          transform: `translate(-50%, -50%) translateY(${wordY}px) scaleX(${wordScaleX}) scaleY(${wordScaleY})`,
+          transformOrigin: "right center",
+          opacity: wordOpacity,
           fontFamily: "Inter, system-ui",
           fontSize: 60,
           fontWeight: 600,
@@ -884,14 +939,21 @@ const BurstParticles: React.FC<{ count: number }> = ({ count }) => {
 //   t 16+   drift content emits (handled inside FeatureIcon)
 // =====================================================================
 
-// Per-feature char-land frame helpers
-const VERB_TYPE_START = 6;
-const VERB_TYPE_END = 10;
-const OUTCOME_TYPE_START = 10;
-const OUTCOME_TYPE_END = 18;
-const PERIOD_FRAME = 17;
-const UNDERLINE_DRAW_START = 18;
-const UNDERLINE_DRAW_END = 19;
+// v1.33 per-feature pacing breakdown (within the 19-frame window):
+//   t 0–2   sparkle dart (2f)
+//   t 2–5   icon line-draws (3f, +1f vs v1.32 — more deliberate)
+//   t 5–12  TEXT typing (7f total): verb t5–t8, outcome t8–t12
+//   t 11    period appears (1f before final char to land cleanly)
+//   t 12–17 icon transforms to ACTIVE state (5f, +1f vs v1.32 — more breath)
+//   t 12–15 underline draws-in (overlaps morph)
+//   t 17–19 drift onset (2f), then continuous while feature persists
+const VERB_TYPE_START = 5;
+const VERB_TYPE_END = 8;
+const OUTCOME_TYPE_START = 8;
+const OUTCOME_TYPE_END = 12;
+const PERIOD_FRAME = 11;
+const UNDERLINE_DRAW_START = 12;
+const UNDERLINE_DRAW_END = 15;
 
 function visibleChars(text: string, t: number, startFrame: number, endFrame: number): string {
   if (t < startFrame) return "";
@@ -997,30 +1059,33 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
               display: "flex",
               flexDirection: "row",
               alignItems: "center",
-              gap: 24,
+              gap: 28,
+              padding: 12,
               pointerEvents: "none",
               zIndex: 40,
             }}
           >
-            {/* TEXT BLOCK (left) — verb stacked above outcome, underline below */}
+            {/* v1.33 layout: ICON on LEFT, text on RIGHT */}
+            <FeatureIcon index={i} localTime={t} />
+            {/* TEXT BLOCK (right) — verb stacked above outcome, underline below */}
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "flex-end",
+                alignItems: "flex-start",
                 gap: 0,
               }}
             >
               <div
                 style={{
-                  fontSize: 22,
+                  fontSize: 32,
                   fontWeight: 400,
                   color: "rgba(255,255,255,0.80)",
-                  letterSpacing: -0.3,
+                  letterSpacing: -0.4,
                   whiteSpace: "nowrap",
                   lineHeight: 1.0,
                   marginBottom: 4,
-                  minHeight: 22,
+                  minHeight: 32,
                 }}
               >
                 {verbVisible}
@@ -1031,7 +1096,7 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
                       style={{
                         display: "inline-block",
                         width: 2,
-                        height: 18,
+                        height: 26,
                         background: "rgba(255,255,255,0.7)",
                         marginLeft: 2,
                         verticalAlign: "middle",
@@ -1041,12 +1106,12 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
               </div>
               <div
                 style={{
-                  fontSize: 60,
+                  fontSize: 72,
                   fontWeight: 700,
                   color: "#fff",
-                  letterSpacing: -1.5,
+                  letterSpacing: -1.8,
                   transform: `scale(${punch})`,
-                  transformOrigin: "right center",
+                  transformOrigin: "left center",
                   whiteSpace: "nowrap",
                   lineHeight: 1.0,
                   textShadow:
@@ -1064,7 +1129,7 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
                       style={{
                         display: "inline-block",
                         width: 4,
-                        height: 48,
+                        height: 58,
                         background: "rgba(255,255,255,0.85)",
                         marginLeft: 4,
                         verticalAlign: "middle",
@@ -1072,22 +1137,19 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
                     />
                   )}
               </div>
-              {/* Underline beneath outcome word */}
+              {/* Underline beneath outcome word — left-aligned now (text on right of icon) */}
               <div
                 style={{
                   width: 180 * underlineW,
                   height: 3,
                   marginTop: 6,
-                  alignSelf: "flex-end",
+                  alignSelf: "flex-start",
                   background: `linear-gradient(90deg, rgba(109,40,217,0) 0%, ${COLOR.aiPurple} 50%, rgba(109,40,217,0) 100%)`,
                   boxShadow: `0 0 8px ${COLOR.aiPurple}`,
                   opacity: dissolve,
                 }}
               />
             </div>
-
-            {/* ICON BLOCK (right) — line-draws, then morphs to active state */}
-            <FeatureIcon index={i} localTime={t} />
           </div>
         );
       })}
@@ -1338,16 +1400,16 @@ const DashboardEntry: React.FC<{ captionOpacity: number }> = ({
 //          drifting "Hi John, just following up..."
 // =====================================================================
 
-const ICON_SIZE = 92; // Sized to roughly match the OUTCOME word height (~60px) + padding
+const ICON_SIZE = 104; // v1.34: ~12% larger; balances the 72-px outcome word
 const ICON_GLOW_FILTER =
   "drop-shadow(0 0 8px rgba(109,40,217,0.55)) drop-shadow(0 0 4px rgba(109,40,217,0.4))";
 
-// Phase transition frames (relative to feature start)
+// Phase transition frames (relative to feature start) — v1.33 pacing
 const ICON_DRAW_START = 2;
-const ICON_DRAW_END = 4;
+const ICON_DRAW_END = 5; // +1f for more deliberate line-draw
 const ICON_MORPH_START = 12;
-const ICON_MORPH_END = 16;
-const DRIFT_START = 16;
+const ICON_MORPH_END = 17; // +1f for more breath in the morph
+const DRIFT_START = 17;
 
 const FeatureIcon: React.FC<{ index: number; localTime: number }> = ({
   index,
