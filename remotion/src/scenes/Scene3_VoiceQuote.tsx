@@ -52,19 +52,7 @@ export const Scene3VoiceQuote: React.FC = () => {
         <DashboardSimple frame={frame} fps={fps} />
       </PhoneFrame>
 
-      {/* === AUDIO === */}
-      <SfxAt
-        src={GEN.aiHum}
-        from={0}
-        loop
-        volume={(f) =>
-          interpolate(f, [0, 8, 95, 105], [0, 0.08, 0.08, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        durationInFrames={105}
-      />
+      {/* === AUDIO === user-stripped: scene plays silent (no dings or clicks here) */}
     </AbsoluteFill>
   );
 };

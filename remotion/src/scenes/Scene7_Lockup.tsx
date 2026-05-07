@@ -99,26 +99,7 @@ export const Scene7Lockup: React.FC = () => {
       {/* "32 min saved today" — slides up from bottom */}
       {frame >= RESULT_CARD && <ResultCard frame={frame} fps={fps} />}
 
-      {/* === AUDIO === */}
-      <SfxAt
-        src={GEN.bedSpatial}
-        from={0}
-        loop
-        volume={(f) =>
-          interpolate(f, [0, 8, 80, 90], [0, 0.10, 0.10, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        durationInFrames={SCENE_END}
-      />
-      <SfxAt src={GEN.mapZoom} from={0} volume={0.32} />
-      <SfxAt
-        src={GEN.routeFlow}
-        from={ROUTE_DRAW_START}
-        volume={0.2}
-      />
-      <SfxAt src={GEN.achievement} from={RESULT_CARD + 10} volume={0.32} />
+      {/* === AUDIO === user-stripped */}
     </AbsoluteFill>
   );
 };

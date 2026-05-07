@@ -89,27 +89,13 @@ export const Scene4Expense: React.FC = () => {
         )}
       </PhoneFrame>
 
-      {/* === AUDIO === */}
-      <SfxAt
-        src={GEN.bedPrecise}
-        from={0}
-        loop
-        volume={(f) =>
-          interpolate(f, [0, 8, 95, 105], [0, 0.08, 0.08, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        durationInFrames={SCENE_END}
-      />
+      {/* === AUDIO === user-stripped: only the mic-activate ding remains */}
       <SfxAt
         src={SFX.notification1}
         from={0}
         volume={0.5}
         playbackRate={Math.pow(2, 4 / 12)}
       />
-      <SfxAt src={GEN.counterRoll} from={QUOTE_CARD_START + 4} volume={0.32} />
-      <SfxAt src={SFX.impact2} from={QUOTE_CARD_START + 22} volume={0.4} />
     </AbsoluteFill>
   );
 };

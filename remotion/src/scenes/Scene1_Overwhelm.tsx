@@ -354,24 +354,7 @@ export const Scene1Overwhelm: React.FC = () => {
 
       <HookText frame={frame} />
 
-      {/* === AUDIO === */}
-      {/* Phone vibration loop frames 0–180 — sustains through held-silence
-          (was cut at swoosh F156 in v1.21; v1.22 keeps it alive until end of
-          Scene 1 since the swoosh has moved to Scene 2 frame 0). */}
-      <SfxAt
-        src={GEN.phoneVibration}
-        from={0}
-        volume={(f) =>
-          interpolate(
-            f,
-            [0, 30, 100, FREEZE_START, SCENE_END],
-            [0.08, 0.13, 0.18, 0.22, 0.22],
-            { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-          )
-        }
-        loop
-        durationInFrames={SCENE_END}
-      />
+      {/* === AUDIO === user-stripped: only message dings + typewriter clicks remain */}
 
       {/* Per-card dings — all fire at landFrame - 2 */}
       {DINGS.map((d) => {
@@ -394,22 +377,6 @@ export const Scene1Overwhelm: React.FC = () => {
           />
         );
       })}
-
-      {/* Riser tension build — peaks at FREEZE_START (F168) and sustains through
-          held-silence per v1.22 spec ("riser.mp3 peaks at F172 and sustains at peak"). */}
-      <SfxAt
-        src={SFX.riser}
-        from={75}
-        volume={(f) =>
-          interpolate(
-            f,
-            [0, 30, 90, 100, SCENE_END - 75],
-            [0, 0.55, 0.85, 0.95, 0.95],
-            { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-          )
-        }
-        durationInFrames={SCENE_END - 75}
-      />
 
       {/* v1.22 typing clicks — every-other char at 25% (sparse, reads as typing) */}
       {[1, 3, 5].map((i) => (

@@ -65,21 +65,7 @@ export const Scene6FollowUpAssistant: React.FC = () => {
         <ReceiptToExpense frame={frame} fps={fps} />
       </PhoneFrame>
 
-      {/* === AUDIO === */}
-      <SfxAt
-        src={GEN.bedTactile}
-        from={0}
-        loop
-        volume={(f) =>
-          interpolate(f, [0, 8, 80, 90], [0, 0.08, 0.08, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        durationInFrames={SCENE_END}
-      />
-      <SfxAt src={GEN.scanSweep} from={SCAN_START} volume={0.25} />
-      <SfxAt src={GEN.sparkleMatch} from={TAGS_START + 18} volume={0.32} />
+      {/* === AUDIO === user-stripped */}
     </AbsoluteFill>
   );
 };

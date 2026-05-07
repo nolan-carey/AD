@@ -40,7 +40,7 @@ import { Scene10FinalHero } from "./scenes/Scene10_FinalHero";
 // AIGlow halo cycles between idle/active per scene.
 // =====================================================================
 
-const HAS_MUSIC_BED = true; // v1.18 bed at Sound/music/bed.mp3 (regenerate v1.21+ when prompt re-timed)
+const HAS_MUSIC_BED = false; // user-stripped — only dings + typewriter clicks remain in the mix
 
 // 12-frame crossfade overlap between scenes (morph transition per §3.7.4)
 const CROSSFADE = 12;

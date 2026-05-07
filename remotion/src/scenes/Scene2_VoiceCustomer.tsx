@@ -92,44 +92,8 @@ export const Scene2VoiceCustomer: React.FC = () => {
       )}
 
       {/* === AUDIO === */}
-      {/* Swoosh at F0, then HARD silence F6→F12 */}
-      <SfxAt src={SFX.swoosh} from={0} volume={1.0} />
-      {/* iPhone materialize whirr during fade-in */}
-      <SfxAt
-        src={GEN.morphWhirr}
-        from={SWOOSH_END}
-        volume={0.35}
-        durationInFrames={20}
-      />
-      {/* AI hum begins underbed at home reveal */}
-      <SfxAt
-        src={GEN.aiHum}
-        from={PHONE_FADE_END}
-        loop
-        volume={(f) =>
-          interpolate(f, [0, 8, 60], [0, 0.08, 0.08], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        durationInFrames={SCENE_END - PHONE_FADE_END}
-      />
-      {/* Cursor click on Kiva icon */}
+      {/* user-stripped: only the cursor-click on the Kiva icon remains */}
       <SfxAt src={SFX.click} from={CURSOR_TAP} volume={0.85} />
-      {/* App-launch whoosh as icon expands */}
-      <SfxAt
-        src={SFX.swoosh}
-        from={APP_EXPAND_START}
-        volume={0.55}
-        playbackRate={0.9}
-      />
-      {/* "App loaded" chime when dashboard fades in */}
-      <SfxAt
-        src={SFX.notification1}
-        from={SPLASH_END + 4}
-        volume={0.3}
-        playbackRate={Math.pow(2, 5 / 12)}
-      />
     </AbsoluteFill>
   );
 };

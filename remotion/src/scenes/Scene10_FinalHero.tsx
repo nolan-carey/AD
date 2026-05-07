@@ -164,19 +164,7 @@ export const Scene10FinalHero: React.FC = () => {
         </div>
       </AbsoluteFill>
 
-      {/* === AUDIO === */}
-      <SfxAt
-        src={GEN.outroDrone}
-        from={0}
-        volume={(f) =>
-          interpolate(f, [0, 12, 50, 60], [0.18, 0.26, 0.22, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        durationInFrames={SCENE_END}
-      />
-      <SfxAt src={GEN.achievement} from={LOGO_IN + 6} volume={0.32} />
+      {/* === AUDIO === user-stripped */}
     </AbsoluteFill>
   );
 };

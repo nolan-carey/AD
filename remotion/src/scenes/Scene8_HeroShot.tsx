@@ -68,19 +68,7 @@ export const Scene8HeroShot: React.FC = () => {
         <FollowUpFlow frame={frame} fps={fps} />
       </PhoneFrame>
 
-      {/* === AUDIO === */}
-      <SfxAt
-        src={GEN.bedConversational}
-        from={0}
-        loop
-        volume={(f) =>
-          interpolate(f, [0, 8, 80, 90], [0, 0.08, 0.08, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        durationInFrames={SCENE_END}
-      />
+      {/* === AUDIO === user-stripped: only typing-dot ticks remain */}
       {[32, 35, 38].map((f) => (
         <SfxAt
           key={`type-${f}`}
@@ -90,8 +78,6 @@ export const Scene8HeroShot: React.FC = () => {
           playbackRate={1.4}
         />
       ))}
-      <SfxAt src={SFX.swoosh} from={SEND_FRAME} volume={0.55} />
-      <SfxAt src={GEN.achievement} from={SUCCESS_BADGE} volume={0.32} />
     </AbsoluteFill>
   );
 };

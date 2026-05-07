@@ -63,20 +63,7 @@ export const Scene9BusinessAssistant: React.FC = () => {
         <AssistantFlow frame={frame} fps={fps} />
       </PhoneFrame>
 
-      {/* === AUDIO === */}
-      <SfxAt
-        src={GEN.bedConversational}
-        from={0}
-        loop
-        volume={(f) =>
-          interpolate(f, [0, 8, 110, 120], [0, 0.08, 0.08, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        durationInFrames={SCENE_END}
-      />
-      {/* Sparse typing ticks during query */}
+      {/* === AUDIO === user-stripped: only query-typing ticks remain */}
       {[24, 30, 36, 42, 48, 54].map((f) => (
         <SfxAt
           key={`q-tick-${f}`}
@@ -86,8 +73,6 @@ export const Scene9BusinessAssistant: React.FC = () => {
           playbackRate={1.1}
         />
       ))}
-      <SfxAt src={GEN.counterRoll} from={MAIN_CARD_EXPAND} volume={0.28} />
-      <SfxAt src={GEN.achievement} from={MAIN_CARD_EXPAND + 10} volume={0.32} />
     </AbsoluteFill>
   );
 };

@@ -68,20 +68,7 @@ export const Scene5Route: React.FC = () => {
       {/* Success badge — floats outside the phone, top-right */}
       {frame >= SUCCESS_BADGE && <SuccessBadge frame={frame} fps={fps} />}
 
-      {/* === AUDIO === */}
-      <SfxAt
-        src={GEN.bedIntimate}
-        from={0}
-        loop
-        volume={(f) =>
-          interpolate(f, [0, 8, 50, 60], [0, 0.08, 0.08, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-        durationInFrames={SCENE_END}
-      />
-      <SfxAt src={GEN.achievement} from={SUCCESS_BADGE} volume={0.32} />
+      {/* === AUDIO === user-stripped */}
     </AbsoluteFill>
   );
 };
