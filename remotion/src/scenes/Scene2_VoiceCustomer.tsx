@@ -13,20 +13,18 @@ import { PhoneFrame } from "../components/PhoneFrame";
 import { SfxAt } from "../components/SfxAt";
 
 // =====================================================================
-// SCENE 2 — v1.38 (Sequence from absolute F228, local F0–F240, 8.0s)
-// Nominal scene window F240–F456 absolute; +12f crossfade pad on each end.
+// SCENE 2 — v1.40 (Sequence from absolute F228, local F0–F315, 10.5s)
+// Nominal scene window F240–F531 absolute; +12f crossfade pad on each end.
 //
-// v1.38 (2026-05-07): features now OVERLAP at 90% — feature N+1 starts
-// when feature N's text typing hits 90% (relative t=15 in its 28f window).
-// Each feature still runs its full 28f animation; the trailing icon-
-// transform + drift onset of N runs IN PARALLEL with the early sparkle-
-// dart + line-draw + typing of N+1. Continuously-moving stream rather
-// than discrete-then-pause beats. Feature flash section: 130f → 73f.
-// All v1.32–v1.36 inner-feature specs preserved (28f animation, active-
-// state icon transforms, drifting content, kinetic typography).
+// v1.40 (2026-05-07): typing slowed 1 fpc → 2.5 fpc. Per-feature window
+// 28f → 43f. Per-char clicks dropped; ONE "poof" SFX per outcome word
+// landing (4 total). Post-features extended (vortex 10→16, logo→iPhone
+// 16→22, dashboard 15→24). 90%-overlap cadence preserved with new 25f
+// typing window — features stagger 28f apart (N+1 starts when N's typing
+// reaches ~90% of its 25f window).
 //
-// Local-frame map (Sequence starts at abs F228; spec frames F180–F396 map
-// to local F12–F228):
+// Local-frame map (Sequence starts at abs F228; spec frames F180–F471 map
+// to local F12–F303):
 //   F0–F12     crossfade-IN from Scene 1
 //   F12–F24    SWIPE-UP WIPE
 //   F24–F30    HARD SILENCE
@@ -36,24 +34,27 @@ import { SfxAt } from "../components/SfxAt";
 //   F84–F90    PILL pops out + WORDMARK collapses
 //   F90–F102   LOGO ENLARGES alone center-stage
 //   F102–F114  AI SPARKLE emerges from enlarged logo
-//   F114–F187  🌀 4-FEATURE FLASH — 90% OVERLAP cadence (each 28f):
-//                F114  F1 starts (mic → red recording + drift words)
-//                F129  F2 starts (mic → person → scrolling tape)
-//                F144  F3 starts (sequenced pins → route)
-//                F159  F4 starts (AI avatar + bubble + typing → sent)
-//                F187  F4 ends; constellation collapse begins immediately
-//   F187–F197  VORTEX — features dissolve sync'd, particles spiral inward
-//   F197–F213  LOGO fades + iPhone materializes (16f cross-fade)
-//   F213–F228  Dashboard + "All your admin. One place." caption (15f)
-//   F228–F240  crossfade-OUT into Scene 3
+//   F114–F241  🌀 4-FEATURE FLASH (each 43f, 90% overlap, 28f stagger):
+//                F114  F1 starts → poof at outcome final (F145)
+//                F142  F2 starts → poof (F173)
+//                F170  F3 starts → poof (F201)
+//                F198  F4 starts → poof (F229)
+//                F241  F4 ends; constellation collapse begins
+//   F241–F257  VORTEX (16f, was 10f)
+//   F257–F279  LOGO fades + iPhone materializes (22f, was 16f)
+//   F279–F303  Dashboard + caption (24f, was 15f)
+//   F303–F315  crossfade-OUT into Scene 3
 //
-// Per-feature 28-frame window timing (UNCHANGED from v1.36):
+// Per-feature 43-frame window timing (v1.40):
 //   t 0–2   sparkle dart
-//   t 2–6   icon line-draws
-//   t 6–10  verb types
-//   t 11–16 outcome types
-//   t 16–22 icon transforms to ACTIVE state
-//   t 22–28 drift content cycle (continuous loop)
+//   t 2–6   icon line-draws (4f)
+//   t 6–16  verb types (10f, was 4f)
+//   t 16–18 1f→2f breath
+//   t 18–31 outcome types (13f, was 5f); poof SFX at outcome final char
+//   t 30    period appears (1f before outcome end)
+//   t 31–34 underline draws (3f)
+//   t 31–37 icon transforms to ACTIVE state (6f)
+//   t 37–43 drift content cycle (6f onset, then continuous loop)
 // =====================================================================
 
 const SWIPE_START = 12;
@@ -67,19 +68,19 @@ const PILL_HOLD_START = 60;
 const PILL_OUT_START = 84;
 const PILL_OUT_END = 90;
 const SPARKLE_IN = 102;
-// v1.38: 90%-overlap stagger — features start 15f apart (was 28f sequential)
+// v1.40: features stagger 28f apart with new 43f windows (90% overlap)
 const FEATURE1 = 114;
-const FEATURE2 = 129; // +15 (was +28)
-const FEATURE3 = 144;
-const FEATURE4 = 159;
-const FEATURES_END = 187; // F4 + 28
-const VORTEX_START = 187; // collapse begins immediately (no separate hold)
-const VORTEX_END = 197; // 10f vortex
-const PHONE_MATERIALIZE = 197;
-const LOGO_FADE_END = 209; // 12f logo fade
-const DASHBOARD_IN = 213; // 16f phone fade-in
-const SCENE_END = 228; // 15f dashboard
-const FEATURE_DURATION = 28;
+const FEATURE2 = 142; // +28
+const FEATURE3 = 170;
+const FEATURE4 = 198;
+const FEATURES_END = 241; // F4 + 43
+const VORTEX_START = 241;
+const VORTEX_END = 257; // 16f vortex (was 10f)
+const PHONE_MATERIALIZE = 257;
+const LOGO_FADE_END = 273; // 16f logo fade (was 12f)
+const DASHBOARD_IN = 279; // 22f phone fade-in (was 16f)
+const SCENE_END = 303; // 24f dashboard (was 15f)
+const FEATURE_DURATION = 43;
 
 // Centered logo focal point (1920×1080 frame)
 const CENTER = { x: 960, y: 540 };
@@ -180,9 +181,11 @@ export const Scene2VoiceCustomer: React.FC = () => {
 
       {/* === AUDIO ===
           Phase 3 (sound finalization) will reconcile per-frame cues.
-          v1.32: 4 sparkle chimes at burst frames (ascending +1 semitone)
-          + sparse typing clicks during char-by-char reveal (every other
-          char at 18% vol, per §3.6.4 typing audio rule). */}
+          v1.32: 4 sparkle chimes at burst frames (ascending +1 semitone).
+          v1.40: per-char typing clicks REMOVED — replaced with one
+          "poof" SFX per outcome word landing (4 poofs total). Phase 3
+          will source bespoke `kinetic_text_poof` ElevenLabs SFX; for now
+          using `swoosh.mp3` low-pitched + low-volume as placeholder. */}
       {[FEATURE1 + 2, FEATURE2 + 2, FEATURE3 + 2, FEATURE4 + 2].map((f, i) => (
         <SfxAt
           key={`feat-${i}`}
@@ -192,34 +195,17 @@ export const Scene2VoiceCustomer: React.FC = () => {
           playbackRate={Math.pow(2, (5 + i) / 12)}
         />
       ))}
-      {/* Typing clicks — every other char during the verb+outcome typing
-          windows for each feature. Sparse (alt frames) keeps the mix airy. */}
-      {[FEATURE1, FEATURE2, FEATURE3, FEATURE4].flatMap((segStart, i) => {
-        const verbLen = FEATURES[i].prefix.length;
-        const outcomeLen = FEATURES[i].outcome.length;
-        const verbDur = VERB_TYPE_END - VERB_TYPE_START;
-        const outcomeDur = OUTCOME_TYPE_END - OUTCOME_TYPE_START;
-        // Approximate landing frames per char
-        const verbCharFrames = Array.from({ length: verbLen }, (_, c) =>
-          Math.round(segStart + VERB_TYPE_START + (c * verbDur) / verbLen)
-        );
-        const outcomeCharFrames = Array.from({ length: outcomeLen }, (_, c) =>
-          Math.round(segStart + OUTCOME_TYPE_START + (c * outcomeDur) / outcomeLen)
-        );
-        // Take every other for sparseness
-        const ticks = [...verbCharFrames, ...outcomeCharFrames].filter(
-          (_, k) => k % 2 === 0
-        );
-        return ticks.map((f, k) => (
-          <SfxAt
-            key={`type-${i}-${k}`}
-            src={SFX.click}
-            from={f}
-            volume={0.18}
-            playbackRate={1.05}
-          />
-        ));
-      })}
+      {/* v1.40: 4 outcome-word poof SFX, one per feature. Fires at the
+          outcome-word final-char landing (= OUTCOME_TYPE_END − 1). */}
+      {[FEATURE1, FEATURE2, FEATURE3, FEATURE4].map((segStart, i) => (
+        <SfxAt
+          key={`poof-${i}`}
+          src={SFX.swoosh}
+          from={segStart + OUTCOME_TYPE_END - 1}
+          volume={0.35}
+          playbackRate={0.7}
+        />
+      ))}
     </AbsoluteFill>
   );
 };
@@ -950,23 +936,23 @@ const BurstParticles: React.FC<{ count: number }> = ({ count }) => {
 //   t 16+   drift content emits (handled inside FeatureIcon)
 // =====================================================================
 
-// v1.36 per-feature pacing breakdown (within the 28-frame window):
+// v1.40 per-feature pacing breakdown (within the 43-frame window):
 //   t 0–2   sparkle dart (2f)
-//   t 2–6   icon line-draws (4f, +1f vs v1.33 — more deliberate)
-//   t 6–10  VERB types (4f)
-//   t 10–11 1f breath
-//   t 11–16 OUTCOME types (5f); final char scale-punches
-//   t 15    period appears
-//   t 16–19 underline draws (3f, overlaps morph)
-//   t 16–22 icon transforms to ACTIVE state (6f, +1f vs v1.33 — smoother morph)
-//   t 22–28 drift onset (6f) + continuous loop while feature persists
+//   t 2–6   icon line-draws (4f)
+//   t 6–16  VERB types (10f at 2.5 fpc — was 4f)
+//   t 16–18 2f breath (was 1f)
+//   t 18–31 OUTCOME types (13f at 2.5 fpc — was 5f); poof SFX at final char
+//   t 30    period appears (1f before outcome end)
+//   t 31–34 underline draws (3f, overlaps morph)
+//   t 31–37 icon transforms to ACTIVE state (6f)
+//   t 37–43 drift onset (6f) + continuous loop while feature persists
 const VERB_TYPE_START = 6;
-const VERB_TYPE_END = 10;
-const OUTCOME_TYPE_START = 11;
-const OUTCOME_TYPE_END = 16;
-const PERIOD_FRAME = 15;
-const UNDERLINE_DRAW_START = 16;
-const UNDERLINE_DRAW_END = 19;
+const VERB_TYPE_END = 16;
+const OUTCOME_TYPE_START = 18;
+const OUTCOME_TYPE_END = 31;
+const PERIOD_FRAME = 30;
+const UNDERLINE_DRAW_START = 31;
+const UNDERLINE_DRAW_END = 34;
 
 function visibleChars(text: string, t: number, startFrame: number, endFrame: number): string {
   if (t < startFrame) return "";
@@ -1418,12 +1404,12 @@ const ICON_SIZE = 104; // v1.34: ~12% larger; balances the 72-px outcome word
 const ICON_GLOW_FILTER =
   "drop-shadow(0 0 8px rgba(59,130,246,0.55)) drop-shadow(0 0 4px rgba(59,130,246,0.4))";
 
-// Phase transition frames (relative to feature start) — v1.36 pacing
+// Phase transition frames (relative to feature start) — v1.40 pacing
 const ICON_DRAW_START = 2;
-const ICON_DRAW_END = 6; // 4f line-draw (was 3f in v1.33)
-const ICON_MORPH_START = 16;
-const ICON_MORPH_END = 22; // 6f morph (was 5f)
-const DRIFT_START = 22; // was 17; +5f shift
+const ICON_DRAW_END = 6; // 4f line-draw
+const ICON_MORPH_START = 31; // was 16; shifts because typing is now 25f
+const ICON_MORPH_END = 37; // 6f morph
+const DRIFT_START = 37; // was 22; shifts to after morph
 
 const FeatureIcon: React.FC<{ index: number; localTime: number }> = ({
   index,

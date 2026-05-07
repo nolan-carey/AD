@@ -98,25 +98,26 @@ export const TYPE = {
   ctaLabel: { size: 22, weight: 600 },
 } as const;
 
-// Master timeline anchor (39.2s/1176 frames, 10 scenes).
-// v1.38 2026-05-07: Scene 2 features now overlap at 90% (feature N+1 starts
-// when feature N's text typing hits 90%). Each feature still runs its full
-// 28f animation. Feature flash section: 130f → 73f. Scene 2 length:
-// 255 → 216 frames. Per v1.23 user-waiver, downstream timeline deferred.
+// Master timeline anchor (41.7s/1251 frames, 10 scenes).
+// v1.40 2026-05-07: Scene 2 typing slowed (1 fpc → 2.5 fpc) — per-feature
+// window 28f → 43f. Per-char clicks dropped; one "poof" SFX per outcome
+// word landing (4 total). Post-features extended (vortex 10→16, logo→
+// iPhone 16→22, dashboard 15→24). Scene 2: 216f → 291f (+75f / +2.5s).
+// Scenes 3-10 shift +75. Per v1.23 user-waiver, downstream timeline deferred.
 export const FPS = 30;
-export const TOTAL_FRAMES = 1176; // 39.2s @ 30fps
+export const TOTAL_FRAMES = 1251; // 41.7s @ 30fps
 
 export const SCENES = {
-  scene1: { from: 0, duration: 240 }, //    0:00.0 – 0:08.0  (8.0s · Overwhelm — 18 cards, slower)
-  scene2: { from: 240, duration: 216 }, //  0:08.0 – 0:15.2  (7.2s · v1.38 90%-overlap feature stream)
-  scene3: { from: 456, duration: 105 }, //  0:15.2 – 0:18.7  (3.5s · Dashboard reveal + mic zoom)
-  scene4: { from: 561, duration: 105 }, //  0:18.7 – 0:22.2  (3.5s · Voice→Quote)
-  scene5: { from: 666, duration: 60 }, //   0:22.2 – 0:24.2  (2.0s · Quote→Customer profile)
-  scene6: { from: 726, duration: 90 }, //   0:24.2 – 0:27.2  (3.0s · Receipt→Expense)
-  scene7: { from: 816, duration: 90 }, //   0:27.2 – 0:30.2  (3.0s · Map→Route)
-  scene8: { from: 906, duration: 90 }, //   0:30.2 – 0:33.2  (3.0s · Pin→Follow-up)
-  scene9: { from: 996, duration: 120 }, //  0:33.2 – 0:37.2  (4.0s · AI Business Assistant)
-  scene10: { from: 1116, duration: 60 }, // 0:37.2 – 0:39.2  (2.0s · Final hero shot)
+  scene1: { from: 0, duration: 240 }, //    0:00.0 – 0:08.0  (8.0s · Overwhelm — 18 cards including v1.40 density-build)
+  scene2: { from: 240, duration: 291 }, //  0:08.0 – 0:17.7  (9.7s · v1.40 slowed typing + poof SFX, 90% overlap)
+  scene3: { from: 531, duration: 105 }, //  0:17.7 – 0:21.2  (3.5s · Dashboard reveal + mic zoom)
+  scene4: { from: 636, duration: 105 }, //  0:21.2 – 0:24.7  (3.5s · Voice→Quote)
+  scene5: { from: 741, duration: 60 }, //   0:24.7 – 0:26.7  (2.0s · Quote→Customer profile)
+  scene6: { from: 801, duration: 90 }, //   0:26.7 – 0:29.7  (3.0s · Receipt→Expense)
+  scene7: { from: 891, duration: 90 }, //   0:29.7 – 0:32.7  (3.0s · Map→Route)
+  scene8: { from: 981, duration: 90 }, //   0:32.7 – 0:35.7  (3.0s · Pin→Follow-up)
+  scene9: { from: 1071, duration: 120 }, // 0:35.7 – 0:39.7  (4.0s · AI Business Assistant)
+  scene10: { from: 1191, duration: 60 }, // 0:39.7 – 0:41.7  (2.0s · Final hero shot)
 } as const;
 
 // v1.26: persistent top-right chevron REMOVED. Logo stays centered the
