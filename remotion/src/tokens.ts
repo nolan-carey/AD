@@ -98,27 +98,25 @@ export const TYPE = {
   ctaLabel: { size: 22, weight: 600 },
 } as const;
 
-// Master timeline anchor (36.4s/1092 frames, 10 scenes).
-// v1.24 2026-05-07: Scene 2 fully rewritten as swipe-up wipe → centered brand
-// lockup → logo glides top-right (persists rest of ad) → AI Sparkle Director
-// flashing 4 features → vortex → iPhone materializes → dashboard. Duration
-// 90→132 frames (3.0s→4.4s). Scenes 3-10 shift +42 frames.
-// Per v1.23 user-waiver, master-timeline reconciliation is deferred — these
-// frame ranges may not match §5/§6 in ad_plan.md.
+// Master timeline anchor (37.9s/1137 frames, 10 scenes).
+// v1.32 2026-05-07: Scene 2 extended for feature-flash pacing — per-feature
+// window 8f → 19f, total Scene 2 length 132 → 177 frames (4.4s → 5.9s).
+// Scenes 3-10 shift +45 frames. Per v1.23 user-waiver, master-timeline
+// reconciliation is deferred — these frame ranges may not match §5/§6.
 export const FPS = 30;
-export const TOTAL_FRAMES = 1092; // 36.4s @ 30fps
+export const TOTAL_FRAMES = 1137; // 37.9s @ 30fps
 
 export const SCENES = {
   scene1: { from: 0, duration: 240 }, //    0:00.0 – 0:08.0  (8.0s · Overwhelm — 18 cards, slower)
-  scene2: { from: 240, duration: 132 }, //  0:08.0 – 0:12.4  (4.4s · v1.24 swipe-up + brand lockup + 4-feature flash)
-  scene3: { from: 372, duration: 105 }, //  0:12.4 – 0:15.9  (3.5s · Dashboard reveal + mic zoom)
-  scene4: { from: 477, duration: 105 }, //  0:15.9 – 0:19.4  (3.5s · Voice→Quote)
-  scene5: { from: 582, duration: 60 }, //   0:19.4 – 0:21.4  (2.0s · Quote→Customer profile)
-  scene6: { from: 642, duration: 90 }, //   0:21.4 – 0:24.4  (3.0s · Receipt→Expense)
-  scene7: { from: 732, duration: 90 }, //   0:24.4 – 0:27.4  (3.0s · Map→Route)
-  scene8: { from: 822, duration: 90 }, //   0:27.4 – 0:30.4  (3.0s · Pin→Follow-up)
-  scene9: { from: 912, duration: 120 }, //  0:30.4 – 0:34.4  (4.0s · AI Business Assistant)
-  scene10: { from: 1032, duration: 60 }, // 0:34.4 – 0:36.4  (2.0s · Final hero shot)
+  scene2: { from: 240, duration: 177 }, //  0:08.0 – 0:13.9  (5.9s · v1.32 typed feature flash + active-state icons + drift content)
+  scene3: { from: 417, duration: 105 }, //  0:13.9 – 0:17.4  (3.5s · Dashboard reveal + mic zoom)
+  scene4: { from: 522, duration: 105 }, //  0:17.4 – 0:20.9  (3.5s · Voice→Quote)
+  scene5: { from: 627, duration: 60 }, //   0:20.9 – 0:22.9  (2.0s · Quote→Customer profile)
+  scene6: { from: 687, duration: 90 }, //   0:22.9 – 0:25.9  (3.0s · Receipt→Expense)
+  scene7: { from: 777, duration: 90 }, //   0:25.9 – 0:28.9  (3.0s · Map→Route)
+  scene8: { from: 867, duration: 90 }, //   0:28.9 – 0:31.9  (3.0s · Pin→Follow-up)
+  scene9: { from: 957, duration: 120 }, //  0:31.9 – 0:35.9  (4.0s · AI Business Assistant)
+  scene10: { from: 1077, duration: 60 }, // 0:35.9 – 0:37.9  (2.0s · Final hero shot)
 } as const;
 
 // v1.26: persistent top-right chevron REMOVED. Logo stays centered the
