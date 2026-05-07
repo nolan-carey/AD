@@ -7,11 +7,10 @@ import {
   useCurrentFrame,
 } from "remotion";
 import { Audio } from "@remotion/media";
-import { SCENES, TOTAL_FRAMES, PERSISTENT_LOGO_PARKED_FROM } from "./tokens";
+import { SCENES, TOTAL_FRAMES } from "./tokens";
 import { INTER } from "./fonts";
 import { CinematicWrapper } from "./components/CinematicWrapper";
 import { AIGlow } from "./components/AIGlow";
-import { KivaLogo } from "./components/KivaLogo";
 import { Scene1Overwhelm } from "./scenes/Scene1_Overwhelm";
 // v1.21: filenames preserved for git diff continuity, but content fully replaced.
 // File-name → new-role mapping:
@@ -224,35 +223,9 @@ const SceneCrossfade: React.FC<{
   return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
 };
 
-// v1.24: persistent chevron logo top-right corner — appears the moment the
-// centered Scene 2 lockup logo finishes its glide and parks at top-right.
-// Sits ABOVE the cinematic environment as a quiet brand presence.
-const PersistentChevron: React.FC = () => {
-  const frame = useCurrentFrame();
-  if (frame < PERSISTENT_LOGO_PARKED_FROM) return null;
-  // Soft entry fade over 6 frames once parked
-  const opacity = interpolate(
-    frame,
-    [PERSISTENT_LOGO_PARKED_FROM, PERSISTENT_LOGO_PARKED_FROM + 6],
-    [0, 1],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: 100,
-        left: 1700,
-        transform: "translate(-50%, -50%)",
-        opacity,
-        pointerEvents: "none",
-        zIndex: 100,
-      }}
-    >
-      <KivaLogo size={80} glow={0.25} />
-    </div>
-  );
-};
+// v1.26: persistent top-right chevron REMOVED — Scene 2 logo now stays
+// centered for the entire sequence (no glide, no park). Logo dissolves
+// into the iPhone at center.
 
 export const KivaAd: React.FC = () => {
   void INTER;
@@ -261,7 +234,6 @@ export const KivaAd: React.FC = () => {
       <CinematicWrapper>
         <SceneStack />
       </CinematicWrapper>
-      <PersistentChevron />
     </AbsoluteFill>
   );
 };

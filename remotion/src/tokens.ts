@@ -121,20 +121,6 @@ export const SCENES = {
   scene10: { from: 1032, duration: 60 }, // 0:34.4 – 0:36.4  (2.0s · Final hero shot)
 } as const;
 
-// v1.24: persistent chevron top-right that begins gliding from center at
-// local F48 of Scene 2 (= absolute F288) and parks at local F66 (= F306),
-// remaining for the rest of the ad as a quiet brand presence.
-// Scene 2 local-frame map (Scene 2 starts at absolute F240; v1.24 spec quoted
-// absolute F180–F312, so we subtract 180 to get local frames):
-//   F0–F12   swipe-up wipe
-//   F12–F18  silence
-//   F18–F36  brand lockup fades up centered
-//   F36–F48  brand lockup holds
-//   F48–F66  logo glides to top-right; wordmark + tagline fade
-//   F66–F72  AI sparkle enters center
-//   F72–F104 4-feature flash (Speak quotes / Save customers / Drive less / Win more jobs)
-//   F104–F110 sparkle vortex
-//   F110–F122 iPhone materializes
-//   F122–F132 dashboard appears
-export const PERSISTENT_LOGO_GLIDE_FROM = 288; // absolute frame glide begins
-export const PERSISTENT_LOGO_PARKED_FROM = 306; // absolute frame chevron is parked top-right
+// v1.26: persistent top-right chevron REMOVED. Logo stays centered the
+// entire sequence and dissolves into the iPhone at center. See
+// Scene2_VoiceCustomer.tsx top comment for the full v1.26 local-frame map.
