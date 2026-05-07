@@ -13,42 +13,47 @@ import { PhoneFrame } from "../components/PhoneFrame";
 import { SfxAt } from "../components/SfxAt";
 
 // =====================================================================
-// SCENE 2 — v1.32 (Sequence from absolute F228, local F0–F201, 6.7s)
-// Nominal scene window F240–F417 absolute; +12f crossfade pad on each end.
+// SCENE 2 — v1.38 (Sequence from absolute F228, local F0–F240, 8.0s)
+// Nominal scene window F240–F456 absolute; +12f crossfade pad on each end.
 //
-// v1.32 changes (2026-05-07): per-feature window extended 8f → 19f, scene
-// length 132 → 177 frames (+45f, +1.5s). Icons moved to RIGHT of text.
-// Text TYPES char-by-char. Each icon morphs to a LIVE active app-state
-// mid-flash and emits drifting simulated content.
+// v1.38 (2026-05-07): features now OVERLAP at 90% — feature N+1 starts
+// when feature N's text typing hits 90% (relative t=15 in its 28f window).
+// Each feature still runs its full 28f animation; the trailing icon-
+// transform + drift onset of N runs IN PARALLEL with the early sparkle-
+// dart + line-draw + typing of N+1. Continuously-moving stream rather
+// than discrete-then-pause beats. Feature flash section: 130f → 73f.
+// All v1.32–v1.36 inner-feature specs preserved (28f animation, active-
+// state icon transforms, drifting content, kinetic typography).
 //
-// Local-frame map (Sequence starts at abs F228; spec frames F180–F357 map
-// to local F12–F189 = spec_frame − 180 + 12):
+// Local-frame map (Sequence starts at abs F228; spec frames F180–F396 map
+// to local F12–F228):
 //   F0–F12     crossfade-IN from Scene 1
 //   F12–F24    SWIPE-UP WIPE
 //   F24–F30    HARD SILENCE
 //   F30–F48    CENTERED BRAND LOCKUP fades up
-//   F48–F57    🫧 TAGLINE PILL inflates (v1.30)
-//   F57–F72    PILL holds with bubble texture (v1.31)
-//   F72–F78    PILL pops out
-//   F78–F84    AI SPARKLE emerges from logo, begins orbit
-//   F84–F160   🌀 4-FEATURE FLASH (19f each, all PERSIST):
-//                F84–F103   F1 mic   → red recording UI + drift words
-//                F103–F122  F2 person → customer card + drift snippets
-//                F122–F141  F3 pins  → activated route + drift addresses
-//                F141–F160  F4 bubble→ message-typing + sent state
-//   F160–F162  CONSTELLATION HOLD
-//   F162–F166  VORTEX — features dissolve sync'd, particles spiral inward
-//   F166–F178  LOGO fades + iPhone materializes at center (cross-fade)
-//   F178–F189  Dashboard + "All your admin. One place." caption
-//   F189–F201  crossfade-OUT into Scene 3
+//   F48–F60    🫧 PILL inflates
+//   F60–F84    PILL holds with bubble texture
+//   F84–F90    PILL pops out + WORDMARK collapses
+//   F90–F102   LOGO ENLARGES alone center-stage
+//   F102–F114  AI SPARKLE emerges from enlarged logo
+//   F114–F187  🌀 4-FEATURE FLASH — 90% OVERLAP cadence (each 28f):
+//                F114  F1 starts (mic → red recording + drift words)
+//                F129  F2 starts (mic → person → scrolling tape)
+//                F144  F3 starts (sequenced pins → route)
+//                F159  F4 starts (AI avatar + bubble + typing → sent)
+//                F187  F4 ends; constellation collapse begins immediately
+//   F187–F197  VORTEX — features dissolve sync'd, particles spiral inward
+//   F197–F213  LOGO fades + iPhone materializes (16f cross-fade)
+//   F213–F228  Dashboard + "All your admin. One place." caption (15f)
+//   F228–F240  crossfade-OUT into Scene 3
 //
-// Per-feature 19-frame window timing (relative to feature start = t0):
-//   t 0–2   sparkle darts toward landing (motion blur)
-//   t 2–4   sparkle pulses; ICON line-draws in
-//   t 6–10  VERB types char-by-char (sparse click audio)
-//   t 10–18 OUTCOME types char-by-char; final char scale-punches; period +1f delay; underline draws after
-//   t 12–16 ICON transforms into ACTIVE app-state (mic→red recording, person→card, pins→route, bubble→typing)
-//   t 16–19 DRIFT content emits and continues while feature persists
+// Per-feature 28-frame window timing (UNCHANGED from v1.36):
+//   t 0–2   sparkle dart
+//   t 2–6   icon line-draws
+//   t 6–10  verb types
+//   t 11–16 outcome types
+//   t 16–22 icon transforms to ACTIVE state
+//   t 22–28 drift content cycle (continuous loop)
 // =====================================================================
 
 const SWIPE_START = 12;
@@ -58,37 +63,38 @@ const LOCKUP_LOGO_IN = 30;
 const LOCKUP_WORD_IN = 38;
 const LOCKUP_END = 48;
 const PILL_IN = 48;
-const PILL_HOLD_START = 57;
-const PILL_OUT_START = 72;
-const PILL_OUT_END = 78;
-const SPARKLE_IN = 78;
-const FEATURE1 = 84;
-const FEATURE2 = 103; // +19
-const FEATURE3 = 122; // +19
-const FEATURE4 = 141; // +19
-const FEATURES_END = 160; // F4 ends at 141+19
-const CONSTELLATION_HOLD_END = 162;
-const VORTEX_START = 162;
-const VORTEX_END = 166;
-const PHONE_MATERIALIZE = 166;
-const LOGO_FADE_END = 174;
-const DASHBOARD_IN = 178;
-const SCENE_END = 189;
-const FEATURE_DURATION = 19;
+const PILL_HOLD_START = 60;
+const PILL_OUT_START = 84;
+const PILL_OUT_END = 90;
+const SPARKLE_IN = 102;
+// v1.38: 90%-overlap stagger — features start 15f apart (was 28f sequential)
+const FEATURE1 = 114;
+const FEATURE2 = 129; // +15 (was +28)
+const FEATURE3 = 144;
+const FEATURE4 = 159;
+const FEATURES_END = 187; // F4 + 28
+const VORTEX_START = 187; // collapse begins immediately (no separate hold)
+const VORTEX_END = 197; // 10f vortex
+const PHONE_MATERIALIZE = 197;
+const LOGO_FADE_END = 209; // 12f logo fade
+const DASHBOARD_IN = 213; // 16f phone fade-in
+const SCENE_END = 228; // 15f dashboard
+const FEATURE_DURATION = 28;
 
 // Centered logo focal point (1920×1080 frame)
 const CENTER = { x: 960, y: 540 };
 
-// v1.34 organic positions — pulled IN closer to centered logo (reverses
-// v1.33's outward push). Tighter constellation, more visual punch.
+// v1.34 organic positions, with v1.37 F2 fix — F2 pulled LEFT 70 px so
+// the big "profile." outcome word doesn't clip the right frame edge.
+// Position = LEFT edge of icon; whole composition extends rightward.
 //   F1 (975, 290) distance ~252 px
-//   F2 (1245, 525) distance ~286 px
+//   F2 (1175, 525) distance ~225 px (was 1245 in v1.34/v1.36, -70 px)
 //   F3 (945, 805) distance ~265 px
 //   F4 (665, 570) distance ~296 px
 const ORBIT_BASE_RADIUS = 275;
 const ORGANIC_POSITIONS = [
   { x: 975, y: 290 }, // 🎙 F1
-  { x: 1245, y: 525 }, // 👤 F2
+  { x: 1175, y: 525 }, // 👤 F2 — v1.37: pulled LEFT 70 px (was 1245)
   { x: 945, y: 805 }, // 🗺 F3
   { x: 665, y: 570 }, // 🤝 F4
 ];
@@ -255,10 +261,12 @@ const SwipeUpVeil: React.FC<{ frame: number }> = ({ frame }) => {
 //   F78+:        sparkle emerges from the now-enlarged logo.
 //   F122–F130:   logo fades as iPhone materializes (cross-fade).
 // =====================================================================
-const WORDMARK_COLLAPSE_START = PILL_OUT_START; // F72
-const WORDMARK_COLLAPSE_END = PILL_OUT_START + 3; // F75 — fully gone
-const LOGO_ENLARGE_START = WORDMARK_COLLAPSE_END; // F75
-const LOGO_ENLARGE_END = LOGO_ENLARGE_START + 3; // F78
+// v1.36 timing: wordmark collapses over 6f synced with pill pop-out
+// (was 3f), then logo enlarges over 12f (was 3f, much more dramatic).
+const WORDMARK_COLLAPSE_START = PILL_OUT_START; // F84
+const WORDMARK_COLLAPSE_END = PILL_OUT_END; // F90 — fully gone, 6f collapse
+const LOGO_ENLARGE_START = WORDMARK_COLLAPSE_END; // F90
+const LOGO_ENLARGE_END = SPARKLE_IN; // F102, 12f enlarge
 const LOGO_ENLARGED_SCALE = 1.4;
 
 const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
@@ -939,21 +947,23 @@ const BurstParticles: React.FC<{ count: number }> = ({ count }) => {
 //   t 16+   drift content emits (handled inside FeatureIcon)
 // =====================================================================
 
-// v1.33 per-feature pacing breakdown (within the 19-frame window):
+// v1.36 per-feature pacing breakdown (within the 28-frame window):
 //   t 0–2   sparkle dart (2f)
-//   t 2–5   icon line-draws (3f, +1f vs v1.32 — more deliberate)
-//   t 5–12  TEXT typing (7f total): verb t5–t8, outcome t8–t12
-//   t 11    period appears (1f before final char to land cleanly)
-//   t 12–17 icon transforms to ACTIVE state (5f, +1f vs v1.32 — more breath)
-//   t 12–15 underline draws-in (overlaps morph)
-//   t 17–19 drift onset (2f), then continuous while feature persists
-const VERB_TYPE_START = 5;
-const VERB_TYPE_END = 8;
-const OUTCOME_TYPE_START = 8;
-const OUTCOME_TYPE_END = 12;
-const PERIOD_FRAME = 11;
-const UNDERLINE_DRAW_START = 12;
-const UNDERLINE_DRAW_END = 15;
+//   t 2–6   icon line-draws (4f, +1f vs v1.33 — more deliberate)
+//   t 6–10  VERB types (4f)
+//   t 10–11 1f breath
+//   t 11–16 OUTCOME types (5f); final char scale-punches
+//   t 15    period appears
+//   t 16–19 underline draws (3f, overlaps morph)
+//   t 16–22 icon transforms to ACTIVE state (6f, +1f vs v1.33 — smoother morph)
+//   t 22–28 drift onset (6f) + continuous loop while feature persists
+const VERB_TYPE_START = 6;
+const VERB_TYPE_END = 10;
+const OUTCOME_TYPE_START = 11;
+const OUTCOME_TYPE_END = 16;
+const PERIOD_FRAME = 15;
+const UNDERLINE_DRAW_START = 16;
+const UNDERLINE_DRAW_END = 19;
 
 function visibleChars(text: string, t: number, startFrame: number, endFrame: number): string {
   if (t < startFrame) return "";
@@ -1404,12 +1414,12 @@ const ICON_SIZE = 104; // v1.34: ~12% larger; balances the 72-px outcome word
 const ICON_GLOW_FILTER =
   "drop-shadow(0 0 8px rgba(109,40,217,0.55)) drop-shadow(0 0 4px rgba(109,40,217,0.4))";
 
-// Phase transition frames (relative to feature start) — v1.33 pacing
+// Phase transition frames (relative to feature start) — v1.36 pacing
 const ICON_DRAW_START = 2;
-const ICON_DRAW_END = 5; // +1f for more deliberate line-draw
-const ICON_MORPH_START = 12;
-const ICON_MORPH_END = 17; // +1f for more breath in the morph
-const DRIFT_START = 17;
+const ICON_DRAW_END = 6; // 4f line-draw (was 3f in v1.33)
+const ICON_MORPH_START = 16;
+const ICON_MORPH_END = 22; // 6f morph (was 5f)
+const DRIFT_START = 22; // was 17; +5f shift
 
 const FeatureIcon: React.FC<{ index: number; localTime: number }> = ({
   index,
@@ -1431,15 +1441,9 @@ const FeatureIcon: React.FC<{ index: number; localTime: number }> = ({
 
 // 🎙 Feature 1 — Mic (line-art) → red recording state (matches Kiva
 // app's VoiceQuote screen: red core, stop icon, pulse rings, waveform bars)
-// Drift content: spoken words "Quote for a standard toilet refit"
-const F1_DRIFT_WORDS = [
-  "Quote",
-  "for",
-  "a",
-  "standard",
-  "toilet",
-  "refit",
-];
+// v1.35 drift content: full single-line phrase rises slowly above the icon,
+// 11 px / 70% opacity / 0.8 px/frame drift / 16 px padding
+const F1_DRIFT_PHRASE = "Quote for a standard toilet refit";
 const RED_RECORD = "#EF4444";
 
 const MicWaveformIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
@@ -1574,50 +1578,57 @@ const MicWaveformIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
             );
           })}
       </svg>
-      {/* Drift words rising upward from the icon */}
-      <DriftWords
-        words={F1_DRIFT_WORDS}
+      {/* v1.35: drift phrase rises slowly above the icon as a single line.
+          Phrase loops continuously while feature persists. */}
+      <DriftPhraseLoop
+        phrase={F1_DRIFT_PHRASE}
         localTime={localTime}
         startFrame={DRIFT_START}
-        wordIntervalFrames={3}
-        size={14}
-        opacity={0.6}
+        size={11}
+        opacity={0.7}
+        driftSpeed={0.8}
+        cycleFrames={28}
+        padding={16}
       />
     </div>
   );
 };
 
-// Drift content helper — words rise upward from icon and fade
-const DriftWords: React.FC<{
-  words: string[];
+// v1.35 drift loop — single-line phrase rises slowly above the icon and
+// fades. New cycle starts every `cycleFrames` so the content keeps flowing
+// while the feature persists.
+const DriftPhraseLoop: React.FC<{
+  phrase: string;
   localTime: number;
   startFrame: number;
-  wordIntervalFrames: number;
   size: number;
   opacity: number;
-}> = ({ words, localTime, startFrame, wordIntervalFrames, size, opacity }) => {
+  driftSpeed: number;
+  cycleFrames: number;
+  padding: number;
+}> = ({ phrase, localTime, startFrame, size, opacity, driftSpeed, cycleFrames, padding }) => {
+  if (localTime < startFrame) return null;
+  // Two staggered instances so as one fades out, the next is rising
+  const instances = [0, 1];
   return (
     <>
-      {words.map((word, i) => {
-        const spawn = startFrame + i * wordIntervalFrames;
-        const t = localTime - spawn;
-        if (t < 0) return null;
-        // Drift upward 1px/frame, fade over 18 frames
-        const driftY = -t * 1.4;
-        const driftX = ((i * 13) % 30) - 15; // slight horizontal jitter
-        const fade = interpolate(t, [0, 4, 18], [0, opacity, 0], {
+      {instances.map((i) => {
+        const offset = i * (cycleFrames / 2);
+        const t = (localTime - startFrame - offset + cycleFrames * 8) % cycleFrames;
+        const driftY = -t * driftSpeed - padding;
+        const fade = interpolate(t, [0, cycleFrames * 0.2, cycleFrames * 0.7, cycleFrames], [0, opacity, opacity, 0], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
         });
         if (fade <= 0) return null;
         return (
           <div
-            key={`${word}-${i}`}
+            key={`drift-${i}`}
             style={{
               position: "absolute",
               left: ICON_SIZE / 2,
-              top: -8,
-              transform: `translate(calc(-50% + ${driftX}px), ${driftY}px)`,
+              top: -padding,
+              transform: `translate(-50%, ${driftY}px)`,
               fontSize: size,
               fontWeight: 400,
               color: `rgba(255,255,255,${fade})`,
@@ -1626,7 +1637,7 @@ const DriftWords: React.FC<{
               pointerEvents: "none",
             }}
           >
-            {word}
+            {phrase}
           </div>
         );
       })}
@@ -1634,36 +1645,43 @@ const DriftWords: React.FC<{
   );
 };
 
-// 👤 Feature 2 — Person silhouette → live customer-card auto-filling
-// Drift content: "Annie Yang" / "07700 900123" / "Notting Hill, London"
-const F2_CARD_FIELDS = ["Annie Yang", "07700 900123", "Notting Hill, London"];
+// 👤 Feature 2 (v1.35) — START with MICROPHONE (visual rhyme with F1 —
+// voice is the input) → mic morphs into PERSON SILHOUETTE → silhouette
+// fills purple → small SCROLLING customer-detail tape rolls upward beside
+// the silhouette: "Annie Yang" → "07700 900123" → "Notting Hill, London"
+// (continuous loop).
+const F2_TAPE_DETAILS = ["Annie Yang", "07700 900123", "Notting Hill, London"];
 
 const PersonFillIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
-  // Outline draws F2-F4
-  const drawP = interpolate(localTime, [ICON_DRAW_START, ICON_DRAW_END], [0, 1], {
+  // v1.35: starts as mic (line-draws F2-F6), then morphs to person at t=16
+  const micDrawP = interpolate(localTime, [ICON_DRAW_START, ICON_DRAW_END], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  // Fill from bottom up F4-F8 (idle phase shows filled silhouette)
-  const fillP = interpolate(localTime, [4, 8], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  // Idle check stamps F8-F10
-  const idleCheckP = interpolate(localTime, [8, 9, 10], [0, 1.15, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  // Active morph F12-F16: silhouette shrinks to icon-tab; customer card slides in beside it
+  // Mic body breathing during idle
+  const micBreathe = 1 + 0.03 * Math.sin((localTime / 30) * Math.PI * 2);
+
+  // Active morph t=16-22: mic FADES to person silhouette
   const morphP = interpolate(localTime, [ICON_MORPH_START, ICON_MORPH_END], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
+  // Mic fades out, person fades in within morph
+  const micOpacity = 1 - morphP;
+  // Person fill rises bottom-up over t=18-22
+  const personFillP = interpolate(localTime, [18, 22], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  // Person draw — outline appears with the morph
+  const personDrawP = interpolate(localTime, [16, 20], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
-  // Customer-card auto-fill timing: each field types into a row.
-  // Fields appear sequentially after morph completes (F16+).
-  const cardActive = localTime >= ICON_MORPH_END;
+  // Drift tape — emerges after morph completes
+  const tapeActive = localTime >= DRIFT_START;
 
   return (
     <div style={{ position: "relative", width: ICON_SIZE, height: ICON_SIZE }}>
@@ -1671,175 +1689,202 @@ const PersonFillIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
         width={ICON_SIZE}
         height={ICON_SIZE}
         viewBox="0 0 64 64"
-        style={{
-          filter: ICON_GLOW_FILTER,
-          transform: `scale(${1 - morphP * 0.45}) translate(${
-            -morphP * 18
-          }px, 0)`,
-          transformOrigin: "left center",
-        }}
+        style={{ filter: ICON_GLOW_FILTER }}
       >
-        <defs>
-          <clipPath id="person-clip-f2">
-            <circle cx={32} cy={22} r={9} />
-            <path d="M 14 56 Q 14 38 32 38 Q 50 38 50 56 Z" />
-          </clipPath>
-        </defs>
-        <rect
-          x={10}
-          y={56 - 46 * fillP}
-          width={44}
-          height={46}
-          fill={COLOR.aiPurple}
-          clipPath="url(#person-clip-f2)"
-          opacity={0.85}
-        />
-        <circle
-          cx={32}
-          cy={22}
-          r={9}
-          fill="none"
-          stroke="rgba(255,255,255,0.95)"
-          strokeWidth={3}
-          strokeDasharray={`${drawP * 100} 100`}
-        />
-        <path
-          d="M 14 56 Q 14 38 32 38 Q 50 38 50 56"
-          fill="none"
-          stroke="rgba(255,255,255,0.95)"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeDasharray={`${drawP * 100} 100`}
-        />
-        {idleCheckP > 0 && (
-          <g
-            transform={`translate(46, 16) scale(${idleCheckP})`}
-            style={{
-              filter: `drop-shadow(0 0 4px ${COLOR.accepted})`,
-            }}
-          >
-            <circle cx={0} cy={0} r={9} fill={COLOR.accepted} />
-            <path
-              d="M -4 0 L -1 3 L 4 -3"
+        {/* MIC body (visual rhyme with F1 — voice is the input) */}
+        <g
+          opacity={micOpacity}
+          transform={`scale(${micBreathe}) translate(${(1 - micBreathe) * 32}, ${(1 - micBreathe) * 32})`}
+        >
+          <rect
+            x={26}
+            y={16}
+            width={12}
+            height={22}
+            rx={6}
+            fill="none"
+            stroke="rgba(255,255,255,0.95)"
+            strokeWidth={3}
+            strokeDasharray={`${micDrawP * 100} 100`}
+          />
+          <path
+            d="M 20 36 Q 20 46 32 46 Q 44 46 44 36"
+            fill="none"
+            stroke="rgba(255,255,255,0.95)"
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeDasharray={`${micDrawP * 100} 100`}
+          />
+          <line
+            x1={32}
+            y1={46}
+            x2={32}
+            y2={54}
+            stroke="rgba(255,255,255,0.95)"
+            strokeWidth={3}
+            strokeLinecap="round"
+            opacity={micDrawP}
+          />
+        </g>
+
+        {/* PERSON silhouette (fades in during morph) */}
+        {morphP > 0 && (
+          <g opacity={morphP}>
+            <defs>
+              <clipPath id="person-clip-f2">
+                <circle cx={32} cy={22} r={9} />
+                <path d="M 14 56 Q 14 38 32 38 Q 50 38 50 56 Z" />
+              </clipPath>
+            </defs>
+            <rect
+              x={10}
+              y={56 - 46 * personFillP}
+              width={44}
+              height={46}
+              fill={COLOR.aiPurple}
+              clipPath="url(#person-clip-f2)"
+              opacity={0.85}
+            />
+            <circle
+              cx={32}
+              cy={22}
+              r={9}
               fill="none"
-              stroke="#fff"
-              strokeWidth={2.5}
+              stroke="rgba(255,255,255,0.95)"
+              strokeWidth={3}
+              strokeDasharray={`${personDrawP * 100} 100`}
+            />
+            <path
+              d="M 14 56 Q 14 38 32 38 Q 50 38 50 56"
+              fill="none"
+              stroke="rgba(255,255,255,0.95)"
+              strokeWidth={3}
               strokeLinecap="round"
-              strokeLinejoin="round"
+              strokeDasharray={`${personDrawP * 100} 100`}
             />
           </g>
         )}
       </svg>
 
-      {/* Customer card panel — slides in from right during morph */}
-      {morphP > 0 && (
-        <div
-          style={{
-            position: "absolute",
-            top: 8,
-            left: ICON_SIZE * 0.45,
-            width: 130,
-            height: 86,
-            background: "rgba(15,23,42,0.85)",
-            backdropFilter: "blur(8px)",
-            border: `1px solid rgba(109,40,217,0.55)`,
-            borderRadius: 8,
-            padding: 8,
-            opacity: morphP,
-            transform: `translateX(${(1 - morphP) * -20}px)`,
-            boxShadow: `0 0 12px rgba(109,40,217,${morphP * 0.5})`,
-            display: "flex",
-            flexDirection: "column",
-            gap: 6,
-            fontFamily: "Inter, system-ui",
-          }}
-        >
-          {F2_CARD_FIELDS.map((field, i) => {
-            // Each field reveals at DRIFT_START + i*5
-            const spawn = DRIFT_START + i * 5;
-            const t = localTime - spawn;
-            // Type chars in over 4 frames
-            const visible = cardActive && t >= 0 ? Math.min(field.length, Math.floor((t / 4) * field.length)) : 0;
-            return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                  opacity: t >= 0 ? 1 : 0.35,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 7,
-                    fontWeight: 600,
-                    color: "rgba(255,255,255,0.5)",
-                    textTransform: "uppercase",
-                    letterSpacing: 0.4,
-                  }}
-                >
-                  {["Name", "Phone", "Address"][i]}
-                </div>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 500,
-                    color: "#fff",
-                    minHeight: 12,
-                  }}
-                >
-                  {field.slice(0, visible)}
-                  {t >= 0 && visible < field.length && (
-                    <span style={{ color: COLOR.aiPurple }}>|</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* v1.35 scrolling customer-detail tape beside the silhouette.
+          A vertical scroll where details move upward continuously and loop. */}
+      {tapeActive && <CustomerDetailTape localTime={localTime} />}
     </div>
   );
 };
 
-// 🗺 Feature 3 — Pins → wavy route → optimized path → ACTIVATED route
-// Drift content: addresses "Hammersmith" / "Notting Hill" / "Fulham"
+const CustomerDetailTape: React.FC<{ localTime: number }> = ({ localTime }) => {
+  // Tape positioned ABOVE the icon (where drift content lives in F1/F3)
+  // — a small vertical viewport showing 1 detail at a time, scrolling up.
+  const tapeWidth = 140;
+  const tapeHeight = 38;
+  const lineHeight = 18;
+  const totalCycle = F2_TAPE_DETAILS.length * lineHeight;
+  const t = localTime - DRIFT_START;
+  // Continuous upward scroll at 0.8 px/frame, looped
+  const scrollY = ((t * 0.8) % totalCycle + totalCycle) % totalCycle;
+  const stack = [0, 1];
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: ICON_SIZE / 2,
+        top: -tapeHeight - 10,
+        width: tapeWidth,
+        height: tapeHeight,
+        marginLeft: -tapeWidth / 2,
+        overflow: "hidden",
+        pointerEvents: "none",
+        maskImage:
+          "linear-gradient(180deg, transparent 0%, black 25%, black 75%, transparent 100%)",
+        WebkitMaskImage:
+          "linear-gradient(180deg, transparent 0%, black 25%, black 75%, transparent 100%)",
+      }}
+    >
+      {stack.map((s) => (
+        <div
+          key={s}
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: tapeHeight / 2 - scrollY + s * totalCycle,
+            textAlign: "center",
+          }}
+        >
+          {F2_TAPE_DETAILS.map((d, i) => (
+            <div
+              key={i}
+              style={{
+                fontSize: 11,
+                fontWeight: 500,
+                color: "rgba(255,255,255,0.7)",
+                fontFamily: "Inter, system-ui",
+                whiteSpace: "nowrap",
+                lineHeight: `${lineHeight}px`,
+                height: lineHeight,
+              }}
+            >
+              {d}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// 🗺 Feature 3 (v1.35) — SEQUENCED pins:
+//   t 2-4 : first pin pops up alone with overshoot bounce
+//   t 4-6 : brief beat — first pin pulses once
+//   t 6-10: second pin pops up + glowing gradient line draws between them
+//   t 10-16: idle (line glows + pins pulse softly)
+//   t 16-22: ACTIVE morph — line brightens, particle flow speeds up
+//   t 22+ : continuous flow + drifting addresses
 const F3_DRIFT_ADDRESSES = ["Hammersmith", "Notting Hill", "Fulham"];
 
 const RouteMorphIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
-  const pinP = interpolate(localTime, [ICON_DRAW_START, ICON_DRAW_END], [0, 1], {
+  // First pin pops in t=2-4 (overshoot 1.0→1.2→1.0 spring)
+  const pin1P = interpolate(localTime, [2, 4, 6], [0, 1.2, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const wavyP = interpolate(localTime, [4, 6], [0, 1], {
+  // First pin idle pulse during the beat (t=4-6)
+  const pin1BeatPulse =
+    localTime >= 4 && localTime < 6
+      ? 1 + 0.2 * Math.abs(Math.sin(((localTime - 4) / 2) * Math.PI))
+      : 1;
+  // Second pin pops in t=6-10
+  const pin2P = interpolate(localTime, [6, 8, 10], [0, 1.2, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  // Initial wavy → optimized morph (idle phase, F6-F10)
-  const idleMorphP = interpolate(localTime, [6, 10], [0, 1], {
+  // Line draws between them t=6-10 (sync with pin2 entry)
+  const lineP = interpolate(localTime, [6, 10], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
-  // Active "route activation" morph F12-F16: optimized path brightens,
-  // gradient saturates, pins pulse, particles speed up
+
+  // Active morph t=16-22: line brightens, glow intensifies
   const activeP = interpolate(localTime, [ICON_MORPH_START, ICON_MORPH_END], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
 
-  const wavyPath = `M 12 48 Q 22 30, 32 38 T 52 16`;
-  const optimPath = `M 12 48 Q 28 32, 52 16`;
-
-  // Pins pulse during activation
-  const pinPulse = activeP > 0
-    ? 1 + 0.15 * activeP * Math.abs(Math.sin((localTime / 5) * Math.PI))
-    : 1;
+  // Continuous pin pulse after both pins land
+  const continuousPulse =
+    localTime >= 10
+      ? 1 + 0.08 * Math.sin((localTime / 8) * Math.PI * 2)
+      : 1;
+  const pin1FinalScale = pin1P * pin1BeatPulse * continuousPulse;
+  const pin2FinalScale = pin2P * continuousPulse;
 
   // Particle flow speed increases in active state
-  const flowSpeedDiv = activeP > 0.5 ? 24 : 36;
+  const flowSpeedDiv = activeP > 0.5 ? 22 : 36;
+  const path = `M 12 48 Q 28 32, 52 16`;
 
   return (
     <div style={{ position: "relative", width: ICON_SIZE, height: ICON_SIZE }}>
@@ -1855,34 +1900,26 @@ const RouteMorphIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
             <stop offset="100%" stopColor={COLOR.aiPurple} />
           </linearGradient>
         </defs>
-        {/* Wavy path — fades as initial morph completes */}
+        {/* Connecting line — draws sync'd with pin 2 */}
         <path
-          d={wavyPath}
-          fill="none"
-          stroke="rgba(255,255,255,0.6)"
-          strokeWidth={2}
-          strokeDasharray={`${wavyP * 80 * (1 - idleMorphP)} 100`}
-          opacity={1 - idleMorphP}
-        />
-        {/* Optimized path — brightens in active state */}
-        <path
-          d={optimPath}
+          d={path}
           fill="none"
           stroke="url(#route-grad-f3)"
           strokeWidth={3 + activeP * 1.5}
           strokeLinecap="round"
-          opacity={idleMorphP}
+          strokeDasharray={`${lineP * 60} 100`}
+          opacity={lineP}
           style={{
             filter: `drop-shadow(0 0 ${4 + activeP * 8}px rgba(109,40,217,${0.4 + activeP * 0.4}))`,
           }}
         />
-        {/* Flowing particles */}
-        {idleMorphP > 0.7 &&
+        {/* Flowing particles along line — start once line is fully drawn */}
+        {lineP >= 0.95 &&
           [0, 1, 2, 3].map((i) => {
-            const t = ((localTime + i * 9) % flowSpeedDiv) / flowSpeedDiv;
-            const u = 1 - t;
-            const px = u * u * 12 + 2 * u * t * 28 + t * t * 52;
-            const py = u * u * 48 + 2 * u * t * 32 + t * t * 16;
+            const tt = ((localTime + i * 9) % flowSpeedDiv) / flowSpeedDiv;
+            const u = 1 - tt;
+            const px = u * u * 12 + 2 * u * tt * 28 + tt * tt * 52;
+            const py = u * u * 48 + 2 * u * tt * 32 + tt * tt * 16;
             return (
               <circle
                 key={i}
@@ -1890,72 +1927,114 @@ const RouteMorphIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
                 cy={py}
                 r={2.5 + activeP * 1}
                 fill={i % 2 === 0 ? COLOR.blue : COLOR.aiPurple}
-                opacity={0.85 * (t < 0.1 ? t * 10 : t > 0.9 ? (1 - t) * 10 : 1)}
+                opacity={0.85 * (tt < 0.1 ? tt * 10 : tt > 0.9 ? (1 - tt) * 10 : 1)}
               />
             );
           })}
-        {/* Two pins (with pulse during active state) */}
-        <g transform={`translate(12, 48) scale(${pinP * pinPulse})`}>
-          <circle cx={0} cy={0} r={4.5} fill="rgba(255,255,255,0.95)" />
-          <path d="M 0 -4 L -3 -8 L 3 -8 Z" fill="rgba(255,255,255,0.95)" />
-        </g>
-        <g transform={`translate(52, 16) scale(${pinP * pinPulse})`}>
-          <circle cx={0} cy={0} r={4.5} fill={COLOR.aiPurple} />
-          <path d="M 0 -4 L -3 -8 L 3 -8 Z" fill={COLOR.aiPurple} />
-        </g>
+        {/* PIN 1 — pops first, alone */}
+        {pin1P > 0 && (
+          <g transform={`translate(12, 48) scale(${pin1FinalScale})`}>
+            <circle cx={0} cy={0} r={4.5} fill="rgba(255,255,255,0.95)" />
+            <path d="M 0 -4 L -3 -8 L 3 -8 Z" fill="rgba(255,255,255,0.95)" />
+          </g>
+        )}
+        {/* PIN 2 — pops after beat, sync'd with line draw */}
+        {pin2P > 0 && (
+          <g transform={`translate(52, 16) scale(${pin2FinalScale})`}>
+            <circle cx={0} cy={0} r={4.5} fill={COLOR.aiPurple} />
+            <path d="M 0 -4 L -3 -8 L 3 -8 Z" fill={COLOR.aiPurple} />
+          </g>
+        )}
       </svg>
-      {/* Drift addresses — rise from the icon */}
-      <DriftWords
-        words={F3_DRIFT_ADDRESSES}
-        localTime={localTime}
-        startFrame={DRIFT_START}
-        wordIntervalFrames={4}
-        size={13}
-        opacity={0.55}
-      />
+      {/* v1.35 drift loop — addresses cycle continuously above the route */}
+      <DriftAddressesCycle localTime={localTime} />
     </div>
   );
 };
 
-// 🤝 Feature 4 — Speech bubble → live message-typing UI → sent state
-// Drift content: "Hi John, just following up..."
+const DriftAddressesCycle: React.FC<{ localTime: number }> = ({ localTime }) => {
+  if (localTime < DRIFT_START) return null;
+  const cycleFrames = 30;
+  return (
+    <>
+      {F3_DRIFT_ADDRESSES.map((addr, i) => {
+        const stagger = i * (cycleFrames / F3_DRIFT_ADDRESSES.length);
+        const t =
+          ((localTime - DRIFT_START - stagger + cycleFrames * 8) % cycleFrames + cycleFrames) %
+          cycleFrames;
+        const driftY = -t * 0.8 - 16;
+        const fade = interpolate(
+          t,
+          [0, cycleFrames * 0.2, cycleFrames * 0.7, cycleFrames],
+          [0, 0.6, 0.6, 0],
+          { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+        );
+        if (fade <= 0) return null;
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: ICON_SIZE / 2,
+              top: -16,
+              transform: `translate(-50%, ${driftY}px)`,
+              fontSize: 11,
+              fontWeight: 400,
+              color: `rgba(255,255,255,${fade})`,
+              fontFamily: "Inter, system-ui",
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+            }}
+          >
+            {addr}
+          </div>
+        );
+      })}
+    </>
+  );
+};
+
+// 🤝 Feature 4 (v1.35) — TWO-ELEMENT icon: AI avatar (left) + chat bubble
+// (right). Sequence:
+//   t 2-4 : AI avatar appears (purple gradient circle with sparkle face)
+//   t 4-6 : chat bubble appears next to avatar
+//   t 6-16: typing dots "..." animate in the bubble (AI is typing)
+//   t 16-22: dots fade, message types char-by-char into the bubble:
+//            "Hi John, just following up..."
+//   t 22-24: sent state — paper airplane emits + green check stamps in
+//   t 24+ : continuous loop (avatar pulse, bubble shimmer, check glow)
 const F4_MESSAGE = "Hi John, just following up...";
 
 const SpeechAirplaneIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
-  // Bubble line-draws F2-F4
-  const bubbleP = interpolate(localTime, [ICON_DRAW_START, ICON_DRAW_END], [0, 1], {
+  // Avatar enters t=2-4 (spring scale 0 → 1.05 → 1.0)
+  const avatarP = interpolate(localTime, [2, 3, 4], [0, 1.05, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  // Idle airplane loop F4-F12 (looping fly-out, every 36f)
-  const idleT = Math.max(0, localTime - 4);
-  const loopT = (idleT % 36) / 36;
-  const idleAirOpacity =
-    localTime < 4 || localTime >= ICON_MORPH_START
-      ? 0
-      : loopT < 0.05
-      ? loopT * 20
-      : loopT > 0.7
-      ? Math.max(0, (0.85 - loopT) * 6.6)
-      : 1;
-  const idleAirX = interpolate(loopT, [0, 0.7], [22, 56]);
-  const idleAirY = interpolate(loopT, [0, 0.7], [22, -8]);
-
-  // Active morph F12-F16: bubble grows, three typing dots animate
+  // Bubble appears t=4-6
+  const bubbleP = interpolate(localTime, [4, 6], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE.outCubic,
+  });
+  // Typing dots active t=6-16 (during text typing)
+  const dotsActive = localTime >= 6 && localTime < 16;
+  // Active morph t=16-22: dots fade, message types in
   const morphP = interpolate(localTime, [ICON_MORPH_START, ICON_MORPH_END], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
-
-  // Message types in F16+ (~15f to type the full string)
-  const msgT = localTime - DRIFT_START;
+  // Message types in t=16-22 (during morph window)
+  const msgT = localTime - ICON_MORPH_START;
   const msgVisible =
-    msgT >= 0 ? Math.min(F4_MESSAGE.length, Math.floor((msgT / 18) * F4_MESSAGE.length)) : 0;
+    msgT >= 0
+      ? Math.min(F4_MESSAGE.length, Math.floor((msgT / 6) * F4_MESSAGE.length))
+      : 0;
   const msgFullyTyped = msgVisible >= F4_MESSAGE.length;
 
-  // Sent-state airplane fires after message fully typed
-  const sentT = msgFullyTyped ? localTime - (DRIFT_START + 18) : -1;
+  // Sent state at t=22+ (paper airplane + check stamp)
+  const sentT = localTime - DRIFT_START;
   const sentAirOpacity =
     sentT >= 0
       ? interpolate(sentT, [0, 2, 8], [0, 1, 0], {
@@ -1963,137 +2042,151 @@ const SpeechAirplaneIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
           extrapolateRight: "clamp",
         })
       : 0;
-  const sentAirX = interpolate(sentT, [0, 8], [40, 90]);
-  const sentAirY = interpolate(sentT, [0, 8], [22, -32]);
-
-  // Sent check stamp after airplane fires
+  const sentAirX = interpolate(sentT, [0, 8], [50, 100]);
+  const sentAirY = interpolate(sentT, [0, 8], [22, -28]);
   const sentCheckP =
-    sentT >= 0
-      ? interpolate(sentT, [4, 5, 6], [0, 1.15, 1], {
+    sentT >= 2
+      ? interpolate(sentT, [2, 3.5, 5], [0, 1.15, 1], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
         })
       : 0;
+
+  // Continuous avatar pulse
+  const avatarPulse = 1 + 0.04 * Math.sin((localTime / 12) * Math.PI * 2);
 
   return (
     <div style={{ position: "relative", width: ICON_SIZE, height: ICON_SIZE }}>
       <svg
         width={ICON_SIZE}
         height={ICON_SIZE}
-        viewBox="0 0 64 64"
+        viewBox="0 0 80 64"
         style={{ filter: ICON_GLOW_FILTER, overflow: "visible" }}
       >
-        {/* Speech bubble outline — grows with morph progress */}
-        <g
-          transform={`scale(${1 + morphP * 0.15}) translate(${
-            -morphP * 5
-          }, ${-morphP * 2})`}
-          style={{ transformOrigin: "28px 22px" }}
-        >
-          <path
-            d="M 8 12 Q 8 8 12 8 L 44 8 Q 48 8 48 12 L 48 32 Q 48 36 44 36 L 24 36 L 18 44 L 18 36 L 12 36 Q 8 36 8 32 Z"
-            fill={`rgba(15,23,42,${morphP * 0.4})`}
-            stroke="rgba(255,255,255,0.95)"
-            strokeWidth={3}
-            strokeLinejoin="round"
-            strokeDasharray={`${bubbleP * 200} 200`}
-          />
-        </g>
-        {/* Idle airplane — visible only during F4-F12 idle phase */}
-        {idleAirOpacity > 0 && (
+        <defs>
+          <radialGradient id="ai-avatar-grad" cx="0.4" cy="0.35">
+            <stop offset="0%" stopColor="#A78BFA" />
+            <stop offset="55%" stopColor={COLOR.aiPurple} />
+            <stop offset="100%" stopColor="#3B0F8C" />
+          </radialGradient>
+        </defs>
+
+        {/* AI AVATAR — purple gradient circle with sparkle "face" */}
+        {avatarP > 0 && (
           <g
-            transform={`translate(${idleAirX}, ${idleAirY}) rotate(-25)`}
-            opacity={idleAirOpacity}
+            transform={`translate(14, 32) scale(${avatarP * avatarPulse})`}
+            style={{
+              filter: `drop-shadow(0 0 ${4 + 4 * avatarPulse}px rgba(109,40,217,0.6))`,
+            }}
           >
+            <circle cx={0} cy={0} r={11} fill="url(#ai-avatar-grad)" />
+            {/* Sparkle face */}
             <path
-              d="M -6 0 L 6 -2 L 6 2 L -6 0 L -3 -3 M -6 0 L -3 3"
-              fill="none"
-              stroke="rgba(255,255,255,0.95)"
-              strokeWidth={2}
-              strokeLinejoin="round"
-              strokeLinecap="round"
+              d="M 0 -5 L 1.4 -1.4 L 5 0 L 1.4 1.4 L 0 5 L -1.4 1.4 L -5 0 L -1.4 -1.4 Z"
+              fill="rgba(255,255,255,0.9)"
+              transform={`rotate(${(localTime * 6) % 360})`}
             />
-            <path
-              d="M -6 0 L 6 -2"
-              stroke="rgba(255,255,255,0.95)"
-              strokeWidth={2}
-            />
+            <circle cx={-3} cy={-2} r={0.8} fill="rgba(255,255,255,0.6)" />
+            <circle cx={3} cy={-2} r={0.8} fill="rgba(255,255,255,0.6)" />
           </g>
         )}
-        {/* Typing dots inside bubble — F12+ until message starts typing */}
-        {morphP > 0.3 && msgT < 4 &&
+
+        {/* CHAT BUBBLE — to the right of avatar, with tail pointing at avatar */}
+        {bubbleP > 0 && (
+          <g opacity={bubbleP}>
+            <path
+              d="M 30 18 Q 30 14 34 14 L 70 14 Q 74 14 74 18 L 74 42 Q 74 46 70 46 L 38 46 L 32 50 L 32 46 L 30 46 Q 30 46 30 42 Z"
+              fill={`rgba(15,23,42,${0.5 + morphP * 0.3})`}
+              stroke="rgba(255,255,255,0.95)"
+              strokeWidth={2.5}
+              strokeLinejoin="round"
+            />
+            {/* Continuous inner shimmer when message is fully typed */}
+            {msgFullyTyped && (
+              <rect
+                x={32}
+                y={16}
+                width={40}
+                height={28}
+                fill={`rgba(255,255,255,${0.04 + 0.04 * Math.sin((localTime / 18) * Math.PI * 2)})`}
+                rx={3}
+              />
+            )}
+          </g>
+        )}
+
+        {/* Typing dots "..." inside bubble — wave animation */}
+        {dotsActive &&
           [0, 1, 2].map((i) => {
-            const dotPhase = ((localTime + i * 4) % 12) / 12;
-            const dotY = 22 - 2 * Math.abs(Math.sin(dotPhase * Math.PI));
+            const dotPhase = ((localTime + i * 3) % 12) / 12;
+            const dotY = 30 - 2 * Math.abs(Math.sin(dotPhase * Math.PI));
             return (
               <circle
                 key={`dot-${i}`}
-                cx={20 + i * 8}
+                cx={42 + i * 7}
                 cy={dotY}
-                r={2.2}
-                fill={`rgba(255,255,255,${0.6 + 0.4 * Math.abs(
-                  Math.sin(dotPhase * Math.PI)
-                )})`}
+                r={1.8}
+                fill={`rgba(255,255,255,${0.5 + 0.5 * Math.abs(Math.sin(dotPhase * Math.PI))})`}
               />
             );
           })}
+
         {/* Sent airplane firing out of bubble */}
         {sentAirOpacity > 0 && (
           <g
-            transform={`translate(${sentAirX}, ${sentAirY}) rotate(-30)`}
+            transform={`translate(${sentAirX}, ${sentAirY}) rotate(-28)`}
             opacity={sentAirOpacity}
           >
             <path
-              d="M -8 0 L 8 -3 L 8 3 L -8 0 L -4 -4 M -8 0 L -4 4"
-              fill="rgba(59,130,246,0.35)"
+              d="M -7 0 L 7 -3 L 7 3 L -7 0 L -3 -3 M -7 0 L -3 3"
+              fill={`rgba(59,130,246,0.35)`}
               stroke={COLOR.blue}
               strokeWidth={2}
               strokeLinejoin="round"
               strokeLinecap="round"
-              style={{
-                filter: `drop-shadow(0 0 6px ${COLOR.blue})`,
-              }}
+              style={{ filter: `drop-shadow(0 0 6px ${COLOR.blue})` }}
             />
           </g>
         )}
-        {/* Sent check stamp */}
+
+        {/* Green check stamp at bubble corner (sent confirmation) */}
         {sentCheckP > 0 && (
           <g
-            transform={`translate(50, 12) scale(${sentCheckP})`}
-            style={{
-              filter: `drop-shadow(0 0 4px ${COLOR.accepted})`,
-            }}
+            transform={`translate(72, 14) scale(${sentCheckP})`}
+            style={{ filter: `drop-shadow(0 0 4px ${COLOR.accepted})` }}
           >
-            <circle cx={0} cy={0} r={7} fill={COLOR.accepted} />
+            <circle cx={0} cy={0} r={6} fill={COLOR.accepted} />
             <path
-              d="M -3 0 L -1 2 L 3 -2"
+              d="M -2.5 0 L -0.5 1.5 L 2.5 -1.8"
               fill="none"
               stroke="#fff"
-              strokeWidth={2}
+              strokeWidth={1.8}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </g>
         )}
       </svg>
-      {/* Message text streaming inside the bubble (overlay over SVG) */}
+
+      {/* Streamed message text inside the bubble (overlay) */}
       {msgT >= 0 && (
         <div
           style={{
             position: "absolute",
-            top: 22,
-            left: 18,
-            width: 76,
+            top: 26,
+            left: 40,
+            width: 60,
             fontSize: 8,
             fontWeight: 500,
             color: "rgba(255,255,255,0.92)",
             fontFamily: "Inter, system-ui",
             lineHeight: 1.25,
             opacity: morphP,
+            pointerEvents: "none",
           }}
         >
           {F4_MESSAGE.slice(0, msgVisible)}
-          {!msgFullyTyped && Math.floor(localTime / 4) % 2 === 0 && (
+          {!msgFullyTyped && Math.floor(localTime / 3) % 2 === 0 && (
             <span style={{ color: COLOR.aiPurple }}>|</span>
           )}
         </div>
