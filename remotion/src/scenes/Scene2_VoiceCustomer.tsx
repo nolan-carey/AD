@@ -531,7 +531,7 @@ const TaglinePill: React.FC<{ frame: number; fps: number }> = ({
               inset: -1,
               borderRadius: 999,
               padding: 1,
-              background: `conic-gradient(from ${irisRot}deg, rgba(59,130,246,0.05), rgba(109,40,217,0.06), rgba(255,150,200,0.05), rgba(59,130,246,0.05))`,
+              background: `conic-gradient(from ${irisRot}deg, rgba(59,130,246,0.05), rgba(180,210,255,0.06), rgba(255,150,200,0.05), rgba(59,130,246,0.05))`,
               WebkitMask:
                 "linear-gradient(#000, #000) content-box, linear-gradient(#000, #000)",
               WebkitMaskComposite: "xor" as const,
@@ -878,7 +878,7 @@ const SparkleOrbiter: React.FC<{ frame: number }> = ({ frame }) => {
         }}
       />
       <Sparkle size={90} color={COLOR.aiPurple} />
-      {pulseScale > 1.05 && <BurstParticles count={12} />}
+      {pulseScale > 1.05 && <BurstParticles count={6} />}
     </div>
   );
 };
@@ -904,12 +904,15 @@ const Sparkle: React.FC<{ size: number; color: string }> = ({ size, color }) => 
   );
 };
 
+// v1.39: sparkle particle bursts — mix of white + purple (was all-purple)
 const BurstParticles: React.FC<{ count: number }> = ({ count }) => {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => {
         const ang = (i / count) * Math.PI * 2;
         const r = 60;
+        const isWhite = i % 2 === 0;
+        const color = isWhite ? "#FFFFFF" : COLOR.aiPurple;
         return (
           <div
             key={i}
@@ -920,8 +923,8 @@ const BurstParticles: React.FC<{ count: number }> = ({ count }) => {
               width: 4,
               height: 4,
               borderRadius: "50%",
-              background: COLOR.aiPurple,
-              boxShadow: `0 0 6px ${COLOR.aiPurple}`,
+              background: color,
+              boxShadow: `0 0 6px ${color}`,
               opacity: 0.9,
             }}
           />
@@ -1125,7 +1128,7 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
                   whiteSpace: "nowrap",
                   lineHeight: 1.0,
                   textShadow:
-                    "0 4px 24px rgba(15,23,42,0.6), 0 0 32px rgba(109,40,217,0.45)",
+                    "0 4px 24px rgba(15,23,42,0.6), 0 0 32px rgba(59,130,246,0.45)",
                 }}
               >
                 {outcomeVisible}
@@ -1147,15 +1150,15 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
                     />
                   )}
               </div>
-              {/* Underline beneath outcome word — left-aligned now (text on right of icon) */}
+              {/* Underline beneath outcome word — v1.39: purple → blue */}
               <div
                 style={{
                   width: 180 * underlineW,
                   height: 3,
                   marginTop: 6,
                   alignSelf: "flex-start",
-                  background: `linear-gradient(90deg, rgba(109,40,217,0) 0%, ${COLOR.aiPurple} 50%, rgba(109,40,217,0) 100%)`,
-                  boxShadow: `0 0 8px ${COLOR.aiPurple}`,
+                  background: `linear-gradient(90deg, rgba(59,130,246,0) 0%, ${COLOR.blue} 50%, rgba(59,130,246,0) 100%)`,
+                  boxShadow: `0 0 8px ${COLOR.blue}`,
                   opacity: dissolve,
                 }}
               />
@@ -1200,7 +1203,9 @@ const VortexParticles: React.FC<{ frame: number }> = ({ frame }) => {
         const x = CENTER.x + Math.cos(ang) * r;
         const y = CENTER.y + Math.sin(ang) * r;
         const size = 4 + (i % 3) * 2;
+        // v1.39: ~50/50 white + purple mix (was alternating purple/blue)
         const isPurple = i % 2 === 0;
+        const color = isPurple ? COLOR.aiPurple : "#FFFFFF";
         return (
           <div
             key={i}
@@ -1211,10 +1216,8 @@ const VortexParticles: React.FC<{ frame: number }> = ({ frame }) => {
               width: size,
               height: size,
               borderRadius: "50%",
-              background: isPurple ? COLOR.aiPurple : COLOR.blue,
-              boxShadow: `0 0 ${size * 2}px ${
-                isPurple ? COLOR.aiPurple : COLOR.blue
-              }`,
+              background: color,
+              boxShadow: `0 0 ${size * 2}px ${color}`,
               opacity: fade,
             }}
           />
@@ -1411,8 +1414,9 @@ const DashboardEntry: React.FC<{ captionOpacity: number }> = ({
 // =====================================================================
 
 const ICON_SIZE = 104; // v1.34: ~12% larger; balances the 72-px outcome word
+// v1.39: icon glow purple → blue (purple reserved for explicit AI signals)
 const ICON_GLOW_FILTER =
-  "drop-shadow(0 0 8px rgba(109,40,217,0.55)) drop-shadow(0 0 4px rgba(109,40,217,0.4))";
+  "drop-shadow(0 0 8px rgba(59,130,246,0.55)) drop-shadow(0 0 4px rgba(59,130,246,0.4))";
 
 // Phase transition frames (relative to feature start) — v1.36 pacing
 const ICON_DRAW_START = 2;
@@ -1741,7 +1745,7 @@ const PersonFillIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
               y={56 - 46 * personFillP}
               width={44}
               height={46}
-              fill={COLOR.aiPurple}
+              fill={COLOR.blue}
               clipPath="url(#person-clip-f2)"
               opacity={0.85}
             />
@@ -1895,9 +1899,10 @@ const RouteMorphIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
         style={{ filter: ICON_GLOW_FILTER }}
       >
         <defs>
+          {/* v1.39: route gradient now all-blue (was blue→purple) */}
           <linearGradient id="route-grad-f3" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor={COLOR.blue} />
-            <stop offset="100%" stopColor={COLOR.aiPurple} />
+            <stop offset="0%" stopColor="#60A5FA" />
+            <stop offset="100%" stopColor={COLOR.blue} />
           </linearGradient>
         </defs>
         {/* Connecting line — draws sync'd with pin 2 */}
@@ -1910,7 +1915,7 @@ const RouteMorphIcon: React.FC<{ localTime: number }> = ({ localTime }) => {
           strokeDasharray={`${lineP * 60} 100`}
           opacity={lineP}
           style={{
-            filter: `drop-shadow(0 0 ${4 + activeP * 8}px rgba(109,40,217,${0.4 + activeP * 0.4}))`,
+            filter: `drop-shadow(0 0 ${4 + activeP * 8}px rgba(59,130,246,${0.4 + activeP * 0.4}))`,
           }}
         />
         {/* Flowing particles along line — start once line is fully drawn */}
