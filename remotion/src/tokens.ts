@@ -98,25 +98,26 @@ export const TYPE = {
   ctaLabel: { size: 22, weight: 600 },
 } as const;
 
-// Master timeline anchor (43.7s/1311 frames, 10 scenes).
-// v1.41 2026-05-07: Scene 2 +2s extension per user direction. Typing
-// slowed further (verb 10→16f, breath 2→3f, outcome 13→19f). Per-feature
-// window 43→60f. Stagger 28→35f. Pill hold 24→36f. Dashboard 24→34f.
-// Scene 2: 291f → 351f (+60f / +2s). Scenes 3-10 shift +60.
+// Master timeline anchor (49.1s/1472 frames, 10 scenes).
+// v1.6 2026-05-07: master timeline reconciliation — Steve's Option A.
+// Scene 2 content was running ~524 local frames against an allotted 351;
+// bumped scene2.duration to 512 (12f buffer accounts for the Scene 1→2
+// -20 crossfade so Scene 2 ends cleanly at abs F752 = scene3.from).
+// Scenes 3–10 all shifted +161f. v1.0 → v1.43 sealed; current state = v1.5.
 export const FPS = 30;
-export const TOTAL_FRAMES = 1311; // 43.7s @ 30fps
+export const TOTAL_FRAMES = 1472; // 49.1s @ 30fps (v1.6 reconciled timeline)
 
 export const SCENES = {
   scene1: { from: 0, duration: 240 }, //    0:00.0 – 0:08.0  (8.0s · Overwhelm — 18 cards including v1.40 density-build)
-  scene2: { from: 240, duration: 351 }, //  0:08.0 – 0:19.7 (11.7s · v1.41 slowed typing + kinetic float + 35f stagger)
-  scene3: { from: 591, duration: 105 }, //  0:19.7 – 0:23.2  (3.5s · Dashboard reveal + mic zoom)
-  scene4: { from: 696, duration: 105 }, //  0:23.2 – 0:26.7  (3.5s · Voice→Quote)
-  scene5: { from: 801, duration: 60 }, //   0:26.7 – 0:28.7  (2.0s · Quote→Customer profile)
-  scene6: { from: 861, duration: 90 }, //   0:28.7 – 0:31.7  (3.0s · Receipt→Expense)
-  scene7: { from: 951, duration: 90 }, //   0:31.7 – 0:34.7  (3.0s · Map→Route)
-  scene8: { from: 1041, duration: 90 }, //  0:34.7 – 0:37.7  (3.0s · Pin→Follow-up)
-  scene9: { from: 1131, duration: 120 }, // 0:37.7 – 0:41.7  (4.0s · AI Business Assistant)
-  scene10: { from: 1251, duration: 60 }, // 0:41.7 – 0:43.7  (2.0s · Final hero shot)
+  scene2: { from: 240, duration: 512 }, //  0:08.0 – 0:25.1 (17.1s · v1.45 L→R sparkle sweep reveal — 77f stagger, 95f window)
+  scene3: { from: 752, duration: 105 }, //  0:25.1 – 0:28.6  (3.5s · Dashboard reveal + mic zoom)
+  scene4: { from: 857, duration: 105 }, //  0:28.6 – 0:32.1  (3.5s · Voice→Quote)
+  scene5: { from: 962, duration: 60 }, //   0:32.1 – 0:34.1  (2.0s · Quote→Customer profile)
+  scene6: { from: 1022, duration: 90 }, //  0:34.1 – 0:37.1  (3.0s · Receipt→Expense)
+  scene7: { from: 1112, duration: 90 }, //  0:37.1 – 0:40.1  (3.0s · Map→Route)
+  scene8: { from: 1202, duration: 90 }, //  0:40.1 – 0:43.1  (3.0s · Pin→Follow-up)
+  scene9: { from: 1292, duration: 120 }, // 0:43.1 – 0:47.1  (4.0s · AI Business Assistant)
+  scene10: { from: 1412, duration: 60 }, // 0:47.1 – 0:49.1  (2.0s · Final hero shot)
 } as const;
 
 // v1.26: persistent top-right chevron REMOVED. Logo stays centered the

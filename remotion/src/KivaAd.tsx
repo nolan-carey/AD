@@ -110,12 +110,17 @@ const SceneStack: React.FC = () => {
       >
         <Scene1Overwhelm />
       </Sequence>
+      {/* Scene 1→2 crossfade extended to 20f (F220→F240) per user direction;
+          fade-out into Scene 3 stays at the global 12f. */}
       <Sequence
-        from={SCENES.scene2.from - CROSSFADE}
-        durationInFrames={SCENES.scene2.duration + CROSSFADE * 2}
+        from={SCENES.scene2.from - 20}
+        durationInFrames={SCENES.scene2.duration + 20 + CROSSFADE}
         layout="none"
       >
-        <SceneCrossfade duration={SCENES.scene2.duration + CROSSFADE * 2}>
+        <SceneCrossfade
+          duration={SCENES.scene2.duration + 20 + CROSSFADE}
+          fadeInFrames={20}
+        >
           <Scene2VoiceCustomer />
         </SceneCrossfade>
       </Sequence>
@@ -214,11 +219,13 @@ const SceneStack: React.FC = () => {
 
 const SceneCrossfade: React.FC<{
   duration: number;
+  fadeInFrames?: number;
+  fadeOutFrames?: number;
   children: React.ReactNode;
-}> = ({ duration, children }) => {
+}> = ({ duration, fadeInFrames = CROSSFADE, fadeOutFrames = CROSSFADE, children }) => {
   const frame = useCurrentFrame();
-  const fadeIn = Math.min(1, frame / CROSSFADE);
-  const fadeOut = Math.min(1, (duration - frame) / CROSSFADE);
+  const fadeIn = Math.min(1, frame / fadeInFrames);
+  const fadeOut = Math.min(1, (duration - frame) / fadeOutFrames);
   const opacity = Math.max(0, Math.min(fadeIn, fadeOut));
   return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
 };

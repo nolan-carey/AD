@@ -33,18 +33,18 @@ const VARIANT_META: Record<
     accent?: string; // optional inner accent color (left strip on the GlassPlate)
   }
 > = {
-  imessage: { icon: "iMessage", iconBg: COLOR.imessage, appName: "Messages" },
+  imessage: { icon: "iM", iconBg: COLOR.imessage, appName: "Messages", accent: COLOR.imessage },
   whatsapp: { icon: "WA", iconBg: COLOR.whatsapp, appName: "WhatsApp", accent: COLOR.whatsapp },
-  email: { icon: "Mail", iconBg: "#1976D2", appName: "Mail" },
-  call: { icon: "Phone", iconBg: COLOR.overdue, appName: "Phone", appLabel: "MISSED CALL", accent: COLOR.overdue },
-  calendar: { icon: "Cal", iconBg: "#FF3B30", appName: "Calendar" },
+  email: { icon: "M", iconBg: "#1976D2", appName: "Mail", accent: "#1976D2" },
+  call: { icon: "Ph", iconBg: COLOR.overdue, appName: "Phone", appLabel: "MISSED CALL", accent: COLOR.overdue },
+  calendar: { icon: "Cal", iconBg: "#FF3B30", appName: "Calendar", accent: "#FF3B30" },
   hmrc: { icon: "GOV", iconBg: "#0B0C0C", appName: "HMRC", accent: "#FFCC00" },
-  google: { icon: "G", iconBg: "#4285F4", appName: "Google" },
+  google: { icon: "G", iconBg: "#4285F4", appName: "Google", accent: "#4285F4" },
   stripe: { icon: "S", iconBg: "#635BFF", appName: "Stripe", accent: "#635BFF" },
   screwfix: { icon: "SF", iconBg: "#003478", appName: "Screwfix", accent: "#FF6600" },
-  voicemail: { icon: "VM", iconBg: "#8E8E93", appName: "Voicemail" },
-  banking: { icon: "Bk", iconBg: "#005EB8", appName: "Lloyds Bank" },
-  generic: { icon: "•", iconBg: "#64748B", appName: "Notification" },
+  voicemail: { icon: "VM", iconBg: "#8E8E93", appName: "Voicemail", accent: "#8E8E93" },
+  banking: { icon: "Bk", iconBg: "#005EB8", appName: "Lloyds Bank", accent: "#005EB8" },
+  generic: { icon: "•", iconBg: "#64748B", appName: "Notification", accent: "#64748B" },
 };
 
 // =====================================================================
@@ -66,9 +66,21 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
       radius={22}
       innerAccentColor={meta.accent}
       style={{
-        // Slight luminance lift over the default GlassPlate so cards read
-        // clearly over the dark cinematic gradient.
-        background: "rgba(255,255,255,0.10)",
+        // v1.42: faux-glass fill — keeps the glassy LOOK of the original
+        // backdrop-filter version, but is static (no live sampling).
+        // Layered look:
+        //   • soft vertical gradient (light-through-glass shimmer)
+        //   • inner top highlight (1 px white at 25%) for depth
+        //   • inner bottom shadow (1 px black at 20%) for dimension
+        //   • outer drop-shadow (preserved by GlassPlate)
+        // backdrop-filter EXPLICITLY OFF so the texture never recomputes
+        // when cards (or the camera drift) move.
+        background:
+          "linear-gradient(180deg, rgba(40,55,80,0.78) 0%, rgba(20,30,50,0.82) 100%)",
+        backdropFilter: "none",
+        WebkitBackdropFilter: "none",
+        boxShadow:
+          "inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.18), 0 8px 32px rgba(0,0,0,0.45)",
       }}
     >
       <div
@@ -77,13 +89,14 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
           paddingLeft: meta.accent ? 18 : 14, // shift past the accent strip
           display: "flex",
           gap: 12,
-          alignItems: "flex-start",
+          alignItems: "center", // vertically center icon vs. text block
           fontFamily: "Inter, system-ui",
           color: "#fff",
         }}
       >
         <div
           style={{
+            position: "relative",
             width: 38,
             height: 38,
             borderRadius: 9,

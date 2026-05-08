@@ -69,14 +69,14 @@ const CARDS: CardSpec[] = [
     driftFactor: 1.0,
   },
   // === HERO HOLD F24–F42, then uniform 8-frame cadence (cards 2–18) ===
-  // 2) Missed call banner | start 40, land 50
+  // 2) Missed call banner | start 32, land 42 (hero-hold gap shortened 16f → 8f)
   {
     id: "john-call",
     variant: "call",
     sender: "John",
     body: "Missed call (3) — John (boiler)",
-    start: 40,
-    land: 50,
+    start: 32,
+    land: 42,
     x: 1180,
     y: 400,
     rotation: -2,
@@ -385,44 +385,47 @@ const DINGS: DingSpec[] = [
   { cardIdx: 10, file: SFX.notification2, pitch: 1 },
   { cardIdx: 11, file: SFX.notification1, pitch: -1 },
   { cardIdx: 12, file: SFX.notification2, pitch: 2 },
-  // === v1.40 density-build cards 13–18 (5f intervals) ===
-  { cardIdx: 13, file: SFX.notification1, pitch: -3 },
-  { cardIdx: 14, file: SFX.notification2, pitch: 3 },
-  { cardIdx: 15, file: SFX.notification1, pitch: -2 },
-  { cardIdx: 16, file: SFX.notification2, pitch: 1 },
-  { cardIdx: 17, file: SFX.notification1, pitch: -1 },
-  { cardIdx: 18, file: SFX.notification2, pitch: 0 },
+  // === v1.40 density-build cards 13–18 (5f intervals)
+  // v1.42 pitch curve: ASCENDING semitones (-1 → +5) so the climax has
+  // rising tension to match the volume ramp. Each successive ding is
+  // slightly higher, building anxiety into the typed hook. ===
+  { cardIdx: 13, file: SFX.notification1, pitch: -1 },
+  { cardIdx: 14, file: SFX.notification2, pitch: 0 },
+  { cardIdx: 15, file: SFX.notification1, pitch: 2 },
+  { cardIdx: 16, file: SFX.notification2, pitch: 3 },
+  { cardIdx: 17, file: SFX.notification1, pitch: 4 },
+  { cardIdx: 18, file: SFX.notification2, pitch: 5 },
 ];
 
-// === scene phase frames (v1.22 + user override 2026-05-07) ===
-// Scene extended 180 → 240 (8.0s) to fit 18 cards on slower 8-frame cadence.
-// Last card lands F178; drift+freeze begins F180; typing follows after.
-//   • Cursor onset: F184 (8f onset)
-//   • "Feeling" — 7 chars at 2 fpc: F192–F204
-//   • Pause: 6 frames F204–F210
-//   • " overwhelmed?" — 13 chars at ~1.67 fpc: F210–F230
-//   • "?" scale-pulse: F230–F234
-//   • Held silence: F234–F240 (cursor blinking; cards frozen mid-drift)
+// === scene phase frames (v1.42 — user direction: typing onset moved to F162) ===
+// v1.40 density-build cards 13–18 land F128–F153, last card lands F153.
+// Sediment drift REMOVED (cards stay frozen). Typing starts F162.
+//   • Cursor onset: F154 (8f onset, right after last card lands)
+//   • "Feeling" — 7 chars at 2 fpc: F162–F174
+//   • Pause: 6 frames F174–F180
+//   • " overwhelmed?" — 13 chars at ~1.67 fpc: F180–F200
+//   • "?" scale-pulse: F200–F204
+//   • Held silence: F204–F240 (cursor blinks; cards frozen)
 const HERO_HOLD_START = 24;
 const HERO_HOLD_END = 42;
-const CURSOR_APPEAR = 184;
-const TYPE_START = 192;
-const HOOK_START = 180; // last card lands at F178; drift starts F180
-const HOOK_END = 230; // typing complete (full text visible)
-const FREEZE_START = 234; // sediment freeze + held-silence begins
-const QUESTION_MARK_FRAME = 230; // "?" lands; pulse F230–F234
+const CURSOR_APPEAR = 154;
+const TYPE_START = 162;
+const HOOK_START = 154; // hook beat begins with cursor (drift removed)
+const HOOK_END = 200; // typing complete (full text visible)
+const FREEZE_START = 204; // held-silence begins (drift removed; this just bounds the "?" pulse)
+const QUESTION_MARK_FRAME = 200; // "?" lands; pulse F200–F204
 const TYPING_TEXT = "Feeling overwhelmed?";
 const SCENE_END = 240;
 
-// Per-character land frame for the override schedule.
-// chars 0–6  ("Feeling")        → F192 + i*2  →  192, 194, 196, 198, 200, 202, 204
-// pause F204–F210 (6f hold)
-// chars 7–19 (" overwhelmed?")  → F210 + (i-7)*(20/12) rounded → ends F230
+// Per-character land frame for the v1.42 schedule.
+// chars 0–6  ("Feeling")        → F162 + i*2  →  162, 164, 166, 168, 170, 172, 174
+// pause F174–F180 (6f hold)
+// chars 7–19 (" overwhelmed?")  → F180 + (i-7)*(20/12) rounded → ends F200
 function charLandFrame(i: number): number {
   if (i < 0) return -1;
   if (i <= 6) return TYPE_START + i * 2;
   if (i >= TYPING_TEXT.length) return -1;
-  return Math.round(210 + (i - 7) * (20 / 12));
+  return Math.round(180 + (i - 7) * (20 / 12));
 }
 
 export const Scene1Overwhelm: React.FC = () => {
@@ -470,17 +473,27 @@ export const Scene1Overwhelm: React.FC = () => {
 
       {/* === AUDIO === user-stripped: only message dings + typewriter clicks remain */}
 
-      {/* Per-card dings — all fire at landFrame - 2 */}
+      {/* Per-card dings — all fire at landFrame - 2.
+          v1.42 volume curve (climactic ramp, replaces fade-out):
+          • Hero ping (1) loudest at 0.85
+          • Stack cards 2-4 sit at 0.78
+          • Density middle 5-12 dip to ~0.5 (pulls back to give room)
+          • Density-build climax 13-18 RAMP UP 0.55 → 0.92 so the chaos
+            audibly peaks right before "Feeling overwhelmed?" types in. */}
       {DINGS.map((d) => {
         const card = CARDS[d.cardIdx - 1];
         const dingFrame = card.land - 2;
-        // Volume tapers: hero ping is loudest, density build slightly quieter
-        const volume =
-          d.cardIdx === 1
-            ? 0.85
-            : d.cardIdx <= 4
-            ? 0.78
-            : 0.62 - (d.cardIdx - 5) * 0.025;
+        let volume: number;
+        if (d.cardIdx === 1) {
+          volume = 0.85;
+        } else if (d.cardIdx <= 4) {
+          volume = 0.78;
+        } else if (d.cardIdx <= 12) {
+          volume = 0.62 - (d.cardIdx - 5) * 0.025; // 0.62 → 0.45 across 5–12
+        } else {
+          // Climactic ramp across cards 13–18: 0.55 → 0.92
+          volume = 0.55 + (d.cardIdx - 13) * 0.074;
+        }
         return (
           <SfxAt
             key={`ding-${d.cardIdx}`}
@@ -570,16 +583,14 @@ const Card: React.FC<{
   const px = interpolate(travelP, [0, 1], [ox, spec.x]);
   const py = interpolate(travelP, [0, 1], [oy, spec.y]);
 
-  // Sediment drift HOOK_START → FREEZE_START
-  const driftFrames = Math.max(0, Math.min(frame, FREEZE_START) - HOOK_START);
-  const drift = driftFrames * 1.5 * spec.driftFactor;
-  const driftOpacity =
-    driftFrames > 0
-      ? interpolate(driftFrames, [0, 14], [1, 0.91], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp",
-        })
-      : 1;
+  // v1.42 sediment drift REMOVED again — combined with backdrop-filter:none
+  // on the notification cards (NotificationCard.tsx), this eliminates ALL
+  // motion + BG-recompute at F153. Cards land, lock, and stay locked. The
+  // "weight of overwhelm" emotional beat now comes from card density +
+  // audio crescendo (climactic ding ramp on cards 13–18) rather than
+  // post-landing drift.
+  const drift = 0;
+  const driftOpacity = 1;
 
   // === Hero hold (Card 1 only, frames 24–42) ===
   // 0.2 px/frame downward drift, accumulates and persists after hold ends.
@@ -671,6 +682,15 @@ const HookText: React.FC<{ frame: number }> = ({ frame }) => {
       })
     : 1;
 
+  // Hook text rides the Scene 2 swipe-up wipe out of frame.
+  // Scene 2 wrapper starts at absolute F220; its local swipe window F12→F20
+  // = absolute F232→F240. Match the veil's translateY (0 → -1080) and easing.
+  const swipeOutY = interpolate(frame, [232, 240], [0, -1080], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE.inOutQuad,
+  });
+
   return (
     <AbsoluteFill
       style={{
@@ -692,6 +712,8 @@ const HookText: React.FC<{ frame: number }> = ({ frame }) => {
           display: "flex",
           alignItems: "baseline",
           whiteSpace: "pre",
+          transform: `translateY(${swipeOutY}px)`,
+          willChange: "transform",
         }}
       >
         {/* Type the text up to but not including the trailing "?" so we can pulse it independently */}

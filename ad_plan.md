@@ -9,7 +9,7 @@
 
 > Anything that needs the **user's explicit go-ahead** lives here. Always shown at the very top of the doc. When this section reads "(none — all clear)", Norm can proceed with everything in ACTIVE DIRECTIVES without further user input. When this section has items, **Norm pauses on those specific items** until the user marks them ✅.
 
-**(none — all clear)** · *User waived the runtime ripple decision on 2026-05-06: "yes just add things as I say, the complete flow is going to change, don't worry about it." Total runtime + music re-timing will be reconciled in a later pass once all scenes are individually locked. For now, scenes are designed independently and the master timeline §5 may show inconsistent totals.*
+**(none — all clear)**
 
 ---
 
@@ -17,6 +17,8 @@
 
 > Every revision logged here. Most recent on top. Norm — read this first to see what changed since your last build.
 
+- **v1.6 · 2026-05-07** · **✅ Scene 2 length reconciliation: Option A executed.** User picked A. Master timeline §5 rewritten with:<br>• Scene 2 duration: 351f → **512f** (matches v1.5 as-built content; no compression).<br>• All Scenes 3–10 shifted **+161 frames** through the master timeline.<br>• `TOTAL_FRAMES`: 1338 → **1472** (44.6s → **49.1s**).<br>• Engineering constants updated: composition duration now 1472 frames in `Root.tsx`.<br>**Norm's task:** update `tokens.ts` so `scene2.duration = 512` (was 351) and Scenes 3–10 `from` values shift +161f. Then re-render — Scene 2 timeline math now aligns with the actual content. Sequences 3–10 still on v1.21 storyboard spec; user will direct revisit scene-by-scene in subsequent v1.6+ work. PENDING APPROVALS cleared. Phase 1 only.
+- **v1.5 · 2026-05-07** · **🔒 v1.5 BASELINE LOCK (per Norm's handoff doc `NORM_HANDOFF_v1.5.md`).** User direction (channeled via Norm): everything currently in code is collectively v1.5; v1.0–v1.43 sealed; v1.6 starts here. Steve acknowledges + endorses the v1.5 state. **What v1.5 captures (highlights — full details in NORM_HANDOFF_v1.5.md):** Scene 1 LOCKED at 18 cards, drift removed, faux-glass cards (NOT live backdrop-filter — perf/visual reason), climactic ding ramp + ascending pitches into typing onset F162. Scene 2 brand phase polished: slow continuous logo grow F33–F100 (1.0→1.45), down-scale F100–F118 (1.45→1.30 visible "breath"), settle F118–F128 (1.30→1.40 rebound). Sequential per-feature window expanded to 95f (was 43f in v1.41) with 77f stagger — each feature fully completes before next starts. v1.5 visual work is locked. **5 open issues flagged for v1.6:** (1) ⚠️ Scene 2 timeline math: tokens=351f vs content=524f → in PENDING APPROVALS for user to call A/B/C. (2) Sequences 3–10 still on v1.21 spec, untouched — revisit scene-by-scene in v1.6+. (3) `kinetic_text_poof` SFX unsourced — Phase 3. (4) `NotificationCard` faux-glass instead of live blur (Steve endorses Norm's call). (5) Music bed disabled, awaits Scene 2 length reconciliation. **Component state:** all atoms/molecules from `kiva_components_for_norm.md` preserved. `@remotion/effects@4.0.459` installed but unused.
 - **v1.41 · 2026-05-07** · **🌬 Sequence 2 — Feature 2 pushed right for symmetric breathing room + kinetic text now floats subtly after generation.** User direction: *"push the profile (rightmost kinetic text) more to the right so it's the same distance away from the Kiva logo as the other kinetic text (follow-up). Also make the kinetic text float a little, like some xy movement, very subtle, I want it to feel alive — do this after it's been fully generated."* **Two changes:**<br>**(1) Feature 2 position:** (1175, 525) → **(1255, 510)** — distance from centered logo: 217 px → **296 px**, now matching Feature 4's distance on the left (symmetric constellation breathing). Was previously pulled inward in v1.37 to avoid right-edge text clipping; v1.41 pushes back out for symmetry — the longer Sequence 2 runtime + larger cluster zone now accommodates the text without clipping concerns.<br>**(2) Kinetic text float (post-generation):** once each feature's typing completes (at the poof moment), the text-block begins a continuous subtle xy sine-wave drift — translateX ±2 px over 3s, translateY ±1.5 px over 2.5s (different periods = organic drift not circular). Each feature has a phase offset (0°/90°/180°/270°) so the constellation feels organic. ±2 px is deliberately tiny — registers subliminally as "alive" without being obvious motion. Applies to TEXT-block only; icons keep their existing animations. Floats begin at poof frames (F313/F341/F369/F397) and run until constellation collapse at F409.<br>Phase 1 only.
 - **v1.40 · 2026-05-07** · **🐌 Sequence 2 typing slowed + poof SFX + 2.5s extension. 🚨 Sequence 1 — 6 additional notification cards added (12 → 18) for more overwhelm.** User direction: *"slow down the typing of the kinetic text and the SFX should not be typing it should be a poof. Make a 2.5s extension. Sequence 1 with the additional 6 messages — they continue at the pace overlapping with the typing — I wanted to add the 6 to overwhelm more."*<br>**Sequence 2 changes:**<br>• Typing slowed: 1 fpc → **2.5 fpc** (verb 4f→10f, outcome 5f→13f, breath 1f→2f, total typing 10f→25f).<br>• Per-feature window: 28f → **43f**.<br>• SFX changed: per-character `click.mp3` → **ONE "poof" SFX per outcome word landing** (4 poofs total, one per feature). Phase 3 candidate prompt: bespoke `kinetic_text_poof` ElevenLabs SFX (~0.4s, "soft satisfying air-puff with brief reverb tail").<br>• 90% overlap cadence preserved with new 25f typing — feature N+1 starts when feature N's typing reaches ~22.5f (90% of 25). New per-feature start frames: F1 F282 / F2 F310 / F3 F338 / F4 F366. F4 ends F409.<br>• Post-features extended: vortex 10f→16f, logo→iPhone 16f→22f, dashboard 15f→24f.<br>• Sequence 2 total: 216f → **291f** (+75f / +2.5s exactly). Ends F471 = 15.7s absolute (was F396 = 13.2s).<br>**Sequence 1 changes (reopened from lock):**<br>• 6 NEW notification cards added in a "continued density build" beat at F124–F153, landing at 5-frame intervals (tighter than original 6f for more density). Cards land BEHIND the typing animation (z-index lower) so the chaos visibly continues during "Feeling overwhelmed?" typing.<br>• New cards: 🏦 *"Card payment £147.32 — Wickes"* / 💬 *"did u get my message?"* / 🎙 *"Mr. Harrison urgent — call back"* / 📧 *"Public liability renewal — £487 due"* / 📱 Mrs. Patel chasing *"any update on the quote?"* (visual rhyme with hero card) / 📅 *"Gas safety cert — tomorrow 8am"*.<br>• Total cluster: 12 cards → **18 cards**. Significantly denser overwhelm; the question "Feeling overwhelmed?" feels more earned.<br>• Sequence 1 length unchanged at 180f (cards land within existing typing window).<br>• Audio: continue alternating `notication1.mp3`/`notifcation2.mp3` per card with pitch variation. Per-card audio reference table extended with 6 new rows (cards 13-18).<br>Phase 1 only — total flow / music re-timing reconciled in Phase 2/3.
 - **v1.39 · 2026-05-07** · **🎨 Sequence 2 — purple toned down; brand blue takes over secondary glows.** User direction: *"can you tone down use of purple."* Purple now **reserved exclusively for the most signal-heavy AI moments** (sparkle itself, AI avatar in Feature 4, AI glow halo during active state). Everywhere else shifts to brand blue `#3B82F6` + white, which makes the remaining purple stand out MORE by contrast. Locked changes:<br>• Icon glow underneath: purple → brand blue at 30%<br>• Outcome word underline: purple → brand blue at 50%<br>• Feature 3 route gradient: blue→purple → blue→lighter-blue (all-blue)<br>• Feature 2 profile silhouette fill: purple → soft brand blue<br>• Sparkle particle bursts: 12 all-purple → 6 mixed white+purple<br>• Vortex collapse particles: 60 all-purple → ~50/50 white+purple<br>• Pill iridescence: drop the purple stop, keep blue → pink → blue<br>**Preserved purple:** AI sparkle, AI avatar (Feature 4), active-state phone glow halo. These ARE the AI signal — keeping them purple while reducing purple elsewhere increases their specialness. Phase 1 only.
@@ -166,7 +168,7 @@
 |---|---|
 | Render target | 1920 × 1080 (16:9) |
 | Frame rate | 30 fps |
-| Total duration | **32.0 s = 960 frames** (locked v1.21) |
+| Total duration | **49.1 s = 1472 frames** (locked v1.6 — Option A reconciliation) |
 | Stack | Remotion 4 · React 19 · TypeScript |
 | Project root | `/Users/nolancarey/Desktop/KivaADS/remotion/` |
 | Studio command | `npm start` (from `/remotion`) |
@@ -176,7 +178,7 @@
 
 ```
 remotion/src/
-  Root.tsx                 ← register one composition: KivaAd, 960 frames
+  Root.tsx                 ← register one composition: KivaAd, 1472 frames
   KivaAd.tsx               ← top-level <Series> sequencing all 7 scenes
   scenes/
     Scene1_Overwhelm.tsx
@@ -847,22 +849,26 @@ User reviews the prompt in §4.6.2 + the success criteria in §4.6.3. When ready
 
 ---
 
-## 5. Master timeline (v1.21 — 32s, 10 beats, transformation chain)
+## 5. Master timeline (v1.6 — Option A: extended for v1.5 baseline reconciliation)
 
-| # | Scene | Time | Frames | Duration | Beat |
+| # | Scene | Time | from→to (frames) | Duration | Beat |
 |---|---|---|---|---|---|
-| 1 | **Overwhelm** | 0:00 – 0:06 | 0 – 180 | 6.0s | Notification cluster + "Feeling overwhelmed?" typing (slowed v1.22) + held silence at end |
-| 2 | **Swipe-up + centered brand + bubble-pill + wordmark-collapse + logo-enlarge + sparkle orbits + 4-feature SLOWED-TYPING constellation w/ 90% overlap + poof SFX + iPhone** | 0:06 – 0:15.7 | 180 – 471 | 9.7s | Vertical swipe-up clears → silence → CENTERED brand lockup → bubble-textured tagline pill expands/inflates with bubble-pop SFX, holds with iridescent edge + sparkle particles + text breathing synced to highlight sweep, then pops out as "Kiva." wordmark COLLAPSES into itself → logo (chevron) ENLARGES to take center stage → AI sparkle emerges from enlarged logo → orbits w/ wobble dropping 4 features at organic INLINE positions (icon-LEFT, slightly larger, closer to logo) at **28f each (v1.36 extended)**: 🎙 mic→red recording UI w/ "Quote for a standard toilet refit" drifting / 👤 mic→profile→scrolling customer details / 🗺 sequenced pin1→pin2+line→drifting addresses / 🤝 AI avatar+bubble+typing dots→"Hi John..." message→sent state. All persist. → constellation collapses → vortex → logo cross-fades into iPhone → dashboard with "All your admin. One place." (v1.36) |
-| 3 | **Dashboard reveal** | 0:08 – 0:11.5 | 240 – 345 | 3.5s | Blue light sweep down screen → dashboard fades in → "All your admin. One place." → mic pulse |
-| 4 | **Voice → Quote** | 0:11.5 – 0:15 | 345 – 450 | 3.5s | Mic expands → waveform → voice input live (John Smith / bathroom leak / £280) → text morphs to Quote card → £280 total counts up |
-| 5 | **Quote → Customer profile** | 0:15 – 0:17 | 450 – 510 | 2.0s | Quote card expands fullscreen → morphs to Customer profile → fields auto-fill → "Customer Created" badge |
-| 6 | **Receipt → Expense** | 0:17 – 0:20 | 510 – 600 | 3.0s | Receipt sweeps in → scan line → "Plumbing Supplies / £46.20" detected → tags snap on → "Tax-ready" hold |
-| 7 | **Map → Route** | 0:20 – 0:23 | 600 – 690 | 3.0s | Expense lines bend into roads → map expands fullscreen → 4 pins drop → route draws + reorganises → "32 min saved today" |
-| 8 | **Pin → Follow-up** | 0:23 – 0:26 | 690 – 780 | 3.0s | Camera into one pin → quote status card "Quote sent — no response" → AI types follow-up → sends → "Follow-up sent" |
-| 9 | **AI Business Assistant** | 0:26 – 0:30 | 780 – 900 | 4.0s | Sent bubble morphs to AI search bar → query "What job made me the most money this week?" → cards shimmer → main card "Bathroom repairs — £1,840 revenue" expands |
-| 10 | **Final hero shot** | 0:30 – 0:32 | 900 – 960 | 2.0s | UI collapses back → full floating iPhone → logo → "Run smarter. Earn more." / "Download Kiva" → 2-second hold |
+| 1 | **Overwhelm** | 0:00 – 0:08.0 | 0 – 240 | 240f / 8.0s | 18-card density build (v1.40) + climactic ding ramp + ascending pitches + typing onset F162. Locked v1.5. |
+| 2 | **Brand + AI feature flash** | 0:08.0 – 0:25.1 | 240 – 752 | **512f / 17.1s** | v1.5 polished brand phase: slow logo grow (1.0→1.45) → breath (1.45→1.30) → settle (1.30→1.40) → wordmark collapse → sparkle emerges → 4 features (95f sequential window each, 77f stagger) — 🎙 mic→red recording / 👤 mic→profile→scrolling tape / 🗺 sequenced pins+route / 🤝 AI avatar+bubble→sent. Then vortex → phone materialize → dashboard. |
+| 3 | **Dashboard reveal** | 0:25.1 – 0:28.6 | 752 – 857 | 105f / 3.5s | Blue light sweep down screen → dashboard fades in → "All your admin. One place." → mic pulse. *(v1.21 spec — to be revisited in v1.6+)* |
+| 4 | **Voice → Quote** | 0:28.6 – 0:32.1 | 857 – 962 | 105f / 3.5s | Mic expands → waveform → voice input (John Smith / bathroom leak / £280) → text morphs to Quote card → £280 counts up. *(v1.21 spec — pending revisit)* |
+| 5 | **Quote → Customer profile** | 0:32.1 – 0:34.1 | 962 – 1022 | 60f / 2.0s | Quote card expands fullscreen → morphs to Customer profile → fields auto-fill → "Customer Created" badge. *(v1.21 spec)* |
+| 6 | **Receipt → Expense** | 0:34.1 – 0:37.1 | 1022 – 1112 | 90f / 3.0s | Receipt sweeps in → scan line → "Plumbing Supplies / £46.20" → tags snap → "Tax-ready" hold. *(v1.21 spec)* |
+| 7 | **Map → Route** | 0:37.1 – 0:40.1 | 1112 – 1202 | 90f / 3.0s | Expense lines bend into roads → map expands fullscreen → 4 pins drop → route draws + reorganises → "32 min saved today". *(v1.21 spec)* |
+| 8 | **Pin → Follow-up** | 0:40.1 – 0:43.1 | 1202 – 1292 | 90f / 3.0s | Camera into one pin → quote status card → AI types follow-up → sends → "Follow-up sent". *(v1.21 spec)* |
+| 9 | **AI Business Assistant** | 0:43.1 – 0:47.1 | 1292 – 1412 | 120f / 4.0s | Sent bubble morphs to AI search bar → query "What job made me the most money this week?" → main card "Bathroom repairs — £1,840 revenue" expands. *(v1.21 spec)* |
+| 10 | **Final hero shot** | 0:47.1 – 0:49.1 | 1412 – 1472 | 60f / 2.0s | UI collapses back → full floating iPhone → logo → "Run smarter. Earn more." / "Download Kiva" → 2-second hold. *(v1.21 spec)* |
 
-**Total:** 32.0 s = 960 frames @ 30 fps. Cinematic system §3.7 inherits everywhere.
+**TOTAL_FRAMES = 1472 = 49.1 s @ 30 fps** (was 1338 / 44.6s pre-v1.6 reconciliation).
+
+**v1.6 ripple:** Scene 2 duration extended 351f → **512f** to match the v1.5 as-built content. All Scenes 3–10 shift +161f. Sequences 3–10 still on v1.21 spec (verbatim from user storyboard) — Steve will revisit each scene-by-scene as user directs in v1.6+.
+
+Cinematic system §3.7 inherits everywhere.
 
 ---
 

@@ -14,7 +14,7 @@ import { SfxAt } from "../components/SfxAt";
 
 // =====================================================================
 // SCENE 2 — v1.41 (Sequence from absolute F228, local F0–F375, 12.5s)
-// Nominal scene window F240–F591 absolute; +12f crossfade pad on each end.
+// Nominal scene window F240–F618 absolute (+27f for v1.43 sequential reveals).
 //
 // v1.41 (2026-05-07): per user addendum, typing slowed further +
 // Scene 2 extended +2s. Per-feature window 43→60f. Verb 10→16f, breath
@@ -25,7 +25,7 @@ import { SfxAt } from "../components/SfxAt";
 //
 // Local-frame map (Sequence starts at abs F228):
 //   F0–F12     crossfade-IN from Scene 1
-//   F12–F24    SWIPE-UP WIPE
+//   F12–F20    SWIPE-UP WIPE
 //   F24–F30    HARD SILENCE
 //   F30–F48    CENTERED BRAND LOCKUP fades up
 //   F48–F60    🫧 PILL inflates
@@ -62,29 +62,29 @@ import { SfxAt } from "../components/SfxAt";
 // =====================================================================
 
 const SWIPE_START = 12;
-const SWIPE_END = 24;
+const SWIPE_END = 20;
 const SILENCE_END = 30;
-const LOCKUP_LOGO_IN = 30;
+const LOCKUP_LOGO_IN = 23; // v1.42 -7f: visible logo expansion now starts ~abs F243 (was F250)
 const LOCKUP_WORD_IN = 38;
 const LOCKUP_END = 48;
 const PILL_IN = 48;
 const PILL_HOLD_START = 60;
-const PILL_OUT_START = 96; // was 84; +12 for longer hold
-const PILL_OUT_END = 102; // was 90; popout still 6f
+const PILL_OUT_START = 92; // 4f earlier — fade begins ~abs F312 (a couple before 315)
+const PILL_OUT_END = 98; // 6f popout window preserved
 const SPARKLE_IN = 114; // was 102; logo enlarge 12f preserved
-// v1.41: features stagger 35f apart (was 28f) with new 60f windows
-const FEATURE1 = 126; // was 114; sparkle entrance 12f preserved
-const FEATURE2 = 161; // was 142; +35 stagger (was +28)
-const FEATURE3 = 196;
-const FEATURE4 = 231;
-const FEATURES_END = 291; // F4 + 60
-const VORTEX_START = 291;
-const VORTEX_END = 307; // 16f vortex
-const PHONE_MATERIALIZE = 307;
-const LOGO_FADE_END = 323; // 16f logo fade
-const DASHBOARD_IN = 329; // 22f phone fade-in
-const SCENE_END = 363; // was 303; 34f dashboard (+10)
-const FEATURE_DURATION = 60;
+// v1.45: feature window 75f→95f, stagger 58f→77f. Scene 2 grows by another +77f.
+const FEATURE1 = 126; // sparkle entrance 12f preserved
+const FEATURE2 = 203; // +77 stagger
+const FEATURE3 = 280;
+const FEATURE4 = 357;
+const FEATURES_END = 452; // F4 + 95
+const VORTEX_START = 452;
+const VORTEX_END = 468; // 16f vortex
+const PHONE_MATERIALIZE = 468;
+const LOGO_FADE_END = 484; // 16f logo fade
+const DASHBOARD_IN = 490; // 22f phone fade-in
+const SCENE_END = 524; // 34f dashboard
+const FEATURE_DURATION = 95;
 
 // Centered logo focal point (1920×1080 frame)
 const CENTER = { x: 960, y: 540 };
@@ -189,7 +189,9 @@ export const Scene2VoiceCustomer: React.FC = () => {
           "poof" SFX per outcome word landing (4 poofs total). Phase 3
           will source bespoke `kinetic_text_poof` ElevenLabs SFX; for now
           using `swoosh.mp3` low-pitched + low-volume as placeholder. */}
-      {[FEATURE1 + 2, FEATURE2 + 2, FEATURE3 + 2, FEATURE4 + 2].map((f, i) => (
+      {/* v1.45: chime fires at sweep start (t=10), as the sparkle reaches the
+          left edge and the L→R reveal sweep begins. */}
+      {[FEATURE1 + 10, FEATURE2 + 10, FEATURE3 + 10, FEATURE4 + 10].map((f, i) => (
         <SfxAt
           key={`feat-${i}`}
           src={SFX.notification1}
@@ -250,13 +252,25 @@ const SwipeUpVeil: React.FC<{ frame: number }> = ({ frame }) => {
 //   F78+:        sparkle emerges from the now-enlarged logo.
 //   F122–F130:   logo fades as iPhone materializes (cross-fade).
 // =====================================================================
-// v1.36 timing: wordmark collapses over 6f synced with pill pop-out
-// (was 3f), then logo enlarges over 12f (was 3f, much more dramatic).
-const WORDMARK_COLLAPSE_START = PILL_OUT_START; // F84
-const WORDMARK_COLLAPSE_END = PILL_OUT_END; // F90 — fully gone, 6f collapse
-const LOGO_ENLARGE_START = WORDMARK_COLLAPSE_END; // F90
-const LOGO_ENLARGE_END = SPARKLE_IN; // F102, 12f enlarge
+// v1.36 timing: wordmark collapses over 6f synced with pill pop-out.
+// v1.42 update: logo now expands CONTINUOUSLY from when it first lands
+// (local F40, right after entry-spring settles) all the way through to
+// SPARKLE_IN, with a peak overshoot + spring-back near the end. This
+// gives the brand a building "swell" through the whole brand phase
+// rather than a single hard pop at the wordmark-collapse moment.
+const WORDMARK_COLLAPSE_START = PILL_OUT_START;
+const WORDMARK_COLLAPSE_END = PILL_OUT_END;
+const LOGO_ENLARGE_START = LOCKUP_LOGO_IN + 10; // F33 — right after entry spring settles
+// v1.42b: peak shifted earlier (was F108→F100) and dip extended
+// (was F114→F118) so the visible down-scale runs the full F100–F118
+// window (= abs F320–F338) per user direction. Dip scale also pulled
+// to 1.30 (was 1.36) so the down-scale reads clearly.
+const LOGO_ENLARGE_PEAK = 100; // F100 (abs F320) — peak (1.45)
+const LOGO_ENLARGE_DIP = 118; // F118 (abs F338) — bottom of down-scale
+const LOGO_ENLARGE_SETTLE = 128; // F128 — back at rest scale 1.4
 const LOGO_ENLARGED_SCALE = 1.4;
+const LOGO_ENLARGED_PEAK_SCALE = 1.45;
+const LOGO_ENLARGED_DIP_SCALE = 1.3; // was 1.36 — more pronounced down-scale
 
 const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
   frame,
@@ -294,22 +308,60 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
   const wordScaleY = interpolate(collapseP, [0, 1], [1, 0.4]);
   const wordOpacity = (1 - collapseP) * wordP;
 
-  // v1.34: logo enlarges F75-F78 (after wordmark collapses)
+  // v1.42 logo enlarge — slow continuous expansion from F40 through
+  // SPARKLE_IN, with overshoot peak + spring-back dip + settle. Builds
+  // a sense of "the brand swelling" throughout the whole pill+wordmark
+  // phase, climaxing with a small bounce just before the AI sparkle is born.
+  let liveLogoScale: number;
+  if (frame < LOGO_ENLARGE_START) {
+    liveLogoScale = 1;
+  } else if (frame < LOGO_ENLARGE_PEAK) {
+    // Slow continuous grow F40 → F108: 1.0 → 1.45 (68 frames, eased)
+    liveLogoScale = interpolate(
+      frame,
+      [LOGO_ENLARGE_START, LOGO_ENLARGE_PEAK],
+      [1, LOGO_ENLARGED_PEAK_SCALE],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+        easing: EASE.inOutQuad,
+      }
+    );
+  } else if (frame < LOGO_ENLARGE_DIP) {
+    // Spring back F108 → F114: 1.45 → 1.36
+    liveLogoScale = interpolate(
+      frame,
+      [LOGO_ENLARGE_PEAK, LOGO_ENLARGE_DIP],
+      [LOGO_ENLARGED_PEAK_SCALE, LOGO_ENLARGED_DIP_SCALE],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+        easing: EASE.outCubic,
+      }
+    );
+  } else if (frame < LOGO_ENLARGE_SETTLE) {
+    // Settle F114 → F122: 1.36 → 1.4 (rebound to rest)
+    liveLogoScale = interpolate(
+      frame,
+      [LOGO_ENLARGE_DIP, LOGO_ENLARGE_SETTLE],
+      [LOGO_ENLARGED_DIP_SCALE, LOGO_ENLARGED_SCALE],
+      {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+        easing: EASE.outCubic,
+      }
+    );
+  } else {
+    // Locked at LOGO_ENLARGED_SCALE for sparkle + features
+    liveLogoScale = LOGO_ENLARGED_SCALE;
+  }
+  // 0→1 progress for downstream glow brightness (uses LOGO_ENLARGE_START → DIP)
   const enlargeP = interpolate(
     frame,
-    [LOGO_ENLARGE_START, LOGO_ENLARGE_END],
+    [LOGO_ENLARGE_START, LOGO_ENLARGE_DIP],
     [0, 1],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: EASE.outCubic,
-    }
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
-  // After enlarging, logo stays at LOGO_ENLARGED_SCALE
-  const liveLogoScale =
-    frame < LOGO_ENLARGE_START
-      ? 1
-      : interpolate(enlargeP, [0, 1], [1, LOGO_ENLARGED_SCALE]);
   const finalLogoScale = logoEnterScale * liveLogoScale;
 
   // Logo fades F122-F130 as iPhone materializes
@@ -773,56 +825,87 @@ const SparkleOrbiter: React.FC<{ frame: number }> = ({ frame }) => {
   let cy = CENTER.y;
   let pulseScale = 1;
 
+  // v1.45: per-feature LEFT→RIGHT SWEEP REVEAL (replaces dart-to-point).
+  //   t 0–10  : approach phase — curve in from previous feature's right edge
+  //             to the LEFT edge of current feature's text region
+  //   t 10–77 : horizontal sweep — sparkle glides L→R across the text width
+  //             at the same pace as the typing reveal (verb + breath + outcome)
+  //   t 77+   : sparkle holds at the right edge while underline + icon resolve;
+  //             pulse-bright moment fires on landing
+  const SWEEP_HALF_WIDTH = 240;
+  const APPROACH_END = 10;
+  const SWEEP_END = OUTCOME_TYPE_END; // 77
+
   if (frame < FEATURE1) {
     // Pre-orbit — at center of logo
     cx = CENTER.x;
     cy = CENTER.y;
   } else if (frame < FEATURES_END) {
-    // Determine which 8-frame segment we're in
     const segs = [FEATURE1, FEATURE2, FEATURE3, FEATURE4];
     let i = 0;
     for (let k = 0; k < 4; k++) if (frame >= segs[k]) i = k;
     const segStart = segs[i];
-    const t = frame - segStart; // 0..8
-    // Dart along an organic curve from prev landing → target landing.
-    // For i=0, "prev" is the logo center (sparkle was just born there).
-    const prev = i === 0 ? CENTER : ORGANIC_POSITIONS[i - 1];
+    const t = frame - segStart;
     const target = ORGANIC_POSITIONS[i];
-    const dartP = interpolate(t, [0, 2], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: EASE.inOutQuad,
-    });
-    // Curved path — pull control point outward from center for an arc-like sweep
-    const mx = (prev.x + target.x) / 2;
-    const my = (prev.y + target.y) / 2;
-    const dx = mx - CENTER.x;
-    const dy = my - CENTER.y;
-    const d = Math.hypot(dx, dy) || 1;
-    const bulge = 40;
-    const ctrlX = mx + (dx / d) * bulge;
-    const ctrlY = my + (dy / d) * bulge;
-    // Quadratic bezier: B(t) = (1-t)^2 P0 + 2(1-t)t C + t^2 P1
-    const u = 1 - dartP;
-    cx = u * u * prev.x + 2 * u * dartP * ctrlX + dartP * dartP * target.x;
-    cy = u * u * prev.y + 2 * u * dartP * ctrlY + dartP * dartP * target.y;
-    // F2-F5: pulse bright on landing
-    pulseScale = interpolate(t, [2, 3.5, 5], [1, 1.4, 1], {
+    const leftEdgeX = target.x - SWEEP_HALF_WIDTH;
+    const rightEdgeX = target.x + SWEEP_HALF_WIDTH;
+    // "prev" position = logo center (i=0) or previous feature's right-edge
+    // landing (i>0), so the approach starts where the last sweep ended.
+    const prev =
+      i === 0
+        ? CENTER
+        : { x: ORGANIC_POSITIONS[i - 1].x + SWEEP_HALF_WIDTH, y: ORGANIC_POSITIONS[i - 1].y };
+
+    if (t < APPROACH_END) {
+      // Approach: prev → left edge of target via gentle bezier curve
+      const approachP = interpolate(t, [0, APPROACH_END], [0, 1], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+        easing: EASE.inOutQuad,
+      });
+      const mx = (prev.x + leftEdgeX) / 2;
+      const my = (prev.y + target.y) / 2;
+      const dx = mx - CENTER.x;
+      const dy = my - CENTER.y;
+      const d = Math.hypot(dx, dy) || 1;
+      const bulge = 30;
+      const ctrlX = mx + (dx / d) * bulge;
+      const ctrlY = my + (dy / d) * bulge;
+      const u = 1 - approachP;
+      cx = u * u * prev.x + 2 * u * approachP * ctrlX + approachP * approachP * leftEdgeX;
+      cy = u * u * prev.y + 2 * u * approachP * ctrlY + approachP * approachP * target.y;
+    } else if (t < SWEEP_END) {
+      // L→R sweep across text width, paced to match typing reveal
+      const sweepP = interpolate(t, [APPROACH_END, SWEEP_END], [0, 1], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+        easing: EASE.inOutQuad,
+      });
+      cx = interpolate(sweepP, [0, 1], [leftEdgeX, rightEdgeX]);
+      cy = target.y;
+    } else {
+      // Hold at right edge while underline + icon resolve
+      cx = rightEdgeX;
+      cy = target.y;
+    }
+
+    // Bright pulse the moment the sweep lands at the right edge
+    pulseScale = interpolate(t, [SWEEP_END, SWEEP_END + 2, SWEEP_END + 5], [1, 1.4, 1], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
     });
   } else if (frame < VORTEX_START) {
-    // Constellation hold — sparkle parked at last landing (F4 ~9 o'clock)
-    cx = ORGANIC_POSITIONS[3].x;
+    // Constellation hold — sparkle parked at F4's right-edge landing
+    cx = ORGANIC_POSITIONS[3].x + SWEEP_HALF_WIDTH;
     cy = ORGANIC_POSITIONS[3].y;
   } else {
-    // Vortex — spiral inward to center
+    // Vortex — spiral inward to center from F4's right-edge landing
     const vp = interpolate(frame, [VORTEX_START, VORTEX_END], [0, 1], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
       easing: EASE.inCubic,
     });
-    cx = interpolate(vp, [0, 1], [ORGANIC_POSITIONS[3].x, CENTER.x]);
+    cx = interpolate(vp, [0, 1], [ORGANIC_POSITIONS[3].x + SWEEP_HALF_WIDTH, CENTER.x]);
     cy = interpolate(vp, [0, 1], [ORGANIC_POSITIONS[3].y, CENTER.y]);
   }
 
@@ -949,13 +1032,16 @@ const BurstParticles: React.FC<{ count: number }> = ({ count }) => {
 //   t 44–47 underline draws (3f, overlaps morph)
 //   t 44–50 icon transforms to ACTIVE state (6f)
 //   t 50–60 drift onset (10f) + continuous loop while feature persists
+// v1.45: further slowdown + sparkle becomes a left→right horizontal sweep
+// that reveals text as it passes. Verb 22→30f, breath 4→5f, outcome 26→36f.
+// Per-feature window 75f→95f; stagger 58f→77f; sparkle approach 10f, sweep 67f.
 const VERB_TYPE_START = 6;
-const VERB_TYPE_END = 22;
-const OUTCOME_TYPE_START = 25;
-const OUTCOME_TYPE_END = 44;
-const PERIOD_FRAME = 43;
-const UNDERLINE_DRAW_START = 44;
-const UNDERLINE_DRAW_END = 47;
+const VERB_TYPE_END = 36; // verb 30f
+const OUTCOME_TYPE_START = 41; // 5f breath
+const OUTCOME_TYPE_END = 77; // outcome 36f
+const PERIOD_FRAME = 76;
+const UNDERLINE_DRAW_START = 77;
+const UNDERLINE_DRAW_END = 80;
 
 function visibleChars(text: string, t: number, startFrame: number, endFrame: number): string {
   if (t < startFrame) return "";
@@ -1043,7 +1129,8 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
         ];
         const rot = FEATURE_ROTATIONS[i];
 
-        // Block-level opacity — present from t≥2 (icon line-draw start)
+        // Block-level opacity — block is present from t≥2 so text can type;
+        // icon stays invisible inside (drawP=0) until ICON_DRAW_START at t=44.
         const blockOpacity =
           t < 2 ? 0 : Math.min(1, (t - 2) / 2) * dissolve;
 
@@ -1422,10 +1509,12 @@ const ICON_GLOW_FILTER =
   "drop-shadow(0 0 8px rgba(59,130,246,0.55)) drop-shadow(0 0 4px rgba(59,130,246,0.4))";
 
 // Phase transition frames (relative to feature start) — v1.41 pacing
-const ICON_DRAW_START = 2;
-const ICON_DRAW_END = 6; // 4f line-draw
-const ICON_MORPH_START = 44; // shifts because typing is now 38f total
-const ICON_MORPH_END = 50; // 6f morph
+// v1.45: icon waits until text reveal is finished (t=77 = outcome typed)
+// before line-drawing. Line-draw runs t77-81, then immediately morphs active.
+const ICON_DRAW_START = 77;
+const ICON_DRAW_END = 81; // 4f line-draw
+const ICON_MORPH_START = 81; // morph kicks in right after draw
+const ICON_MORPH_END = 87; // 6f morph
 const DRIFT_START = 50; // 10f drift onset (longer because window grew)
 
 const FeatureIcon: React.FC<{ index: number; localTime: number }> = ({
