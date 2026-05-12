@@ -12,6 +12,7 @@ import { NotificationCard, NotifVariant } from "../components/NotificationCard";
 import { KivaLogo } from "../components/KivaLogo";
 import { SfxAt } from "../components/SfxAt";
 import { PhoneFrame } from "../components/PhoneFrame";
+import { useTweaks } from "../tweaks";
 
 // =====================================================================
 // SCENE 1 — v1.3 spec (supersedes v1.2 timing)
@@ -420,32 +421,38 @@ const QUESTION_MARK_FRAME = 200; // "?" lands; pulse F200–F204
 const TYPING_TEXT = "Feeling overwhelmed?";
 const SCENE_END = 240;
 
-// Per-character land frame for the v1.42 schedule.
-// chars 0–6  ("Feeling")        → F162 + i*2  →  162, 164, 166, 168, 170, 172, 174
-// pause F174–F180 (6f hold)
-// chars 7–19 (" overwhelmed?")  → F180 + (i-7)*(20/12) rounded → ends F200
-function charLandFrame(i: number): number {
+// Per-character land frame — parameterized over typeStart so the Studio
+// `scene1TypingStartFrame` tweak shifts the whole typing schedule.
+//   chars 0–6 ("Feeling")       → typeStart + i*2   → ends typeStart+12
+//   pause                       → typeStart + 12 → typeStart + 18  (6 f)
+//   chars 7–19 (" overwhelmed?") → typeStart + 18 + (i-7)*(20/12) → ends typeStart+38
+function charLandFrame(i: number, typeStart: number = TYPE_START): number {
   if (i < 0) return -1;
-  if (i <= 6) return TYPE_START + i * 2;
+  if (i <= 6) return typeStart + i * 2;
   if (i >= TYPING_TEXT.length) return -1;
-  return Math.round(180 + (i - 7) * (20 / 12));
+  return Math.round(typeStart + 18 + (i - 7) * (20 / 12));
 }
 
 export const Scene1Overwhelm: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
+  const tweaks = useTweaks();
+  // Studio knobs — override the module defaults
+  const typeStart = tweaks.scene1TypingStartFrame;
+  const finalDingVol = tweaks.scene1FinalDingVolume;
+  const patelLand = tweaks.scene1HeroPatelLandFrame;
 
-  // Slow 1.0 → 1.04 push-in across F128–F180 (typing → held silence).
-  const camScale = interpolate(
-    frame,
-    [TYPE_START, SCENE_END],
-    [1, 1.04],
-    {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: EASE.inOutQuad,
-    }
+  // Apply Patel land-frame override at render time (CARDS is a const array)
+  const cards = CARDS.map((c) =>
+    c.id === "patel" ? { ...c, land: patelLand } : c
   );
+
+  // Slow 1.0 → 1.04 push-in across typing → held silence
+  const camScale = interpolate(frame, [typeStart, SCENE_END], [1, 1.04], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE.inOutQuad,
+  });
 
   return (
     <AbsoluteFill
@@ -460,7 +467,7 @@ export const Scene1Overwhelm: React.FC = () => {
           transformOrigin: "center center",
         }}
       >
-        {CARDS.map((spec, idx) => (
+        {cards.map((spec, idx) => (
           <Card
             key={spec.id}
             spec={spec}
@@ -474,17 +481,17 @@ export const Scene1Overwhelm: React.FC = () => {
 
       <HookText frame={frame} />
 
-      {/* === AUDIO === user-stripped: only message dings + typewriter clicks remain */}
+      {/* === AUDIO === only message dings + typewriter clicks */}
 
       {/* Per-card dings — all fire at landFrame - 2.
-          v1.42 volume curve (climactic ramp, replaces fade-out):
+          Volume curve:
           • Hero ping (1) loudest at 0.85
           • Stack cards 2-4 sit at 0.78
           • Density middle 5-12 dip to ~0.5 (pulls back to give room)
-          • Density-build climax 13-18 RAMP UP 0.55 → 0.92 so the chaos
-            audibly peaks right before "Feeling overwhelmed?" types in. */}
+          • Density-build climax 13-18 RAMP UP 0.55 → tweaks.scene1FinalDingVolume
+            so the chaos audibly peaks right before typing begins. */}
       {DINGS.map((d) => {
-        const card = CARDS[d.cardIdx - 1];
+        const card = cards[d.cardIdx - 1];
         const dingFrame = card.land - 2;
         let volume: number;
         if (d.cardIdx === 1) {
@@ -492,10 +499,10 @@ export const Scene1Overwhelm: React.FC = () => {
         } else if (d.cardIdx <= 4) {
           volume = 0.78;
         } else if (d.cardIdx <= 12) {
-          volume = 0.62 - (d.cardIdx - 5) * 0.025; // 0.62 → 0.45 across 5–12
+          volume = 0.62 - (d.cardIdx - 5) * 0.025;
         } else {
-          // Climactic ramp across cards 13–18: 0.55 → 0.92
-          volume = 0.55 + (d.cardIdx - 13) * 0.074;
+          // Climactic ramp 0.55 → finalDingVol across cards 13–18
+          volume = 0.55 + (d.cardIdx - 13) * ((finalDingVol - 0.55) / 5);
         }
         return (
           <SfxAt
@@ -508,34 +515,34 @@ export const Scene1Overwhelm: React.FC = () => {
         );
       })}
 
-      {/* v1.22 typing clicks — every-other char at 25% (sparse, reads as typing) */}
-      {[1, 3, 5].map((i) => (
+      {/* Typing clicks — gated by tweaks.enableTypingClicks toggle */}
+      {tweaks.enableTypingClicks && [1, 3, 5].map((i) => (
         <SfxAt
           key={`type-${i}`}
           src={SFX.click}
-          from={charLandFrame(i)}
+          from={charLandFrame(i, typeStart)}
           volume={0.25}
           playbackRate={1.05}
         />
       ))}
-      {/* "overwhelmed" period clicks at chars 9, 11, 13, 15, 17 */}
-      {[9, 11, 13, 15, 17].map((i) => (
+      {tweaks.enableTypingClicks && [9, 11, 13, 15, 17].map((i) => (
         <SfxAt
           key={`type-${i}`}
           src={SFX.click}
-          from={charLandFrame(i)}
+          from={charLandFrame(i, typeStart)}
           volume={0.25}
           playbackRate={1.05}
         />
       ))}
-      {/* Final "?" click — pitched +1 semitone at 40% vol on landing F168 */}
-      <SfxAt
-        src={SFX.click}
-        from={QUESTION_MARK_FRAME}
-        volume={0.4}
-        playbackRate={Math.pow(2, 1 / 12)}
-      />
-      {/* (Swoosh + thumb-tap + morph-whirr moved to Scene 2 in v1.22) */}
+      {/* Final "?" click — also gated by typing-clicks toggle */}
+      {tweaks.enableTypingClicks && (
+        <SfxAt
+          src={SFX.click}
+          from={typeStart + 38}
+          volume={0.4}
+          playbackRate={Math.pow(2, 1 / 12)}
+        />
+      )}
     </AbsoluteFill>
   );
 };
@@ -656,30 +663,33 @@ const Card: React.FC<{
 // through held silence F234–F240.
 // =====================================================================
 
-// Visible char count at a given absolute frame (uses charLandFrame defined at top).
-function visibleCharCount(frame: number): number {
-  // Walk backwards from the highest char index until we find one whose land
-  // frame is <= the current frame. Could binary-search but length is 20.
+// Visible char count parameterized over typeStart so the Studio tweak shifts everything.
+function visibleCharCount(frame: number, typeStart: number): number {
   for (let i = TYPING_TEXT.length - 1; i >= 0; i--) {
-    if (frame >= charLandFrame(i)) return i + 1;
+    if (frame >= charLandFrame(i, typeStart)) return i + 1;
   }
   return 0;
 }
 
 const HookText: React.FC<{ frame: number }> = ({ frame }) => {
-  if (frame < CURSOR_APPEAR - 2 || frame > SCENE_END + 6) return null;
+  const tweaks = useTweaks();
+  const typeStart = tweaks.scene1TypingStartFrame;
+  const cursorAppear = typeStart - 8;
+  const questionMarkFrame = typeStart + 38;
 
-  const charCount = visibleCharCount(frame);
+  if (frame < cursorAppear - 2 || frame > SCENE_END + 6) return null;
+
+  const charCount = visibleCharCount(frame, typeStart);
   const visibleText = TYPING_TEXT.slice(0, charCount);
 
-  // Cursor blink: 15f on, 15f off (per v1.22 spec)
-  const blinkPhase = (frame - CURSOR_APPEAR) % 30;
+  // Cursor blink: 15f on, 15f off
+  const blinkPhase = (frame - cursorAppear) % 30;
   const cursorVisible = blinkPhase < 15;
   const showCursor = cursorVisible;
 
   // Question-mark scale-pulse — fires when last char lands
-  const qMarkLanded = frame >= QUESTION_MARK_FRAME && charCount === TYPING_TEXT.length;
-  const qPulseT = frame - QUESTION_MARK_FRAME;
+  const qMarkLanded = frame >= questionMarkFrame && charCount === TYPING_TEXT.length;
+  const qPulseT = frame - questionMarkFrame;
   const qPulse = qMarkLanded
     ? interpolate(qPulseT, [0, 4, 10], [1, 1.18, 1], {
         extrapolateLeft: "clamp",

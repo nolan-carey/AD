@@ -11,6 +11,7 @@ import { SFX } from "../audio";
 import { KivaLogo } from "../components/KivaLogo";
 import { PhoneFrame } from "../components/PhoneFrame";
 import { SfxAt } from "../components/SfxAt";
+import { useTweaks } from "../tweaks";
 
 // =====================================================================
 // SCENE 2 — v1.41 (Sequence from absolute F228, local F0–F375, 12.5s)
@@ -62,7 +63,7 @@ import { SfxAt } from "../components/SfxAt";
 // =====================================================================
 
 const SWIPE_START = 12;
-const SWIPE_END = 20;
+const SWIPE_END = 16; // v1.6 polish: 8f → 4f, snappier wipe per user direction
 const SILENCE_END = 30;
 const LOCKUP_LOGO_IN = 23; // v1.42 -7f: visible logo expansion now starts ~abs F243 (was F250)
 const LOCKUP_WORD_IN = 38;
@@ -122,6 +123,9 @@ const FEATURES = [
 export const Scene2VoiceCustomer: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const tweaks = useTweaks();
+  // Studio knob: swipe duration overrides the SWIPE_END constant
+  const swipeEnd = SWIPE_START + tweaks.scene2SwipeDurationFrames;
 
   // Constellation collapse zoom — 1.0 → 1.05 across vortex
   const collapseScale = interpolate(
@@ -142,9 +146,9 @@ export const Scene2VoiceCustomer: React.FC = () => {
         overflow: "hidden",
       }}
     >
-      {/* Swipe-up wipe veil */}
-      {frame >= SWIPE_START - 2 && frame < SWIPE_END + 4 && (
-        <SwipeUpVeil frame={frame} />
+      {/* Swipe-up wipe veil — duration is now adjustable via tweaks */}
+      {frame >= SWIPE_START - 2 && frame < swipeEnd + 4 && (
+        <SwipeUpVeil frame={frame} swipeEnd={swipeEnd} />
       )}
 
       {/* Centered brand lockup — visible F30 → F130 (logo fades w/ iPhone) */}
@@ -200,17 +204,17 @@ export const Scene2VoiceCustomer: React.FC = () => {
           playbackRate={Math.pow(2, (5 + i) / 12)}
         />
       ))}
-      {/* v1.40: 4 outcome-word poof SFX, one per feature. Fires at the
-          outcome-word final-char landing (= OUTCOME_TYPE_END − 1). */}
-      {[FEATURE1, FEATURE2, FEATURE3, FEATURE4].map((segStart, i) => (
-        <SfxAt
-          key={`poof-${i}`}
-          src={SFX.swoosh}
-          from={segStart + OUTCOME_TYPE_END - 1}
-          volume={0.35}
-          playbackRate={0.7}
-        />
-      ))}
+      {/* 4 outcome-word poof SFX — gated by tweaks.enablePoofSfx */}
+      {tweaks.enablePoofSfx &&
+        [FEATURE1, FEATURE2, FEATURE3, FEATURE4].map((segStart, i) => (
+          <SfxAt
+            key={`poof-${i}`}
+            src={SFX.swoosh}
+            from={segStart + OUTCOME_TYPE_END - 1}
+            volume={0.35}
+            playbackRate={0.7}
+          />
+        ))}
     </AbsoluteFill>
   );
 };
@@ -218,8 +222,11 @@ export const Scene2VoiceCustomer: React.FC = () => {
 // =====================================================================
 // SWIPE-UP VEIL — dark band sweeps up past the top of the frame
 // =====================================================================
-const SwipeUpVeil: React.FC<{ frame: number }> = ({ frame }) => {
-  const p = interpolate(frame, [SWIPE_START, SWIPE_END], [0, 1], {
+const SwipeUpVeil: React.FC<{ frame: number; swipeEnd: number }> = ({
+  frame,
+  swipeEnd,
+}) => {
+  const p = interpolate(frame, [SWIPE_START, swipeEnd], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.inOutQuad,
@@ -260,22 +267,31 @@ const SwipeUpVeil: React.FC<{ frame: number }> = ({ frame }) => {
 // rather than a single hard pop at the wordmark-collapse moment.
 const WORDMARK_COLLAPSE_START = PILL_OUT_START;
 const WORDMARK_COLLAPSE_END = PILL_OUT_END;
-const LOGO_ENLARGE_START = LOCKUP_LOGO_IN + 10; // F33 — right after entry spring settles
-// v1.42b: peak shifted earlier (was F108→F100) and dip extended
-// (was F114→F118) so the visible down-scale runs the full F100–F118
-// window (= abs F320–F338) per user direction. Dip scale also pulled
-// to 1.30 (was 1.36) so the down-scale reads clearly.
-const LOGO_ENLARGE_PEAK = 100; // F100 (abs F320) — peak (1.45)
-const LOGO_ENLARGE_DIP = 118; // F118 (abs F338) — bottom of down-scale
-const LOGO_ENLARGE_SETTLE = 128; // F128 — back at rest scale 1.4
+// v1.6 polish: logo PUNCH expansion right after entry (per user direction
+// "expand 50% upon transitions"). Replaces slow-grow curve with a quick
+// decisive punch to 1.5×, then breath-dip in the F100–F118 window the
+// user previously asked for, settling at 1.4× as the sparkle phase begins.
+const LOGO_ENLARGE_START = LOCKUP_LOGO_IN + 12; // F35 — right after entry spring settles
+const LOGO_ENLARGE_PEAK = 50; // F50 — punch peak at 1.5× (~15f of crisp scale-up)
+const LOGO_ENLARGE_HOLD_END = 100; // F100 — holds at 1.5× through F50→F100
+const LOGO_ENLARGE_DIP = 118; // F118 — breath dip to 1.35×
+const LOGO_ENLARGE_SETTLE = 128; // F128 — settle at rest scale 1.4×
 const LOGO_ENLARGED_SCALE = 1.4;
-const LOGO_ENLARGED_PEAK_SCALE = 1.45;
-const LOGO_ENLARGED_DIP_SCALE = 1.3; // was 1.36 — more pronounced down-scale
+const LOGO_ENLARGED_PEAK_SCALE = 1.5; // v1.6: was 1.45 — full "50% expand"
+const LOGO_ENLARGED_DIP_SCALE = 1.35;
 
 const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
   frame,
   fps,
 }) => {
+  const tweaks = useTweaks();
+  // Studio knobs override the module-level scale constants
+  const punchPeakScale = tweaks.scene2LogoPunchPeakScale;
+  const finalScale = tweaks.scene2LogoFinalScale;
+  const dipScale = LOGO_ENLARGED_DIP_SCALE; // dip stays relative — could expose later
+  const flickerAmp = tweaks.scene2BgFlickerAmplitude;
+  const glowColor = tweaks.bgGlowColor;
+
   // Logo enter F30-F40
   const logoSp = spring({
     frame: frame - LOCKUP_LOGO_IN,
@@ -308,31 +324,36 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
   const wordScaleY = interpolate(collapseP, [0, 1], [1, 0.4]);
   const wordOpacity = (1 - collapseP) * wordP;
 
-  // v1.42 logo enlarge — slow continuous expansion from F40 through
-  // SPARKLE_IN, with overshoot peak + spring-back dip + settle. Builds
-  // a sense of "the brand swelling" throughout the whole pill+wordmark
-  // phase, climaxing with a small bounce just before the AI sparkle is born.
+  // v1.6 logo curve — PUNCH expansion right after entry (user direction:
+  // "expand 50% upon transitions"). 4 phases:
+  //   • Punch F35 → F50 (15f): 1.0 → 1.5 with EASE.outExpo (crisp, decisive)
+  //   • Hold F50 → F100 (50f): stays at 1.5 (the "expanded brand swell")
+  //   • Breath dip F100 → F118 (18f): 1.5 → 1.35 (visible exhale)
+  //   • Settle F118 → F128 (10f): 1.35 → 1.4 (rest)
   let liveLogoScale: number;
   if (frame < LOGO_ENLARGE_START) {
     liveLogoScale = 1;
   } else if (frame < LOGO_ENLARGE_PEAK) {
-    // Slow continuous grow F40 → F108: 1.0 → 1.45 (68 frames, eased)
+    // Punch expansion — peak scale comes from tweaks.scene2LogoPunchPeakScale
     liveLogoScale = interpolate(
       frame,
       [LOGO_ENLARGE_START, LOGO_ENLARGE_PEAK],
-      [1, LOGO_ENLARGED_PEAK_SCALE],
+      [1, punchPeakScale],
       {
         extrapolateLeft: "clamp",
         extrapolateRight: "clamp",
-        easing: EASE.inOutQuad,
+        easing: EASE.outExpo,
       }
     );
+  } else if (frame < LOGO_ENLARGE_HOLD_END) {
+    // Hold at punch peak
+    liveLogoScale = punchPeakScale;
   } else if (frame < LOGO_ENLARGE_DIP) {
-    // Spring back F108 → F114: 1.45 → 1.36
+    // Breath dip — peak → dip
     liveLogoScale = interpolate(
       frame,
-      [LOGO_ENLARGE_PEAK, LOGO_ENLARGE_DIP],
-      [LOGO_ENLARGED_PEAK_SCALE, LOGO_ENLARGED_DIP_SCALE],
+      [LOGO_ENLARGE_HOLD_END, LOGO_ENLARGE_DIP],
+      [punchPeakScale, dipScale],
       {
         extrapolateLeft: "clamp",
         extrapolateRight: "clamp",
@@ -340,11 +361,11 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
       }
     );
   } else if (frame < LOGO_ENLARGE_SETTLE) {
-    // Settle F114 → F122: 1.36 → 1.4 (rebound to rest)
+    // Settle dip → final (final scale comes from tweaks.scene2LogoFinalScale)
     liveLogoScale = interpolate(
       frame,
       [LOGO_ENLARGE_DIP, LOGO_ENLARGE_SETTLE],
-      [LOGO_ENLARGED_DIP_SCALE, LOGO_ENLARGED_SCALE],
+      [dipScale, finalScale],
       {
         extrapolateLeft: "clamp",
         extrapolateRight: "clamp",
@@ -352,8 +373,8 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
       }
     );
   } else {
-    // Locked at LOGO_ENLARGED_SCALE for sparkle + features
-    liveLogoScale = LOGO_ENLARGED_SCALE;
+    // Locked at final scale (tweak) for sparkle + features
+    liveLogoScale = finalScale;
   }
   // 0→1 progress for downstream glow brightness (uses LOGO_ENLARGE_START → DIP)
   const enlargeP = interpolate(
@@ -378,24 +399,33 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
   // Logo glow intensifies during enlarge (v1.34)
   const enlargedGlow = 0.55 + enlargeP * 0.4;
   const finalGlow = frame >= LOGO_ENLARGE_START ? enlargedGlow : holdGlow;
-  // Background radial glow brightens with enlarge
+  // v1.6 polish: subtle multi-sin flicker on the background blue glow —
+  // amplitude controlled by tweaks.scene2BgFlickerAmplitude (0 = static).
+  const bgFlicker =
+    1 -
+    flickerAmp +
+    flickerAmp *
+      (Math.sin(frame * 0.17) * 0.55 +
+        Math.sin(frame * 0.31 + 1.3) * 0.3 +
+        Math.sin(frame * 0.073 + 2.7) * 0.45);
+  // Background radial glow brightens with enlarge + flickers continuously
   const bgGlowOpacity =
     logoEnter *
-    (frame >= LOGO_ENLARGE_START ? Math.min(1, 1 + enlargeP * 0.6) : holdGlow);
+    (frame >= LOGO_ENLARGE_START ? Math.min(1, 1 + enlargeP * 0.6) : holdGlow) *
+    bgFlicker;
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none", opacity: fadeOut }}>
-      {/* Soft radial glow behind lockup */}
+      {/* Soft radial glow behind lockup — color from tweaks.bgGlowColor */}
       <AbsoluteFill
         style={{
-          background:
-            "radial-gradient(circle at 50% 50%, rgba(59,130,246,0.34) 0%, rgba(59,130,246,0) 45%)",
+          background: `radial-gradient(circle at 50% 50%, ${glowColor}57 0%, ${glowColor}00 45%)`,
           filter: "blur(40px)",
           opacity: bgGlowOpacity,
         }}
       />
 
-      {/* Centered chevron — enlarges at v1.34 transition */}
+      {/* Centered chevron — punch expansion + sparkle accent at top-right */}
       <div
         style={{
           position: "absolute",
@@ -405,7 +435,13 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
           opacity: logoEnter,
         }}
       >
-        <KivaLogo size={170} glow={finalGlow} />
+        <div style={{ position: "relative", width: 170, height: 170 }}>
+          <KivaLogo size={170} glow={finalGlow} />
+          {/* Sparkle accent — gated by tweaks.scene2SparkleEnabled */}
+          {tweaks.scene2SparkleEnabled && (
+            <LogoSparkle frame={frame} logoEnter={logoEnter} />
+          )}
+        </div>
       </div>
 
       {/* "Kiva." wordmark — collapses into its period at PILL_OUT_START */}
@@ -429,6 +465,57 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
         <span style={{ color: COLOR.blue }}>.</span>
       </div>
     </AbsoluteFill>
+  );
+};
+
+// =====================================================================
+// LOGO SPARKLE (v1.6) — subtle twinkle in the top-right corner of the
+// chevron. White 4-point star, continuous scale-pulse, gentle drift
+// rotation. Fades up with the logo entry so it doesn't pop in suddenly.
+// =====================================================================
+const LogoSparkle: React.FC<{ frame: number; logoEnter: number }> = ({
+  frame,
+  logoEnter,
+}) => {
+  // Twinkle scale-pulse: 0 → 1 → 0.4 → 1 → 0.6 — irregular for organic feel
+  const tw = (frame * 0.07) % (Math.PI * 2);
+  const pulse =
+    0.55 +
+    0.45 *
+      Math.abs(
+        Math.sin(tw) * 0.7 + Math.sin(tw * 2.3 + 0.7) * 0.3
+      );
+  const rot = (frame * 1.2) % 360;
+  // Subtle alpha breath layered with the pulse
+  const alpha = 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(frame * 0.11 + 1.7));
+  return (
+    <div
+      style={{
+        position: "absolute",
+        // Top-right corner ON the chevron icon (chevron sits at ~17-153 inside the 170 box)
+        right: 22,
+        top: 22,
+        width: 38,
+        height: 38,
+        zIndex: 5, // sit ABOVE the KivaLogo <Img> which has zIndex 1
+        opacity: logoEnter * alpha,
+        transform: `rotate(${rot}deg) scale(${pulse})`,
+        pointerEvents: "none",
+        filter:
+          "drop-shadow(0 0 8px rgba(255,255,255,0.95)) drop-shadow(0 0 18px rgba(120,180,255,0.7))",
+      }}
+    >
+      <svg width={38} height={38} viewBox="0 0 100 100">
+        <path
+          d="M 50 4 L 54 46 L 96 50 L 54 54 L 50 96 L 46 54 L 4 50 L 46 46 Z"
+          fill="#FFFFFF"
+        />
+        <path
+          d="M 50 20 L 52 48 L 80 50 L 52 52 L 50 80 L 48 52 L 20 50 L 48 48 Z"
+          fill="rgba(180,220,255,0.85)"
+        />
+      </svg>
+    </div>
   );
 };
 

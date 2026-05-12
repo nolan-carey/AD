@@ -11,6 +11,7 @@ import { SCENES, TOTAL_FRAMES } from "./tokens";
 import { INTER } from "./fonts";
 import { CinematicWrapper } from "./components/CinematicWrapper";
 import { AIGlow } from "./components/AIGlow";
+import { TweaksContext, KivaAdTweaks, DEFAULT_TWEAKS } from "./tweaks";
 import { Scene1Overwhelm } from "./scenes/Scene1_Overwhelm";
 // v1.21: filenames preserved for git diff continuity, but content fully replaced.
 // File-name → new-role mapping:
@@ -40,7 +41,8 @@ import { Scene10FinalHero } from "./scenes/Scene10_FinalHero";
 // AIGlow halo cycles between idle/active per scene.
 // =====================================================================
 
-const HAS_MUSIC_BED = false; // user-stripped — only dings + typewriter clicks remain in the mix
+// Music-bed default — now overridable via tweaks.enableMusicBed (Studio toggle)
+const HAS_MUSIC_BED_DEFAULT = false;
 
 // 12-frame crossfade overlap between scenes (morph transition per §3.7.4)
 const CROSSFADE = 12;
@@ -99,6 +101,8 @@ const FINAL_FADE_END = TOTAL_FRAMES;
 
 const SceneStack: React.FC = () => {
   const glow = useAiGlowState();
+  const tweaks = React.useContext(TweaksContext);
+  const hasMusicBed = tweaks.enableMusicBed ?? HAS_MUSIC_BED_DEFAULT;
   return (
     <>
       <AIGlow state={glow.state} changedAtFrame={glow.changedAtFrame} />
@@ -199,7 +203,7 @@ const SceneStack: React.FC = () => {
 
       {/* Music bed (v1.18, 45s) — under 32s composition. Re-timed prompt
           gated on user approval (only open 🚦 PENDING APPROVAL). */}
-      {HAS_MUSIC_BED && (
+      {hasMusicBed && (
         <Audio
           src={staticFile("sound/music/bed.mp3")}
           volume={(f) => {
@@ -234,13 +238,19 @@ const SceneCrossfade: React.FC<{
 // centered for the entire sequence (no glide, no park). Logo dissolves
 // into the iPhone at center.
 
-export const KivaAd: React.FC = () => {
+export const KivaAd: React.FC<Partial<KivaAdTweaks>> = (props) => {
   void INTER;
+  // Merge provided props with defaults so the composition still renders
+  // identically when no tweaks are passed (e.g. in CLI render before the
+  // user touches the Studio sidebar).
+  const tweaks: KivaAdTweaks = { ...DEFAULT_TWEAKS, ...props };
   return (
-    <AbsoluteFill style={{ background: "#000", fontFamily: INTER }}>
-      <CinematicWrapper>
-        <SceneStack />
-      </CinematicWrapper>
-    </AbsoluteFill>
+    <TweaksContext.Provider value={tweaks}>
+      <AbsoluteFill style={{ background: "#000", fontFamily: INTER }}>
+        <CinematicWrapper>
+          <SceneStack />
+        </CinematicWrapper>
+      </AbsoluteFill>
+    </TweaksContext.Provider>
   );
 };
