@@ -21,10 +21,10 @@ export const RemotionRoot: React.FC = () => {
       defaultProps={{
         scene1TypingStartFrame: 162,
         scene1FinalDingVolume: 0.92,
-        scene1HeroPatelLandFrame: 14,
+        scene1HeroPatelLandFrame: 8,
         scene2SwipeDurationFrames: 4,
         scene2LogoPunchPeakScale: 1.5,
-        scene2LogoFinalScale: 1.4,
+        scene2LogoFinalScale: 1.0,
         scene2SparkleEnabled: true,
         scene2BgFlickerAmplitude: 0.05,
         enablePoofSfx: true,
