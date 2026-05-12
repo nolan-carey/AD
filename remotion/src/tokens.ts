@@ -98,26 +98,25 @@ export const TYPE = {
   ctaLabel: { size: 22, weight: 600 },
 } as const;
 
-// Master timeline anchor (49.1s/1472 frames, 10 scenes).
-// v1.6 2026-05-07: master timeline reconciliation — Steve's Option A.
-// Scene 2 content was running ~524 local frames against an allotted 351;
-// bumped scene2.duration to 512 (12f buffer accounts for the Scene 1→2
-// -20 crossfade so Scene 2 ends cleanly at abs F752 = scene3.from).
-// Scenes 3–10 all shifted +161f. v1.0 → v1.43 sealed; current state = v1.5.
+// Master timeline anchor (45.9s/1376 frames, 10 scenes).
+// v1.7 2026-05-07: Scene 2 rework per user direction — per-feature
+// window 95f→60f, stagger 77f→45f (overlap restored for stream feel),
+// outro tightened, smooth mask-clip text reveal, no pink accents.
+// Scene 2 duration 512 → 416. Scenes 3–10 shift left -96f.
 export const FPS = 30;
-export const TOTAL_FRAMES = 1472; // 49.1s @ 30fps (v1.6 reconciled timeline)
+export const TOTAL_FRAMES = 1376; // 45.9s @ 30fps (v1.7 Scene 2 rework)
 
 export const SCENES = {
-  scene1: { from: 0, duration: 240 }, //    0:00.0 – 0:08.0  (8.0s · Overwhelm — 18 cards including v1.40 density-build)
-  scene2: { from: 240, duration: 512 }, //  0:08.0 – 0:25.1 (17.1s · v1.45 L→R sparkle sweep reveal — 77f stagger, 95f window)
-  scene3: { from: 752, duration: 105 }, //  0:25.1 – 0:28.6  (3.5s · Dashboard reveal + mic zoom)
-  scene4: { from: 857, duration: 105 }, //  0:28.6 – 0:32.1  (3.5s · Voice→Quote)
-  scene5: { from: 962, duration: 60 }, //   0:32.1 – 0:34.1  (2.0s · Quote→Customer profile)
-  scene6: { from: 1022, duration: 90 }, //  0:34.1 – 0:37.1  (3.0s · Receipt→Expense)
-  scene7: { from: 1112, duration: 90 }, //  0:37.1 – 0:40.1  (3.0s · Map→Route)
-  scene8: { from: 1202, duration: 90 }, //  0:40.1 – 0:43.1  (3.0s · Pin→Follow-up)
-  scene9: { from: 1292, duration: 120 }, // 0:43.1 – 0:47.1  (4.0s · AI Business Assistant)
-  scene10: { from: 1412, duration: 60 }, // 0:47.1 – 0:49.1  (2.0s · Final hero shot)
+  scene1: { from: 0, duration: 240 }, //    0:00.0 – 0:08.0  (8.0s · Overwhelm — 18 cards w/ v1.40 density-build)
+  scene2: { from: 240, duration: 416 }, //  0:08.0 – 0:21.9 (13.9s · v1.7 reworked — smooth mask-clip reveal, overlapping features)
+  scene3: { from: 656, duration: 105 }, //  0:21.9 – 0:25.4  (3.5s · Dashboard reveal + mic zoom)
+  scene4: { from: 761, duration: 105 }, //  0:25.4 – 0:28.9  (3.5s · Voice→Quote)
+  scene5: { from: 866, duration: 60 }, //   0:28.9 – 0:30.9  (2.0s · Quote→Customer profile)
+  scene6: { from: 926, duration: 90 }, //   0:30.9 – 0:33.9  (3.0s · Receipt→Expense)
+  scene7: { from: 1016, duration: 90 }, //  0:33.9 – 0:36.9  (3.0s · Map→Route)
+  scene8: { from: 1106, duration: 90 }, //  0:36.9 – 0:39.9  (3.0s · Pin→Follow-up)
+  scene9: { from: 1196, duration: 120 }, // 0:39.9 – 0:43.9  (4.0s · AI Business Assistant)
+  scene10: { from: 1316, duration: 60 }, // 0:43.9 – 0:45.9  (2.0s · Final hero shot)
 } as const;
 
 // v1.26: persistent top-right chevron REMOVED. Logo stays centered the

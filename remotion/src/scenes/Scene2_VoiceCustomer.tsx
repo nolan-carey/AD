@@ -62,30 +62,33 @@ import { useTweaks } from "../tweaks";
 // 75f, per-feature phase offsets 0°/90°/180°/270°.
 // =====================================================================
 
+// v1.7 timing rework — smooth mask-clip reveal, per-feature 60f window,
+// 45f stagger (overlap returns for stream feel), outro tightened. Total
+// Scene 2 local: 524 → 416f. Scene 2 nominal duration: 512 → 416.
 const SWIPE_START = 12;
-const SWIPE_END = 16; // v1.6 polish: 8f → 4f, snappier wipe per user direction
+const SWIPE_END = 16;
 const SILENCE_END = 30;
-const LOCKUP_LOGO_IN = 23; // v1.42 -7f: visible logo expansion now starts ~abs F243 (was F250)
+const LOCKUP_LOGO_IN = 23;
 const LOCKUP_WORD_IN = 38;
 const LOCKUP_END = 48;
 const PILL_IN = 48;
 const PILL_HOLD_START = 60;
-const PILL_OUT_START = 92; // 4f earlier — fade begins ~abs F312 (a couple before 315)
-const PILL_OUT_END = 98; // 6f popout window preserved
-const SPARKLE_IN = 114; // was 102; logo enlarge 12f preserved
-// v1.45: feature window 75f→95f, stagger 58f→77f. Scene 2 grows by another +77f.
-const FEATURE1 = 126; // sparkle entrance 12f preserved
-const FEATURE2 = 203; // +77 stagger
-const FEATURE3 = 280;
-const FEATURE4 = 357;
-const FEATURES_END = 452; // F4 + 95
-const VORTEX_START = 452;
-const VORTEX_END = 468; // 16f vortex
-const PHONE_MATERIALIZE = 468;
-const LOGO_FADE_END = 484; // 16f logo fade
-const DASHBOARD_IN = 490; // 22f phone fade-in
-const SCENE_END = 524; // 34f dashboard
-const FEATURE_DURATION = 95;
+const PILL_OUT_START = 92;
+const PILL_OUT_END = 98;
+const SPARKLE_IN = 114;
+// v1.7: feature window 95f → 60f, stagger 77f → 45f (75% overlap restored)
+const FEATURE1 = 126;
+const FEATURE2 = 171; // +45 stagger (was +77)
+const FEATURE3 = 216;
+const FEATURE4 = 261;
+const FEATURES_END = 321; // F4 + 60 (was F4 + 95)
+const VORTEX_START = 321;
+const VORTEX_END = 336; // 15f vortex (was 16)
+const PHONE_MATERIALIZE = 336;
+const LOGO_FADE_END = 354; // 18f logo fade (smoother cross-fade)
+const DASHBOARD_IN = 360; // 24f phone fade-in
+const SCENE_END = 416; // outro extended to use remaining budget
+const FEATURE_DURATION = 60;
 
 // Centered logo focal point (1920×1080 frame)
 const CENTER = { x: 960, y: 540 };
@@ -356,6 +359,18 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
     // Locked at final scale (tweak) for sparkle + features
     liveLogoScale = finalScale;
   }
+
+  // v1.7c — LOGO CHARGE-UP during the F98 → F114 gap (between pill exit
+  // and sparkle emergence). Logo swells slightly + the halo intensifies,
+  // foreshadowing the AI sparkle that's about to burst forth. Without
+  // this beat the gap reads as "boring" per user direction.
+  const chargeP = interpolate(frame, [PILL_OUT_END, SPARKLE_IN], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE.inOutQuad,
+  });
+  const chargePulse = 1 + 0.08 * Math.sin(chargeP * Math.PI); // 1.0 → 1.08 → 1.0 swell
+  liveLogoScale = liveLogoScale * chargePulse;
   // 0→1 progress for downstream glow brightness — peaks at LOGO_ENLARGE_PEAK
   const enlargeP = interpolate(
     frame,
@@ -422,6 +437,14 @@ const CenteredLockup: React.FC<{ frame: number; fps: number }> = ({
         >
           <LogoSparkle frame={frame} logoEnter={logoEnter} />
         </div>
+      )}
+
+      {/* v1.7c — ENERGY-CONVERGE PARTICLES (fills the F98 → F114 gap with
+          a "logo charging up" beat, foreshadowing the AI sparkle). 14
+          small white/blue particles fly in from frame edges toward logo
+          center, growing brighter as they approach. */}
+      {frame >= PILL_OUT_END - 2 && frame < SPARKLE_IN + 6 && (
+        <EnergyConvergeParticles frame={frame} />
       )}
 
       {/* Centered chevron — punch expansion then recoil back to rest */}
@@ -510,7 +533,7 @@ const LogoSparkle: React.FC<{ frame: number; logoEnter: number }> = ({
         transform: `rotate(${rot}deg) scale(${pulse})`,
         pointerEvents: "none",
         filter:
-          "drop-shadow(0 0 16px rgba(220,235,255,0.95)) drop-shadow(0 0 28px rgba(120,180,255,0.7))",
+          "drop-shadow(0 0 16px rgba(255,255,255,0.95)) drop-shadow(0 0 28px rgba(255,255,255,0.55))",
       }}
     >
       <svg width={220} height={220} viewBox="0 0 100 100">
@@ -520,10 +543,64 @@ const LogoSparkle: React.FC<{ frame: number; logoEnter: number }> = ({
         />
         <path
           d="M 50 18 L 51 49 L 82 50 L 51 51 L 50 82 L 49 51 L 18 50 L 49 49 Z"
-          fill="rgba(190,220,255,0.85)"
+          fill="rgba(255,255,255,0.85)"
         />
       </svg>
     </div>
+  );
+};
+
+// =====================================================================
+// ENERGY-CONVERGE PARTICLES (v1.7c) — fills the F98 → F114 "boring gap"
+// between pill pop-out and AI sparkle emergence. 14 small particles fly
+// in from frame edges toward the logo center, growing brighter as they
+// converge. Reads as "the brand is charging up energy" right before the
+// AI sparkle bursts forth. Deterministic positions (no per-render rng).
+// =====================================================================
+const EnergyConvergeParticles: React.FC<{ frame: number }> = ({ frame }) => {
+  const t = frame - PILL_OUT_END; // 0 → 16
+  const dur = SPARKLE_IN - PILL_OUT_END; // 16f
+  const N = 14;
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none" }}>
+      {Array.from({ length: N }).map((_, i) => {
+        // Deterministic spawn: each particle stems from a different angle
+        const seed = i / N;
+        const baseAng = seed * Math.PI * 2 + (i % 3) * 0.4;
+        // Start at 480 px from center; converge to ~30 px (just past chevron edge)
+        const stagger = (i * 0.7) % 4; // -staggered start within first 4f
+        const tt = Math.max(0, t - stagger);
+        const p = Math.min(1, tt / (dur - 2));
+        const easedP = p * p * (3 - 2 * p); // smoothstep
+        const r = interpolate(easedP, [0, 1], [480, 30]);
+        const cx = CENTER.x + Math.cos(baseAng) * r;
+        const cy = CENTER.y - 40 + Math.sin(baseAng) * r;
+        const size = 3 + (i % 4);
+        // Brighten as they approach center
+        const alpha = interpolate(easedP, [0, 0.6, 1], [0, 0.85, 0]);
+        if (alpha <= 0.01) return null;
+        const isWhite = i % 3 === 0;
+        const color = isWhite ? "#FFFFFF" : COLOR.blue;
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: cx,
+              top: cy,
+              width: size,
+              height: size,
+              marginLeft: -size / 2,
+              marginTop: -size / 2,
+              borderRadius: "50%",
+              background: color,
+              boxShadow: `0 0 ${size * 2}px ${color}`,
+              opacity: alpha,
+            }}
+          />
+        );
+      })}
+    </AbsoluteFill>
   );
 };
 
@@ -667,7 +744,7 @@ const TaglinePill: React.FC<{ frame: number; fps: number }> = ({
               inset: -1,
               borderRadius: 999,
               padding: 1,
-              background: `conic-gradient(from ${irisRot}deg, rgba(59,130,246,0.05), rgba(180,210,255,0.06), rgba(255,150,200,0.05), rgba(59,130,246,0.05))`,
+              background: `conic-gradient(from ${irisRot}deg, rgba(59,130,246,0.05), rgba(180,210,255,0.06), rgba(120,170,255,0.05), rgba(59,130,246,0.05))`,
               WebkitMask:
                 "linear-gradient(#000, #000) content-box, linear-gradient(#000, #000)",
               WebkitMaskComposite: "xor" as const,
@@ -1013,6 +1090,21 @@ const SparkleOrbiter: React.FC<{ frame: number }> = ({ frame }) => {
   const vortexScale = interpolate(vortexP, [0, 1], [1, 0]);
   const vortexOpacity = interpolate(vortexP, [0, 1], [1, 0]);
 
+  // v1.7b — sparkle PERSISTENCE OPACITY: bright during approach+sweep
+  // (t 0-32), fades out after the sweep lands (t 32 → 38), hidden until
+  // the next feature's dart begins. Eliminates the "too repetitive purple
+  // chevron" reading by removing the constant-orbit drag.
+  const segmentOpacity = (() => {
+    if (frame < FEATURE1 || frame >= FEATURES_END) return 1;
+    const segs = [FEATURE1, FEATURE2, FEATURE3, FEATURE4];
+    let i = 0;
+    for (let k = 0; k < 4; k++) if (frame >= segs[k]) i = k;
+    const t = frame - segs[i];
+    if (t <= 32) return 1;
+    if (t < 38) return interpolate(t, [32, 38], [1, 0]);
+    return 0;
+  })();
+
   // Continuous spin
   const rotation = (frame - SPARKLE_IN) * 4;
 
@@ -1025,7 +1117,7 @@ const SparkleOrbiter: React.FC<{ frame: number }> = ({ frame }) => {
         left: cx,
         top: cy,
         transform: `translate(-50%, -50%) scale(${finalScale}) rotate(${rotation}deg)`,
-        opacity: enter * vortexOpacity,
+        opacity: enter * vortexOpacity * segmentOpacity,
         pointerEvents: "none",
         zIndex: 50,
       }}
@@ -1127,16 +1219,28 @@ const BurstParticles: React.FC<{ count: number }> = ({ count }) => {
 //   t 44–47 underline draws (3f, overlaps morph)
 //   t 44–50 icon transforms to ACTIVE state (6f)
 //   t 50–60 drift onset (10f) + continuous loop while feature persists
-// v1.45: further slowdown + sparkle becomes a left→right horizontal sweep
-// that reveals text as it passes. Verb 22→30f, breath 4→5f, outcome 26→36f.
-// Per-feature window 75f→95f; stagger 58f→77f; sparkle approach 10f, sweep 67f.
-const VERB_TYPE_START = 6;
-const VERB_TYPE_END = 36; // verb 30f
-const OUTCOME_TYPE_START = 41; // 5f breath
-const OUTCOME_TYPE_END = 77; // outcome 36f
-const PERIOD_FRAME = 76;
-const UNDERLINE_DRAW_START = 77;
-const UNDERLINE_DRAW_END = 80;
+// v1.7 per-feature 60f window — SMOOTH mask-clip reveal replaces the
+// choppy char-by-char typing. The "TYPE" constants now control a single
+// continuous reveal range; the whole feature text (verb + outcome) is
+// revealed via a left-to-right gradient mask over REVEAL_START → REVEAL_END.
+//   t 0–2   sparkle dart
+//   t 2–8   icon line-draws (6f)
+//   t 8–32  TEXT REVEAL — smooth mask-clip wipe (24f)
+//   t 28–32 outcome word scale-punch (last 4f of reveal)
+//   t 32–35 underline draws
+//   t 35–45 icon transforms to active state (10f)
+//   t 45–60 drift content cycle
+const REVEAL_START = 8;
+const REVEAL_END = 32;
+// Legacy TYPE_* constants — kept so any leftover audio cue references resolve.
+// In v1.7 we no longer type char-by-char; these map to the same single reveal window.
+const VERB_TYPE_START = REVEAL_START;
+const VERB_TYPE_END = REVEAL_END;
+const OUTCOME_TYPE_START = REVEAL_START;
+const OUTCOME_TYPE_END = REVEAL_END;
+const PERIOD_FRAME = REVEAL_END - 1;
+const UNDERLINE_DRAW_START = REVEAL_END;
+const UNDERLINE_DRAW_END = REVEAL_END + 3;
 
 function visibleChars(text: string, t: number, startFrame: number, endFrame: number): string {
   if (t < startFrame) return "";
@@ -1160,31 +1264,44 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
 
         const t = frame - start;
 
-        // Char-by-char typed reveal
-        const verbVisible = visibleChars(
-          feat.prefix,
-          t,
-          VERB_TYPE_START,
-          VERB_TYPE_END
-        );
-        const outcomeVisible = visibleChars(
-          feat.outcome,
-          t,
-          OUTCOME_TYPE_START,
-          OUTCOME_TYPE_END
-        );
-        const showPeriod = t >= PERIOD_FRAME;
+        // v1.7 SMOOTH mask-clip reveal — replaces choppy char-by-char typing.
+        // The full feature text is rendered statically; a horizontal gradient
+        // mask wipes left → right to reveal it over t = REVEAL_START → REVEAL_END.
+        const revealP = interpolate(t, [REVEAL_START, REVEAL_END], [0, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+          easing: EASE.outCubic,
+        });
+        // 12% feathered edge so the wipe doesn't have a hard cut
+        const maskStop1 = Math.max(0, revealP * 112 - 12);
+        const maskStop2 = Math.min(112, revealP * 112);
+        const revealMask = `linear-gradient(90deg, black 0%, black ${maskStop1}%, transparent ${maskStop2}%, transparent 100%)`;
 
-        // Scale-punch on the final char of outcome (lands at t≈18, peaks 18→19)
+        // v1.7b — outcome-word GLOW FLASH on reveal completion. Soft blue
+        // radial gradient pulses behind the outcome word, drawing the eye
+        // to the key payload. Peaks t = REVEAL_END+2, fades over 12 f.
+        const glowFlash = interpolate(
+          t,
+          [REVEAL_END - 2, REVEAL_END + 2, REVEAL_END + 14],
+          [0, 1, 0],
+          { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+        );
+
+        // Scale-punch on the outcome word — peaks just as reveal completes
         const punch =
-          t >= OUTCOME_TYPE_END - 1 && t <= OUTCOME_TYPE_END + 2
-            ? interpolate(t, [OUTCOME_TYPE_END - 1, OUTCOME_TYPE_END + 1, OUTCOME_TYPE_END + 2], [1, 1.08, 1], {
-                extrapolateLeft: "clamp",
-                extrapolateRight: "clamp",
-              })
+          t >= REVEAL_END - 4 && t <= REVEAL_END + 4
+            ? interpolate(
+                t,
+                [REVEAL_END - 4, REVEAL_END, REVEAL_END + 4],
+                [1, 1.08, 1],
+                {
+                  extrapolateLeft: "clamp",
+                  extrapolateRight: "clamp",
+                }
+              )
             : 1;
 
-        // Underline draws in F18-F19 (and stays drawn while feature persists)
+        // Underline draws after reveal completes
         const underlineW = interpolate(
           t,
           [UNDERLINE_DRAW_START, UNDERLINE_DRAW_END + 2],
@@ -1251,21 +1368,24 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
           >
             {/* v1.33 layout: ICON on LEFT, text on RIGHT */}
             <FeatureIcon index={i} localTime={t} />
-            {/* TEXT BLOCK (right) — verb stacked above outcome, underline below
-                v1.41: kinetic xy-sine float once typing completes (poof) */}
+            {/* v1.7 TEXT BLOCK — verb / outcome / underline. Verb + outcome
+                are rendered statically and wrapped in a horizontal mask that
+                wipes left → right to reveal them smoothly. Period accent is
+                blue (was purple) to drop the "pink" reading per user. */}
             <div
               style={{
+                position: "relative",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "flex-start",
                 gap: 0,
                 transform: (() => {
-                  // Float runs from poof frame until VORTEX_START
-                  const floatStartT = OUTCOME_TYPE_END - 1;
+                  // Kinetic xy-sine float starts after reveal completes
+                  const floatStartT = REVEAL_END;
                   if (t < floatStartT || frame >= VORTEX_START) {
                     return undefined;
                   }
-                  const phaseDeg = i * 90; // 0/90/180/270 per feature
+                  const phaseDeg = i * 90;
                   const phaseRad = (phaseDeg * Math.PI) / 180;
                   const ft = t - floatStartT;
                   const fx = 2 * Math.sin((ft / 90) * 2 * Math.PI + phaseRad);
@@ -1274,68 +1394,90 @@ const FeatureTexts: React.FC<{ frame: number; collapseScale: number }> = ({
                 })(),
               }}
             >
+              {/* v1.7b — outcome-word GLOW FLASH (soft blue bloom behind the
+                  text-block, peaks at reveal completion, draws the eye to
+                  the key payload) */}
+              {glowFlash > 0.01 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 30,
+                    width: 380,
+                    height: 110,
+                    pointerEvents: "none",
+                    opacity: glowFlash * 0.85,
+                    background:
+                      "radial-gradient(ellipse 60% 50% at 35% 50%, rgba(59,130,246,0.55) 0%, rgba(59,130,246,0) 70%)",
+                    filter: "blur(14px)",
+                    zIndex: -1,
+                  }}
+                />
+              )}
+              {/* v1.7b — traveling highlight BAR sync'd with reveal edge.
+                  Vertical bright bar slides L→R with the mask, giving the
+                  reveal a deliberate "swept-in" motion. */}
+              {revealP > 0 && revealP < 1 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: `${revealP * 100}%`,
+                    top: 0,
+                    width: 5,
+                    height: "100%",
+                    pointerEvents: "none",
+                    background:
+                      "linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.95) 50%, transparent 100%)",
+                    boxShadow:
+                      "0 0 14px rgba(120,180,255,0.9), 0 0 24px rgba(59,130,246,0.6)",
+                    opacity: 0.9,
+                    transform: "translateX(-50%) skewX(-12deg)",
+                  }}
+                />
+              )}
+              {/* Smooth left→right mask wipe applied to verb + outcome */}
               <div
                 style={{
-                  fontSize: 32,
-                  fontWeight: 400,
-                  color: "rgba(255,255,255,0.80)",
-                  letterSpacing: -0.4,
-                  whiteSpace: "nowrap",
-                  lineHeight: 1.0,
-                  marginBottom: 4,
-                  minHeight: 32,
+                  WebkitMaskImage: revealMask,
+                  maskImage: revealMask,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  gap: 0,
                 }}
               >
-                {verbVisible}
-                {t >= VERB_TYPE_START &&
-                  t < VERB_TYPE_END &&
-                  Math.floor(t / 2) % 2 === 0 && (
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: 2,
-                        height: 26,
-                        background: "rgba(255,255,255,0.7)",
-                        marginLeft: 2,
-                        verticalAlign: "middle",
-                      }}
-                    />
-                  )}
+                <div
+                  style={{
+                    fontSize: 32,
+                    fontWeight: 400,
+                    color: "rgba(255,255,255,0.80)",
+                    letterSpacing: -0.4,
+                    whiteSpace: "nowrap",
+                    lineHeight: 1.0,
+                    marginBottom: 4,
+                  }}
+                >
+                  {feat.prefix}
+                </div>
+                <div
+                  style={{
+                    fontSize: 72,
+                    fontWeight: 700,
+                    color: "#fff",
+                    letterSpacing: -1.8,
+                    transform: `scale(${punch})`,
+                    transformOrigin: "left center",
+                    whiteSpace: "nowrap",
+                    lineHeight: 1.0,
+                    textShadow:
+                      "0 4px 24px rgba(15,23,42,0.6), 0 0 32px rgba(59,130,246,0.45)",
+                  }}
+                >
+                  {feat.outcome}
+                  <span style={{ color: COLOR.blue }}>.</span>
+                </div>
               </div>
-              <div
-                style={{
-                  fontSize: 72,
-                  fontWeight: 700,
-                  color: "#fff",
-                  letterSpacing: -1.8,
-                  transform: `scale(${punch})`,
-                  transformOrigin: "left center",
-                  whiteSpace: "nowrap",
-                  lineHeight: 1.0,
-                  textShadow:
-                    "0 4px 24px rgba(15,23,42,0.6), 0 0 32px rgba(59,130,246,0.45)",
-                }}
-              >
-                {outcomeVisible}
-                {showPeriod && (
-                  <span style={{ color: COLOR.aiPurple }}>.</span>
-                )}
-                {t >= OUTCOME_TYPE_START &&
-                  t < OUTCOME_TYPE_END &&
-                  Math.floor(t / 2) % 2 === 0 && (
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: 4,
-                        height: 58,
-                        background: "rgba(255,255,255,0.85)",
-                        marginLeft: 4,
-                        verticalAlign: "middle",
-                      }}
-                    />
-                  )}
-              </div>
-              {/* Underline beneath outcome word — v1.39: purple → blue */}
+              {/* Underline beneath outcome word — blue */}
               <div
                 style={{
                   width: 180 * underlineW,
@@ -1606,11 +1748,12 @@ const ICON_GLOW_FILTER =
 // Phase transition frames (relative to feature start) — v1.41 pacing
 // v1.45: icon waits until text reveal is finished (t=77 = outcome typed)
 // before line-drawing. Line-draw runs t77-81, then immediately morphs active.
-const ICON_DRAW_START = 77;
-const ICON_DRAW_END = 81; // 4f line-draw
-const ICON_MORPH_START = 81; // morph kicks in right after draw
-const ICON_MORPH_END = 87; // 6f morph
-const DRIFT_START = 50; // 10f drift onset (longer because window grew)
+// v1.7 60f window — icon timing rebuilt
+const ICON_DRAW_START = 2;
+const ICON_DRAW_END = 8; // 6f line-draw (parallel with sparkle dart end)
+const ICON_MORPH_START = 35; // morph after reveal + underline draw
+const ICON_MORPH_END = 45; // 10f morph
+const DRIFT_START = 45; // 15f drift onset before feature ends
 
 const FeatureIcon: React.FC<{ index: number; localTime: number }> = ({
   index,
