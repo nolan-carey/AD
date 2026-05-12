@@ -51,14 +51,17 @@ interface CardSpec {
 // after the hero hold (was 10f stack + 6f density). Last card lands at F178.
 // Each card travels 10 frames; lands 8 frames after the previous one.
 const CARDS: CardSpec[] = [
-  // 1) Mrs. Patel — iMessage bubble — bottom-left → (900,540) | land 24
+  // 1) Mrs. Patel — iMessage bubble — bottom-left → (900,540) | land 14
+  // v1.6 polish: shortened hero travel 24f → 14f for more direct entry
+  // (user direction: "first couple of messages float in, make them more
+  // direct"). HERO_HOLD still begins at F24 — solo time preserved.
   {
     id: "patel",
     variant: "imessage",
     sender: "Mrs. Patel",
     body: "u still coming tomorrow?",
     start: 0,
-    land: 24,
+    land: 14,
     x: 900,
     y: 540,
     rotation: -3,
@@ -551,11 +554,14 @@ const Card: React.FC<{
   if (t < -2) return null;
 
   const travel = spec.land - spec.start;
-  // Travel-in: 0 → 1 over the travel window, easeOutCubic for a crisp landing.
+  // v1.6 polish: switched from EASE.outCubic (slow-at-end → floaty) to
+  // EASE.outExpo per user direction — crisp front-loaded entry, no
+  // lingering deceleration. Cards now "punch in" with the spring bump
+  // providing the satisfying landing snap.
   const travelP = interpolate(t, [0, travel], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
-    easing: EASE.outCubic,
+    easing: EASE.outExpo,
   });
 
   // Spring overshoot scale at landing — peaks at 1.18, settles to 1.15 then 1.0.
