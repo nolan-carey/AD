@@ -552,7 +552,7 @@ const VoiceQuoteMock: React.FC<{ frame: number; fps: number }> = ({
             letterSpacing: 0.4,
             opacity: interpolate(
               frame,
-              [MIC_TRIGGER + 4, MIC_TRIGGER + 12, TRANSCRIBE_START + 6, TRANSCRIBE_START + 10],
+              [MIC_TRIGGER + 4, MIC_TRIGGER + 10, TRANSCRIBE_START + 6, TRANSCRIBE_START + 10],
               [0, 1, 1, 0],
               { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
             ),
