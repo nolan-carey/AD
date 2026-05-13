@@ -2,50 +2,47 @@ import React from "react";
 import {
   AbsoluteFill,
   interpolate,
-  spring,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { COLOR, EASE, SPRING } from "../tokens";
+import { COLOR, EASE, TYPE } from "../tokens";
 import { SFX } from "../audio";
 import { PhoneFrame } from "../components/PhoneFrame";
 import { MicButton } from "../components/MicButton";
 import { SfxAt } from "../components/SfxAt";
 
 // =====================================================================
-// SCENE 3 — Voice-to-Quote walkthrough · Part 1 (v1.8, frames 656–761)
+// SCENE 3 — Voice-to-Quote walkthrough · Part 1 (v1.9 PREMIUM, 656–761)
 // 105 frames @ 30fps · 3.5s
 //
-// User direction 2026-05-12: stop just sliding a phone with static text.
-// Build a real walkthrough — tap the AI FAB, morph to Voice Quote
-// screen, tap mic, capture live transcription. Multiple mini-beats.
+// v1.9 premium pass — phone shrinks to ~60% so the frame breathes,
+// cursor/ripple chrome removed (interactions happen via state, not
+// pointer), full-frame mask-clip hero typography lands as sting frames,
+// camera moves slower with holds. Reads as a launch teaser, not a demo.
 //
 // Beats (local frames):
-//   F0–F22   Dashboard chrome, FAB pulses, cursor arcs in
-//   F22–F26  Tap FAB — ripple + click
-//   F24–F40  Screen morph (dashboard slides down, VoiceQuote slides up)
-//   F40–F60  VoiceQuote settled, "Tap to record" hint, camera tilts
-//   F60–F68  Tap mic — flips to red recording, "Listening…" appears
-//   F68–F100 Live transcription with keyword highlights
-//   F100–F105 Camera dolly in, fade-prep for Scene 4
-//
-// Real Kiva chrome (sourced verbatim from /Users/nolancarey/kiva/Frontend):
-//   • Dashboard: navy top header, 4 stat tiles, activity feed, AI FAB
-//   • VoiceQuote: status header, mic stack, "Tap to record"
-//   • AI FAB = 52px blue circle, AI badge top-right, pulse ring 1.45x
+//   F0–F18   HERO STING: "Speak it." mask-reveals over dim phone
+//   F18–F26  Phone lifts; dashboard visible; AI FAB pulses + activates
+//   F26–F42  Screen morph (dashboard scales/blurs out, VoiceQuote in)
+//   F42–F60  VoiceQuote settled, mic idle, ambient pulse
+//   F60–F68  Mic activates (state flip, no cursor)
+//   F68–F96  Live transcription with keyword highlights
+//   F70–F96  HERO STING #2: "Kiva listens." beneath phone
+//   F96–F105 Hold + outro into Scene 4
 // =====================================================================
 
-const TAP_FAB_FRAME = 22;
-const MORPH_START = 24;
-const MORPH_END = 40;
-const SETTLE_END = 60;
-const TAP_MIC_FRAME = 60;
-const REC_PHASE_END = 68;
+const HERO1_IN = 4;
+const HERO1_OUT = 28;
+const FAB_TRIGGER = 24;
+const MORPH_START = 26;
+const MORPH_END = 42;
+const MIC_TRIGGER = 62;
 const TRANSCRIBE_START = 68;
-const TRANSCRIBE_END = 100;
+const TRANSCRIBE_END = 96;
+const HERO2_IN = 70;
+const HERO2_OUT = 100;
 const SCENE_END = 105;
 
-// Keyword highlights pulse blue. Whitespace tokens preserve spacing.
 const TRANSCRIPT_TOKENS: { text: string; hl?: boolean }[] = [
   { text: "Quote for " },
   { text: "John Smith", hl: true },
@@ -62,55 +59,97 @@ export const Scene3VoiceQuote: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Camera moves: opening 3/4 angle → straighten as we focus on the mic →
-  // gentle dolly-in during transcription.
-  const cameraRotY = interpolate(
+  // Phone is SMALL — premium negative space. Holds at apex during transcribe.
+  const phoneScale = interpolate(
     frame,
-    [0, 24, 60, SCENE_END],
-    [-10, -8, -4, -2],
+    [0, 18, 60, 96, SCENE_END],
+    [0.56, 0.58, 0.62, 0.64, 0.66],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE.inOutQuad }
   );
-  const cameraRotX = interpolate(frame, [0, 60], [4, 1.5], {
+  // Slight tilt that softens through the scene
+  const phoneRotY = interpolate(frame, [0, 60, SCENE_END], [-8, -5, -3], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.inOutQuad,
   });
-  const cameraScale = interpolate(
-    frame,
-    [0, 40, 70, SCENE_END],
-    [0.94, 1.0, 1.04, 1.08],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE.inOutQuad }
-  );
-  const cameraX = interpolate(frame, [0, 40], [40, 0], {
+  const phoneRotX = interpolate(frame, [0, SCENE_END], [4, 2], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.inOutQuad,
   });
+  // Phone subtly lifts up
+  const phoneY = interpolate(frame, [0, 60], [20, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE.inOutQuad,
+  });
+  // Dim phone during hero1 so the typography owns the frame
+  const phoneDim = interpolate(
+    frame,
+    [HERO1_IN, HERO1_IN + 8, HERO1_OUT - 4, HERO1_OUT + 2],
+    [1, 0.32, 0.32, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE.inOutQuad }
+  );
 
   return (
     <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-      <PhoneFrame
-        rotateY={cameraRotY}
-        rotateX={cameraRotX}
-        translateX={cameraX}
-        scale={cameraScale}
-      >
-        <ScreenStack frame={frame} fps={fps} />
-      </PhoneFrame>
+      <Vignette />
 
-      {/* SFX */}
-      <SfxAt src={SFX.click} from={TAP_FAB_FRAME} volume={0.45} />
-      <SfxAt src={SFX.swoosh} from={MORPH_START} volume={0.35} />
-      <SfxAt src={SFX.click} from={TAP_MIC_FRAME} volume={0.5} />
+      <div style={{ opacity: phoneDim, transition: "opacity 80ms" }}>
+        <PhoneFrame
+          rotateY={phoneRotY}
+          rotateX={phoneRotX}
+          translateY={phoneY}
+          scale={phoneScale}
+        >
+          <ScreenStack frame={frame} fps={fps} />
+        </PhoneFrame>
+      </div>
+
+      <HeroSting
+        in={HERO1_IN}
+        out={HERO1_OUT}
+        frame={frame}
+        position="above"
+        text="Speak it."
+        emphasisIndex={0}
+      />
+      <HeroSting
+        in={HERO2_IN}
+        out={HERO2_OUT}
+        frame={frame}
+        position="below"
+        text="Kiva listens."
+        emphasisIndex={0}
+      />
+
+      <SfxAt src={SFX.swoosh} from={MORPH_START} volume={0.32} />
+      <SfxAt src={SFX.click} from={MIC_TRIGGER} volume={0.42} />
       <SfxAt
         src={SFX.notification1}
-        from={TAP_MIC_FRAME}
-        volume={0.35}
+        from={MIC_TRIGGER}
+        volume={0.32}
         playbackRate={Math.pow(2, 7 / 12)}
       />
     </AbsoluteFill>
   );
 };
+
+// =====================================================================
+// VIGNETTE — radial darkening pulls focus to phone
+// =====================================================================
+const Vignette: React.FC = () => (
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      background:
+        "radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.55) 100%)",
+      pointerEvents: "none",
+      zIndex: 1,
+    }}
+  />
+);
 
 // =====================================================================
 // SCREEN STACK — dashboard above, voice quote below, slides between them
@@ -119,14 +158,17 @@ const ScreenStack: React.FC<{ frame: number; fps: number }> = ({
   frame,
   fps,
 }) => {
-  // Morph: dashboard slides UP and out, voice quote slides up into view.
+  // Morph: dashboard scales down + fades out, VoiceQuote rises from below.
   const morphP = interpolate(frame, [MORPH_START, MORPH_END], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.inOutQuad,
   });
-  const dashOffset = -morphP * 852; // off-screen up
-  const voiceOffset = (1 - morphP) * 852; // starts below
+  const dashScale = interpolate(morphP, [0, 1], [1, 0.92]);
+  const dashOpacity = interpolate(morphP, [0, 0.7], [1, 0]);
+  const dashBlur = interpolate(morphP, [0, 1], [0, 6]);
+  const voiceY = (1 - morphP) * 320;
+  const voiceOpacity = interpolate(morphP, [0.3, 1], [0, 1]);
 
   return (
     <div
@@ -139,54 +181,47 @@ const ScreenStack: React.FC<{ frame: number; fps: number }> = ({
         overflow: "hidden",
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          transform: `translateY(${dashOffset}px)`,
-        }}
-      >
-        <DashboardMock frame={frame} />
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          transform: `translateY(${voiceOffset}px)`,
-        }}
-      >
-        <VoiceQuoteMock frame={frame} fps={fps} />
-      </div>
+      {morphP < 1 && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            opacity: dashOpacity,
+            transform: `scale(${dashScale})`,
+            transformOrigin: "center center",
+            filter: `blur(${dashBlur}px)`,
+          }}
+        >
+          <DashboardMock frame={frame} />
+        </div>
+      )}
+      {morphP > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            transform: `translateY(${voiceY}px)`,
+            opacity: voiceOpacity,
+          }}
+        >
+          <VoiceQuoteMock frame={frame} fps={fps} />
+        </div>
+      )}
     </div>
   );
 };
 
 // =====================================================================
-// DASHBOARD MOCK — Kiva home (navy header, stat grid, activity, AI FAB)
+// DASHBOARD MOCK — restrained Kiva home, AI FAB the only color punch
 // =====================================================================
 const DashboardMock: React.FC<{ frame: number }> = ({ frame }) => {
-  const tapP = spring({
-    frame: frame - TAP_FAB_FRAME,
-    fps: 30,
-    config: SPRING.bouncy,
-    durationInFrames: 8,
-  });
-  // FAB depresses on tap (scale 1 → 0.86 → 1)
-  const fabPressed = frame >= TAP_FAB_FRAME && frame < TAP_FAB_FRAME + 4;
+  const fabPressed = frame >= FAB_TRIGGER && frame < FAB_TRIGGER + 4;
   const fabScale = fabPressed ? 0.86 : 1;
-  // FAB ripple from tap
-  const rippleP = interpolate(frame, [TAP_FAB_FRAME, TAP_FAB_FRAME + 14], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
 
   return (
     <div style={{ width: "100%", height: "100%", background: COLOR.bg }}>
-      {/* Status-bar gutter handled by PhoneFrame; start at y=50 */}
       <div style={{ paddingTop: 56 }} />
 
-      {/* Header — "Today" + avatar */}
       <div
         style={{
           padding: "8px 16px 14px",
@@ -196,8 +231,8 @@ const DashboardMock: React.FC<{ frame: number }> = ({ frame }) => {
         }}
       >
         <div>
-          <div style={{ fontSize: 12, color: COLOR.textSec, fontWeight: 500 }}>
-            Good morning, Aaron
+          <div style={{ fontSize: 12, color: COLOR.textTer, fontWeight: 500 }}>
+            Good morning
           </div>
           <div style={{ fontSize: 22, fontWeight: 800, color: COLOR.navy }}>
             Today
@@ -208,8 +243,8 @@ const DashboardMock: React.FC<{ frame: number }> = ({ frame }) => {
             width: 34,
             height: 34,
             borderRadius: 17,
-            background: COLOR.aiPurpleBg,
-            color: COLOR.aiPurple,
+            background: COLOR.divider,
+            color: COLOR.textSec,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -221,7 +256,7 @@ const DashboardMock: React.FC<{ frame: number }> = ({ frame }) => {
         </div>
       </div>
 
-      {/* 2x2 stat grid */}
+      {/* Restrained mono stat grid */}
       <div
         style={{
           padding: "0 12px",
@@ -230,13 +265,12 @@ const DashboardMock: React.FC<{ frame: number }> = ({ frame }) => {
           gap: 10,
         }}
       >
-        <StatTile label="This Month" value="£4,280" tone={COLOR.paid} delay={2} frame={frame} />
-        <StatTile label="Outstanding" value="£1,160" tone={COLOR.pending} delay={4} frame={frame} />
-        <StatTile label="Quotes Sent" value="12" tone={COLOR.sentText} delay={6} frame={frame} />
-        <StatTile label="Jobs Active" value="5" tone={COLOR.aiPurple} delay={8} frame={frame} />
+        <StatTile label="This Month" value="£4,280" delay={2} frame={frame} />
+        <StatTile label="Outstanding" value="£1,160" delay={4} frame={frame} />
+        <StatTile label="Quotes Sent" value="12" delay={6} frame={frame} />
+        <StatTile label="Jobs Active" value="5" delay={8} frame={frame} />
       </div>
 
-      {/* Activity feed */}
       <div style={{ padding: "16px 16px 0" }}>
         <div
           style={{
@@ -251,107 +285,78 @@ const DashboardMock: React.FC<{ frame: number }> = ({ frame }) => {
           Recent activity
         </div>
         <ActivityRow
-          badge="Voice Quote"
-          badgeColor={COLOR.aiPurple}
-          badgeBg={COLOR.aiPurpleBg}
           title="Mrs Patel — boiler service"
           meta="Yesterday · £340"
         />
         <ActivityRow
-          badge="Paid"
-          badgeColor={COLOR.paid}
-          badgeBg={"#DCFCE7"}
           title="James Reilly — kitchen tap"
           meta="2 days ago · £125"
         />
         <ActivityRow
-          badge="Sent"
-          badgeColor={COLOR.sentText}
-          badgeBg={COLOR.sentBg}
           title="Sarah Kahn — shower install"
           meta="3 days ago · £980"
         />
       </div>
 
-      {/* AI FAB — bottom-right (Kiva spec: 52px blue, AI badge, pulse ring) */}
+      {/* AI FAB — the only color punch on the dashboard */}
       <div
         style={{
           position: "absolute",
           right: 22,
           bottom: 110,
-          width: 52,
-          height: 52,
+          width: 56,
+          height: 56,
         }}
       >
-        {/* Pulse ring — 1.45× scale @ 60f period (idle) */}
+        {/* Slow ambient pulse */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             borderRadius: "50%",
-            background: COLOR.blue,
+            background: COLOR.aiPurple,
             transform: `scale(${interpolate(
               (frame % 60) / 60,
               [0, 1],
-              [1.0, 1.45]
+              [1.0, 1.55]
             )})`,
-            opacity: interpolate((frame % 60) / 60, [0, 1], [0.4, 0]),
+            opacity: interpolate((frame % 60) / 60, [0, 1], [0.32, 0]),
           }}
         />
-        {/* Tap ripple — fired on TAP_FAB_FRAME */}
-        {frame >= TAP_FAB_FRAME && frame < TAP_FAB_FRAME + 14 && (
+        {/* Activation ring */}
+        {frame >= FAB_TRIGGER && frame < FAB_TRIGGER + 18 && (
           <div
             style={{
               position: "absolute",
               inset: 0,
               borderRadius: "50%",
-              border: `2px solid ${COLOR.blue}`,
-              transform: `scale(${interpolate(rippleP, [0, 1], [1, 2.4])})`,
-              opacity: interpolate(rippleP, [0, 1], [0.7, 0]),
+              border: `2px solid ${COLOR.aiPurple}`,
+              transform: `scale(${interpolate(
+                frame - FAB_TRIGGER,
+                [0, 18],
+                [1, 2.8]
+              )})`,
+              opacity: interpolate(frame - FAB_TRIGGER, [0, 18], [0.85, 0]),
             }}
           />
         )}
-        {/* FAB core */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             borderRadius: "50%",
-            background: COLOR.blue,
+            background: `radial-gradient(circle at 30% 30%, #8B5CF6 0%, ${COLOR.aiPurple} 60%, #5B21B6 100%)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             transform: `scale(${fabScale})`,
-            boxShadow: "0 6px 16px rgba(59,130,246,0.45)",
-            transition: "transform 60ms ease-out",
+            boxShadow:
+              "0 6px 20px rgba(109,40,217,0.5), inset 0 1px 0 rgba(255,255,255,0.25)",
           }}
         >
           <SparklesGlyph />
         </div>
-        {/* AI badge top-right */}
-        <div
-          style={{
-            position: "absolute",
-            top: -4,
-            right: -4,
-            background: COLOR.aiPurple,
-            color: "#fff",
-            fontSize: 8,
-            fontWeight: 800,
-            padding: "2px 5px",
-            borderRadius: 6,
-            letterSpacing: 0.4,
-          }}
-        >
-          AI
-        </div>
       </div>
-
-      {/* Cursor arc — points to FAB, taps on TAP_FAB_FRAME */}
-      <Cursor frame={frame} mode="fab" />
-
-      {/* Suppress unused spring lint */}
-      <span style={{ display: "none" }}>{tapP}</span>
     </div>
   );
 };
@@ -359,11 +364,10 @@ const DashboardMock: React.FC<{ frame: number }> = ({ frame }) => {
 const StatTile: React.FC<{
   label: string;
   value: string;
-  tone: string;
   delay: number;
   frame: number;
-}> = ({ label, value, tone, delay, frame }) => {
-  const enter = interpolate(frame, [delay, delay + 8], [0, 1], {
+}> = ({ label, value, delay, frame }) => {
+  const enter = interpolate(frame, [delay, delay + 10], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
@@ -377,26 +381,30 @@ const StatTile: React.FC<{
         padding: "12px 12px",
         opacity: enter,
         transform: `translateY(${interpolate(enter, [0, 1], [10, 0])}px)`,
-        boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
       }}
     >
-      <div style={{ fontSize: 9, color: COLOR.textTer, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>
+      <div
+        style={{
+          fontSize: 9,
+          color: COLOR.textTer,
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: 0.4,
+        }}
+      >
         {label}
       </div>
-      <div style={{ fontSize: 18, color: tone, fontWeight: 800, marginTop: 4 }}>
+      <div style={{ fontSize: 18, color: COLOR.navy, fontWeight: 800, marginTop: 4 }}>
         {value}
       </div>
     </div>
   );
 };
 
-const ActivityRow: React.FC<{
-  badge: string;
-  badgeColor: string;
-  badgeBg: string;
-  title: string;
-  meta: string;
-}> = ({ badge, badgeColor, badgeBg, title, meta }) => (
+const ActivityRow: React.FC<{ title: string; meta: string }> = ({
+  title,
+  meta,
+}) => (
   <div
     style={{
       display: "flex",
@@ -407,20 +415,24 @@ const ActivityRow: React.FC<{
   >
     <div
       style={{
-        background: badgeBg,
-        color: badgeColor,
-        fontSize: 9,
-        fontWeight: 700,
-        padding: "3px 6px",
-        borderRadius: 6,
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: COLOR.textTer,
         marginRight: 10,
-        whiteSpace: "nowrap",
       }}
-    >
-      {badge}
-    </div>
+    />
     <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: COLOR.navy, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: COLOR.navy,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
         {title}
       </div>
       <div style={{ fontSize: 10, color: COLOR.textSec, fontWeight: 500 }}>
@@ -445,29 +457,39 @@ const SparklesGlyph: React.FC = () => (
 );
 
 // =====================================================================
-// VOICE QUOTE MOCK — mic-centred screen with live transcription
+// VOICE QUOTE MOCK — calm centered mic, transcription card
 // =====================================================================
 const VoiceQuoteMock: React.FC<{ frame: number; fps: number }> = ({
   frame,
   fps,
 }) => {
-  const recording = frame >= TAP_MIC_FRAME + 2;
-  // Mic depresses on tap
-  const micPressed = frame >= TAP_MIC_FRAME && frame < TAP_MIC_FRAME + 4;
-  const micPress = micPressed ? 0.9 : 1;
-  // Mic "hero" mode lift after recording starts
-  const micLift = interpolate(frame, [REC_PHASE_END, REC_PHASE_END + 14], [0, -40], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-    easing: EASE.outCubic,
-  });
+  const recording = frame >= MIC_TRIGGER + 2;
+  const micPressed = frame >= MIC_TRIGGER && frame < MIC_TRIGGER + 4;
+  const micPress = micPressed ? 0.92 : 1;
+  const micLift = interpolate(
+    frame,
+    [TRANSCRIBE_START - 2, TRANSCRIBE_START + 14],
+    [0, -56],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE.outCubic }
+  );
+  const micShrink = interpolate(
+    frame,
+    [TRANSCRIBE_START, TRANSCRIBE_START + 14],
+    [1, 0.78],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE.outCubic }
+  );
 
   return (
-    <div style={{ width: "100%", height: "100%", background: COLOR.bg, position: "relative" }}>
-      {/* Status-bar gutter */}
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        background: COLOR.bg,
+        position: "relative",
+      }}
+    >
       <div style={{ paddingTop: 56 }} />
 
-      {/* Top nav: back chevron + screen title */}
       <div
         style={{
           padding: "8px 16px 0",
@@ -476,15 +498,15 @@ const VoiceQuoteMock: React.FC<{ frame: number; fps: number }> = ({
           gap: 8,
         }}
       >
-        <div style={{ fontSize: 18, color: COLOR.navy, fontWeight: 700 }}>
+        <div style={{ fontSize: 18, color: COLOR.textTer, fontWeight: 600 }}>
           ←
         </div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: COLOR.navy }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: COLOR.navy }}>
           New Quote
         </div>
       </div>
 
-      {/* Step pill */}
+      {/* Single step pill — only AI accent on screen */}
       <div style={{ padding: "12px 16px 0" }}>
         <div
           style={{
@@ -499,133 +521,62 @@ const VoiceQuoteMock: React.FC<{ frame: number; fps: number }> = ({
             letterSpacing: 0.5,
           }}
         >
-          ✦ Step 1 — Speak the job
+          ✦ {recording ? "Recording" : "Speak the job"}
         </div>
       </div>
 
-      {/* Headline / hint */}
-      <div style={{ padding: "10px 16px 0" }}>
-        {!recording ? (
-          <div style={{ fontSize: 18, fontWeight: 800, color: COLOR.navy, lineHeight: 1.25 }}>
-            Tap to record.<br />Kiva writes the quote.
-          </div>
-        ) : (
-          <div
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              color: COLOR.navy,
-              lineHeight: 1.25,
-              opacity: interpolate(frame, [TAP_MIC_FRAME + 2, TAP_MIC_FRAME + 10], [0, 1], {
-                extrapolateLeft: "clamp",
-                extrapolateRight: "clamp",
-              }),
-            }}
-          >
-            Listening…{" "}
-            <span style={{ color: COLOR.overdue, fontWeight: 800 }}>●</span>
-          </div>
-        )}
-      </div>
-
-      {/* Mic stack — centered */}
+      {/* Mic — large, centered */}
       <div
         style={{
           position: "absolute",
           top: "44%",
           left: "50%",
-          transform: `translate(-50%, calc(-50% + ${micLift}px)) scale(${micPress})`,
-          transition: "transform 60ms ease-out",
+          transform: `translate(-50%, calc(-50% + ${micLift}px)) scale(${micPress * micShrink})`,
         }}
       >
         <MicButton startFrame={0} recording={recording} size="hero" />
       </div>
 
-      {/* Tap ripple on mic */}
-      {frame >= TAP_MIC_FRAME && frame < TAP_MIC_FRAME + 16 && (
+      {/* Subtle "Listening…" label under mic during recording */}
+      {recording && frame < TRANSCRIBE_START + 10 && (
         <div
           style={{
             position: "absolute",
-            top: "44%",
-            left: "50%",
-            width: 130,
-            height: 130,
-            borderRadius: "50%",
-            border: `2px solid ${COLOR.overdue}`,
-            transform: `translate(-50%, -50%) scale(${interpolate(
-              frame - TAP_MIC_FRAME,
-              [0, 16],
-              [1, 2.4]
-            )})`,
-            opacity: interpolate(frame - TAP_MIC_FRAME, [0, 16], [0.8, 0]),
-            pointerEvents: "none",
+            top: "62%",
+            left: 0,
+            right: 0,
+            textAlign: "center",
+            fontSize: 13,
+            fontWeight: 600,
+            color: COLOR.textSec,
+            letterSpacing: 0.4,
+            opacity: interpolate(
+              frame,
+              [MIC_TRIGGER + 4, MIC_TRIGGER + 12, TRANSCRIBE_START + 6, TRANSCRIBE_START + 10],
+              [0, 1, 1, 0],
+              { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+            ),
           }}
-        />
+        >
+          Listening…
+        </div>
       )}
 
-      {/* Live waveform — under mic during recording */}
-      {recording && frame < TRANSCRIBE_START + 6 && (
-        <Waveform frame={frame - TAP_MIC_FRAME} />
-      )}
-
-      {/* Transcription card — slides up during transcription */}
       {frame >= TRANSCRIBE_START && (
         <TranscriptionCard frame={frame - TRANSCRIBE_START} />
       )}
 
-      {/* Cursor arc — points to mic, taps on TAP_MIC_FRAME */}
-      <Cursor frame={frame} mode="mic" />
-
-      {/* Suppress unused */}
       <span style={{ display: "none" }}>{fps}</span>
     </div>
   );
 };
 
-const Waveform: React.FC<{ frame: number }> = ({ frame }) => {
-  const bars = 18;
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: "60%",
-        left: "50%",
-        transform: "translate(-50%, 0)",
-        width: 260,
-        height: 40,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        opacity: interpolate(frame, [0, 6], [0, 1], { extrapolateRight: "clamp" }),
-      }}
-    >
-      {Array.from({ length: bars }).map((_, i) => {
-        const h = 6 + 20 * Math.abs(Math.sin(frame / 4 + i * 0.6));
-        return (
-          <div
-            key={i}
-            style={{
-              width: 4,
-              height: h,
-              borderRadius: 2,
-              background: COLOR.overdue,
-              opacity: 0.85,
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-};
-
 const TranscriptionCard: React.FC<{ frame: number }> = ({ frame }) => {
-  // Enter spring
-  const enter = interpolate(frame, [0, 10], [0, 1], {
+  const enter = interpolate(frame, [0, 12], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE.outCubic,
   });
-  // Reveal tokens word-by-word
   const totalTokens = TRANSCRIPT_TOKENS.length;
   const tokenReveal = Math.min(
     totalTokens,
@@ -637,14 +588,14 @@ const TranscriptionCard: React.FC<{ frame: number }> = ({ frame }) => {
     <div
       style={{
         position: "absolute",
-        left: 14,
-        right: 14,
-        bottom: 84,
+        left: 16,
+        right: 16,
+        bottom: 70,
         background: COLOR.surface,
         border: `1px solid ${COLOR.border}`,
-        borderRadius: 14,
-        padding: "12px 14px",
-        boxShadow: "0 6px 18px rgba(15,23,42,0.10)",
+        borderRadius: 16,
+        padding: "14px 16px",
+        boxShadow: "0 12px 28px rgba(15,23,42,0.10)",
         opacity: enter,
         transform: `translateY(${interpolate(enter, [0, 1], [22, 0])}px)`,
       }}
@@ -657,37 +608,29 @@ const TranscriptionCard: React.FC<{ frame: number }> = ({ frame }) => {
           textTransform: "uppercase",
           letterSpacing: 0.6,
           marginBottom: 6,
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
         }}
       >
-        <span
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: COLOR.overdue,
-            display: "inline-block",
-            opacity: Math.floor((frame % 18) / 9) === 0 ? 1 : 0.3,
-          }}
-        />
-        Transcribing…
+        ✦ Transcribing
       </div>
-      <div style={{ fontSize: 14, color: COLOR.navy, lineHeight: 1.5, fontWeight: 500 }}>
+      <div
+        style={{
+          fontSize: 14,
+          color: COLOR.navy,
+          lineHeight: 1.5,
+          fontWeight: 500,
+        }}
+      >
         {TRANSCRIPT_TOKENS.slice(0, tokenReveal).map((t, i) => {
           if (!t.hl) return <span key={i}>{t.text}</span>;
           return (
             <span
               key={i}
               style={{
-                color: COLOR.sentText,
+                color: COLOR.navy,
                 fontWeight: 800,
                 background: COLOR.sentBg,
                 padding: "1px 6px",
                 borderRadius: 5,
-                marginRight: 1,
-                marginLeft: 1,
               }}
             >
               {t.text}
@@ -713,85 +656,90 @@ const TranscriptionCard: React.FC<{ frame: number }> = ({ frame }) => {
 };
 
 // =====================================================================
-// CURSOR — thumb pointer that arcs in then taps
+// HERO STING — mask-clip reveal, full-frame, Linear-grade typography
 // =====================================================================
-const Cursor: React.FC<{ frame: number; mode: "fab" | "mic" }> = ({
-  frame,
-  mode,
-}) => {
-  if (mode === "fab") {
-    // Arrive frames 6→20, tap @ 22
-    if (frame < 4 || frame > TAP_FAB_FRAME + 6) return null;
-    const p = interpolate(frame, [4, 20], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: EASE.outCubic,
-    });
-    const tapPulse =
-      frame >= TAP_FAB_FRAME && frame < TAP_FAB_FRAME + 6
-        ? 1 - (frame - TAP_FAB_FRAME) / 6
-        : 0;
-    // FAB inside dashboard at right 22 + 26 (center) = right inset 48 from
-    // phone right (393). So x ~ 393 - 48 = 345. y ~ 852 - 110 - 26 = 716.
-    const x = interpolate(p, [0, 1], [240, 345]);
-    const y = interpolate(p, [0, 1], [820, 716]);
-    return (
-      <div
-        style={{
-          position: "absolute",
-          left: x,
-          top: y,
-          transform: `translate(-50%, -50%) scale(${1 - tapPulse * 0.25})`,
-          pointerEvents: "none",
-          zIndex: 50,
-        }}
-      >
-        <CursorDot />
-      </div>
-    );
-  }
-  // mic mode: cursor must enter during VoiceQuote screen, after morph done
-  if (frame < MORPH_END + 2 || frame > TAP_MIC_FRAME + 8) return null;
-  const startF = MORPH_END + 2;
-  const arriveF = TAP_MIC_FRAME - 2;
-  const p = interpolate(frame, [startF, arriveF], [0, 1], {
+const HeroSting: React.FC<{
+  in: number;
+  out: number;
+  frame: number;
+  text: string;
+  emphasisIndex: number;
+  position: "above" | "below";
+}> = (props) => {
+  if (props.frame < props.in - 2 || props.frame > props.out + 4) return null;
+
+  // 0 → 1 → 1 → 0 envelope. Reveal early, sit, then fade.
+  const reveal = interpolate(
+    props.frame,
+    [props.in, props.in + 12, props.out - 8, props.out],
+    [0, 1, 1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE.outCubic }
+  );
+  // Slight Y drift across the hold (subtle parallax)
+  const drift = interpolate(props.frame, [props.in, props.out], [0, -10], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
-    easing: EASE.outCubic,
   });
-  const tapPulse =
-    frame >= TAP_MIC_FRAME && frame < TAP_MIC_FRAME + 8
-      ? 1 - (frame - TAP_MIC_FRAME) / 8
-      : 0;
-  // Mic at 50% / 44% of 393×852 = (196, 375)
-  const x = interpolate(p, [0, 1], [80, 196]);
-  const y = interpolate(p, [0, 1], [720, 375]);
+
+  // Horizontal mask-clip wipe (same pattern as Scene 2 v1.7)
+  const wipe = interpolate(
+    props.frame,
+    [props.in, props.in + 14],
+    [0, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE.outCubic }
+  );
+  const maskStop1 = Math.max(0, wipe * 112 - 12);
+  const maskStop2 = Math.min(112, wipe * 112);
+  const mask = `linear-gradient(90deg, black 0%, black ${maskStop1}%, transparent ${maskStop2}%, transparent 100%)`;
+
+  // Position above or below the phone. Phone is centered, scale ~0.6,
+  // visible height ~590-660. Phone bottom reaches ~y=870 at largest.
+  const top = props.position === "above" ? 90 : 920;
+
+  // Split into words; emphasize first word (purple), rest white.
+  const words = props.text.split(" ");
+
   return (
     <div
       style={{
         position: "absolute",
-        left: x,
-        top: y,
-        transform: `translate(-50%, -50%) scale(${1 - tapPulse * 0.25})`,
+        top,
+        left: 0,
+        right: 0,
+        display: "flex",
+        justifyContent: "center",
         pointerEvents: "none",
-        zIndex: 50,
+        opacity: reveal,
+        transform: `translateY(${drift}px)`,
+        zIndex: 30,
       }}
     >
-      <CursorDot />
+      <div
+        style={{
+          fontFamily: "Inter, system-ui",
+          fontSize: TYPE.hookHero.size * 0.85,
+          fontWeight: TYPE.hookHero.weight,
+          letterSpacing: -2.5,
+          lineHeight: 1,
+          color: "#fff",
+          WebkitMaskImage: mask,
+          maskImage: mask,
+          padding: "0 60px",
+          textShadow: "0 6px 30px rgba(0,0,0,0.55)",
+        }}
+      >
+        {words.map((w, i) => (
+          <span
+            key={i}
+            style={{
+              color: i === props.emphasisIndex ? COLOR.aiPurple : "#fff",
+              marginRight: i < words.length - 1 ? 18 : 0,
+            }}
+          >
+            {w}
+          </span>
+        ))}
+      </div>
     </div>
   );
 };
-
-const CursorDot: React.FC = () => (
-  <div
-    style={{
-      width: 30,
-      height: 30,
-      borderRadius: "50%",
-      background: "rgba(15,23,42,0.85)",
-      border: "2px solid rgba(255,255,255,0.9)",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
-    }}
-  />
-);
-
